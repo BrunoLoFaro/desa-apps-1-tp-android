@@ -1,15 +1,27 @@
+gitignore
+# Gradle files
+.gradle/
+build/
+
+# Kotlin/Java
 *.iml
-.gradle
+.kotlin/
+
+# IDE - IntelliJ / Android Studio
+.idea/
+# If you eventually want to share code styles, you would ignore .idea/ 
+# but add: !.idea/codeStyles/
+
+# Android specific
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/captures/
+.externalNativeBuild/
+.cxx/
+output.json
+
+# System files
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
+
+# AI / Agent files (Optional - see previous discussion)
+# .agentLplan.md 
