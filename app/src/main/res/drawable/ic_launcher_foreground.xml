@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Shield for Security -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,24 L80,24 L80,52 C80,72 54,86 54,86 C54,86 28,72 28,52 L28,24 Z" />
+
+    <!-- Link/Connectivity Symbol inside -->
+    <path
+        android:fillColor="#2962FF"
+        android:pathData="M44,48 C44,44.68 46.68,42 50,42 L54,42 L54,46 L50,46 C48.9,46 48,46.9 48,48 L48,52 C48,53.1 48.9,54 50,54 L54,54 L54,58 L50,58 C46.68,58 44,55.32 44,52 Z" />
+    <path
+        android:fillColor="#2962FF"
+        android:pathData="M64,52 C64,55.32 61.32,58 58,58 L54,58 L54,54 L58,54 C59.1,54 60,53.1 60,52 L60,48 C60,46.9 59.1,46 58,46 L54,46 L54,42 L58,42 C61.32,42 64,44.68 64,48 Z" />
+    <path
+        android:fillColor="#2962FF"
+        android:pathData="M48,48 L60,48 L60,52 L48,52 Z" />
+
+    <!-- Dot for Customization/Endpoint node -->
+    <path
+        android:fillColor="#2962FF"
+        android:pathData="M54,34 A2,2 0 1,1 53.9,34 Z" />
+</vector>
