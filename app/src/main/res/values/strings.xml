@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">xplorenow</string>
+    <string name="login_title">Welcome Back</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="login_button_text">Sign In</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="sign_up_prompt">Don\'t have an account? Sign Up</string>
+    <string name="error_config_load">Failed to load application configuration.</string>
+    <string name="error_empty_fields">Please enter both username and password.</string>
+    <string name="login_success">Login successful!</string>
+    <string name="login_failed">Login failed: %1$s</string>
+    <string name="generic_error">An error occurred: %1$s</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="backend_config_title">Backend Configuration</string>
+    <string name="base_url_hint">Base URL</string>
+    <string name="endpoint_hint">Login Endpoint</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="settings_saved">Settings saved successfully</string>
+    <string name="invalid_input">Please enter valid values</string>
+</resources>
