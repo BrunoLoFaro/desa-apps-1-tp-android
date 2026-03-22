@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     
+    // Image Loading
+    implementation(libs.glide)
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

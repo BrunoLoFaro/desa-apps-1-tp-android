@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Auth Portal</string>
+    <string name="app_name">XploreNow</string>
     <string name="login_title">Welcome Back</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
@@ -20,4 +20,13 @@
     <string name="save_changes">Save Changes</string>
     <string name="settings_saved">Settings saved successfully</string>
     <string name="invalid_input">Please enter valid values</string>
+
+    <string name="home_search_hint">¿A dónde quieres ir?</string>
+    <string name="home_featured_title">Recomendados para ti</string>
+    <string name="home_all_activities_title">Explora actividades</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_explore">Explorar</string>
+    <string name="nav_bookings">Mis Reservas</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="slots_available">¡Solo quedan %1$d cupos!</string>
 </resources>
