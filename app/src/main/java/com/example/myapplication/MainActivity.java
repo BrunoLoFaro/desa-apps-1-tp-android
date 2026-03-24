@@ -130,8 +130,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleLoginSuccess(LoginResponse response) {
-        String message = response.message != null ? response.message : getString(R.string.login_success);
-        Snackbar.make(coordinator, message, Snackbar.LENGTH_LONG).show();
+        Intent intent = new Intent(this, HomeActivity.class);
+        // Estas flags limpian todo el stack de actividades y hacen que HomeActivity sea la nueva raíz
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void setLoading(boolean isLoading) {

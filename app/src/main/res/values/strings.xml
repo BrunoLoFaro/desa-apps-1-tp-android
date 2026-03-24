@@ -11,6 +11,7 @@
     <string name="login_success">Login successful!</string>
     <string name="login_failed">Login failed: %1$s</string>
     <string name="generic_error">An error occurred: %1$s</string>
+    <string name="welcome_message">Welcome!</string>
 
     <string name="settings_title">Settings</string>
     <string name="backend_config_title">Backend Configuration</string>
