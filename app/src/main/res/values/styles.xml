@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.XploreNow.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/md_theme_tertiary</item>
+        <item name="android:textColor">@color/md_theme_onTertiary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.XploreNow.Button</item>
+    </style>
+</resources>
+

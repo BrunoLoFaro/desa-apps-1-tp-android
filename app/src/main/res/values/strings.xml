@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Auth Portal</string>
+    <string name="app_name">xplorenow</string>
     <string name="login_title">Welcome Back</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
