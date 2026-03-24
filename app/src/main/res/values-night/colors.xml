@@ -1,35 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
-    <color name="primary">#B0C6FF</color>
-    <color name="onPrimary">#002D8F</color>
-    <color name="primaryContainer">#0042C9</color>
-    <color name="onPrimaryContainer">#D7E2FF</color>
+    <!-- Primary -->
+    <color name="md_theme_primary">#9810FA</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#EADDFF</color>
+    <color name="md_theme_onPrimaryContainer">#21005D</color>
 
-    <!-- Secondary Colors -->
-    <color name="secondary">#BCC6DC</color>
-    <color name="onSecondary">#273147</color>
-    <color name="secondaryContainer">#3E475E</color>
-    <color name="onSecondaryContainer">#D7E2FF</color>
+    <!-- Secondary -->
+    <color name="md_theme_secondary">#00C2FF</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#D0F0FF</color>
+    <color name="md_theme_onSecondaryContainer">#001F2A</color>
 
-    <!-- Tertiary Colors -->
-    <color name="tertiary">#E5BAD8</color>
-    <color name="onTertiary">#44263E</color>
-    <color name="tertiaryContainer">#5D3C55</color>
-    <color name="onTertiaryContainer">#FFD7F3</color>
+    <!-- Tertiary (CTA - Reservar) -->
+    <color name="md_theme_tertiary">#FF6D00</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#FFE2D1</color>
+    <color name="md_theme_onTertiaryContainer">#2A0F00</color>
 
-    <!-- Error Colors -->
-    <color name="error">#FFB4AB</color>
-    <color name="onError">#690005</color>
-    <color name="errorContainer">#93000A</color>
-    <color name="onErrorContainer">#FFDAD6</color>
+    <!-- Background -->
+    <color name="md_theme_background">#F6F4FB</color>
+    <color name="md_theme_onBackground">#1A1A1A</color>
 
-    <!-- Background and Surface Colors -->
-    <color name="background">#1A1B1F</color>
-    <color name="onBackground">#E3E2E6</color>
-    <color name="surface">#1A1B1F</color>
-    <color name="onSurface">#E3E2E6</color>
-    <color name="surfaceVariant">#44474F</color>
-    <color name="onSurfaceVariant">#C4C6D0</color>
-    <color name="outline">#8E9099</color>
+    <!-- Surface -->
+    <color name="md_theme_surface">#FFFFFF</color>
+    <color name="md_theme_onSurface">#1A1A1A</color>
+
+    <!-- Error -->
+    <color name="md_theme_error">#D50000</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+
+    <!-- Extras -->
+    <color name="success">#00C853</color>
+    <color name="warning">#FFAB00</color>
+
+    <!-- Backward-compatible aliases -->
+    <color name="primary">@color/md_theme_primary</color>
+    <color name="onPrimary">@color/md_theme_onPrimary</color>
+    <color name="primaryContainer">@color/md_theme_primaryContainer</color>
+    <color name="onPrimaryContainer">@color/md_theme_onPrimaryContainer</color>
+    <color name="secondary">@color/md_theme_secondary</color>
+    <color name="onSecondary">@color/md_theme_onSecondary</color>
+    <color name="secondaryContainer">@color/md_theme_secondaryContainer</color>
+    <color name="onSecondaryContainer">@color/md_theme_onSecondaryContainer</color>
+    <color name="tertiary">@color/md_theme_tertiary</color>
+    <color name="onTertiary">@color/md_theme_onTertiary</color>
+    <color name="tertiaryContainer">@color/md_theme_tertiaryContainer</color>
+    <color name="onTertiaryContainer">@color/md_theme_onTertiaryContainer</color>
+    <color name="background">@color/md_theme_background</color>
+    <color name="onBackground">@color/md_theme_onBackground</color>
+    <color name="surface">@color/md_theme_surface</color>
+    <color name="onSurface">@color/md_theme_onSurface</color>
+    <color name="error">@color/md_theme_error</color>
+    <color name="onError">@color/md_theme_onError</color>
 </resources>
