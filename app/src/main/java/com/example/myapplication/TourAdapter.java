@@ -26,9 +26,12 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     public TourViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         if (isHorizontal) {
-            // Ajustamos el ancho al 85% de la pantalla para que se vea la siguiente tarjeta
-            int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
-            view.setLayoutParams(new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT));
+            // Ajustamos el ancho al 80% de la pantalla
+            int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.80);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            // Añadimos margen a la derecha para separar las cards
+            params.setMargins(0, 0, 24, 0);
+            view.setLayoutParams(params);
         }
         return new TourViewHolder(view);
     }
@@ -50,12 +53,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         } else if (activity.getCategory().equalsIgnoreCase("Excursión")) {
             imageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500";
         } else if (activity.getCategory().equalsIgnoreCase("Free Tour")) {
-            imageUrl = "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=500";
+            imageUrl = "https://images.openqa.com/photo-1467269204594-9661b134dd2b?w=500";
         } else if (activity.getCategory().equalsIgnoreCase("Visita Guiada")) {
             imageUrl = "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500";
         }
 
-        // Usamos Glide para cargar las imágenes, que es más estable en Java
         Glide.with(holder.itemView.getContext())
                 .load(imageUrl)
                 .placeholder(android.R.drawable.ic_menu_gallery)

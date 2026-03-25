@@ -20,6 +20,9 @@
     <string name="save_changes">Save Changes</string>
     <string name="settings_saved">Settings saved successfully</string>
     <string name="invalid_input">Please enter valid values</string>
+    <string name="error_invalid_url">Invalid Base URL. It must start with http:// or https://</string>
+    <string name="error_invalid_config">Invalid server configuration. Please check Settings.</string>
+    <string name="error_service_not_initialized">Service not initialized. Check your settings.</string>
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
     <string name="home_featured_title">Recomendados para ti</string>

@@ -85,13 +85,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadConfiguration() {
-        appConfig = configLoader.loadConfig();
-        if (appConfig != null) {
-            authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
-            loginButton.setEnabled(true);
-        } else {
+        try {
+            appConfig = configLoader.loadConfig();
+            if (appConfig != null && appConfig.baseUrl != null && !appConfig.baseUrl.isEmpty()) {
+                authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
+                loginButton.setEnabled(true);
+            } else {
+                showError(getString(R.string.error_config_load));
+                loginButton.setEnabled(false);
+            }
+        } catch (IllegalArgumentException e) {
+            showError(getString(R.string.error_invalid_config));
+            loginButton.setEnabled(false);
+            authService = null;
+        } catch (Exception e) {
             showError(getString(R.string.error_config_load));
             loginButton.setEnabled(false);
+            authService = null;
         }
     }
 
@@ -105,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // --- BYPASS LOGIN PARA DESARROLLO ---
-        // Si el nombre de usuario es "admin" y la contraseña es "admin", salteamos la API.
         if (BuildConfig.DEBUG && "admin".equals(username) && "admin".equals(password)) {
             LoginResponse bypassResponse = new LoginResponse();
             bypassResponse.token = "fake-dev-token";
@@ -114,6 +123,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         // ------------------------------------
+
+        if (authService == null) {
+            showError(getString(R.string.error_service_not_initialized));
+            return;
+        }
 
         setLoading(true);
 
@@ -142,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleLoginSuccess(LoginResponse response) {
         Intent intent = new Intent(this, HomeActivity.class);
-        // Estas flags limpian todo el stack de actividades y hacen que HomeActivity sea la nueva raíz
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
