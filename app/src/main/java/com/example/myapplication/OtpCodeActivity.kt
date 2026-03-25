@@ -155,8 +155,14 @@ class OtpCodeActivity : AppCompatActivity() {
                     setVerifying(false)
                     if (response.isSuccessful && response.body() != null) {
                         val body = response.body()!!
-                        sessionManager.saveSession(body.token ?: "", body.userId ?: "", email)
-                        navigateToHome()
+                        val token = body.token?.trim()
+                        val userId = body.userId?.trim()
+                        if (!token.isNullOrEmpty() && !userId.isNullOrEmpty()) {
+                            sessionManager.saveSession(token, userId, email)
+                            navigateToHome()
+                        } else {
+                            showError(getString(R.string.otp_verify_generic))
+                        }
                     } else {
                         val errorMsg = when (response.code()) {
                             401 -> getString(R.string.otp_incorrect)
