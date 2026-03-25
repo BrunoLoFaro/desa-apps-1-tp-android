@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
 }
 
 android {
@@ -24,6 +25,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Usamos la firma de debug para permitir generar el APK de release sin un keystore oficial.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -57,6 +60,7 @@ dependencies {
     
     // Image Loading
     implementation(libs.glide)
+    kapt(libs.glide.compiler)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

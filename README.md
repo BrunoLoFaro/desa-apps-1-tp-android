@@ -25,5 +25,17 @@ La aplicación permite a los usuarios buscar y reservar actividades turísticas 
 *   `.gitignore`: Configuración para excluir archivos temporales de IDE y Gradle.
 
 ## ⚙️ Instalación y Configuración
-1.  Clona este repositorio:
-    
+1.  Clona este repositorio.
+2.  Abre el proyecto en Android Studio.
+3.  Sincroniza Gradle y ejecuta la aplicación.
+
+## 🔐 Bypass de Login (Desarrollo)
+Para facilitar las pruebas sin depender de la API externa, se ha implementado un bypass en el login:
+*   **Usuario:** `admin`
+*   **Contraseña:** `admin`
+
+*Nota: Este bypass solo funciona en versiones de **Debug**. Al ingresar estas credenciales, la app simulará un login exitoso y te redirigirá al Home.*
+
+Para bypassear ir a Build -> Select Build Variant -> Active Build Variant : "Debug"
+
+Si se desea probar el login sin bypassear, ir a Build -> Select Build Variant -> Active Build Variant : "Release"

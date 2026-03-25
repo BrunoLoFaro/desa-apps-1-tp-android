@@ -1,4 +1,4 @@
 {
-  "base_url": "https://api.example.com/",
-  "login_endpoint": "auth/login"
+  "base_url": "",
+  "login_endpoint": "users/login"
 }

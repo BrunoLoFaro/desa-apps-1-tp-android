@@ -104,6 +104,17 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // --- BYPASS LOGIN PARA DESARROLLO ---
+        // Si el nombre de usuario es "admin" y la contraseña es "admin", salteamos la API.
+        if (BuildConfig.DEBUG && "admin".equals(username) && "admin".equals(password)) {
+            LoginResponse bypassResponse = new LoginResponse();
+            bypassResponse.token = "fake-dev-token";
+            bypassResponse.userId = "dev-user-id";
+            handleLoginSuccess(bypassResponse);
+            return;
+        }
+        // ------------------------------------
+
         setLoading(true);
 
         executorService.execute(() -> {
