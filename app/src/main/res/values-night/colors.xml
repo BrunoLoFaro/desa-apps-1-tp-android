@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Primary -->
-    <color name="md_theme_primary">#9810FA</color>
-    <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#EADDFF</color>
-    <color name="md_theme_onPrimaryContainer">#21005D</color>
+    <color name="md_theme_primary">#D0BCFF</color>
+    <color name="md_theme_onPrimary">#381E72</color>
+    <color name="md_theme_primaryContainer">#4F378B</color>
+    <color name="md_theme_onPrimaryContainer">#EADDFF</color>
 
     <!-- Secondary -->
-    <color name="md_theme_secondary">#00C2FF</color>
-    <color name="md_theme_onSecondary">#FFFFFF</color>
-    <color name="md_theme_secondaryContainer">#D0F0FF</color>
-    <color name="md_theme_onSecondaryContainer">#001F2A</color>
+    <color name="md_theme_secondary">#CCC2DC</color>
+    <color name="md_theme_onSecondary">#332D41</color>
+    <color name="md_theme_secondaryContainer">#4A4458</color>
+    <color name="md_theme_onSecondaryContainer">#E8DEF8</color>
 
     <!-- Tertiary (CTA - Reservar) -->
-    <color name="md_theme_tertiary">#FF6D00</color>
-    <color name="md_theme_onTertiary">#FFFFFF</color>
-    <color name="md_theme_tertiaryContainer">#FFE2D1</color>
-    <color name="md_theme_onTertiaryContainer">#2A0F00</color>
+    <color name="md_theme_tertiary">#FFB98D</color>
+    <color name="md_theme_onTertiary">#4E2600</color>
+    <color name="md_theme_tertiaryContainer">#703800</color>
+    <color name="md_theme_onTertiaryContainer">#FFE2D1</color>
 
     <!-- Background -->
-    <color name="md_theme_background">#F6F4FB</color>
-    <color name="md_theme_onBackground">#1A1A1A</color>
+    <color name="md_theme_background">#1C1B1F</color>
+    <color name="md_theme_onBackground">#E6E1E5</color>
 
     <!-- Surface -->
-    <color name="md_theme_surface">#FFFFFF</color>
-    <color name="md_theme_onSurface">#1A1A1A</color>
+    <color name="md_theme_surface">#1C1B1F</color>
+    <color name="md_theme_onSurface">#E6E1E5</color>
 
     <!-- Error -->
-    <color name="md_theme_error">#D50000</color>
-    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_error">#F2B8B5</color>
+    <color name="md_theme_onError">#601410</color>
 
     <!-- Extras -->
-    <color name="success">#00C853</color>
-    <color name="warning">#FFAB00</color>
+    <color name="success">#81C784</color>
+    <color name="warning">#FFD54F</color>
 
     <!-- Backward-compatible aliases -->
     <color name="primary">@color/md_theme_primary</color>
