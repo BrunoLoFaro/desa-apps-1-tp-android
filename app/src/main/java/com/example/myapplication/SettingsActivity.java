@@ -20,6 +20,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private TextInputEditText baseUrlEditText;
     private TextInputEditText endpointEditText;
+    private TextInputEditText otpRequestEndpointEditText;
+    private TextInputEditText otpVerifyEndpointEditText;
     private MaterialButton saveButton;
     private LinearProgressIndicator saveProgress;
     private View coordinator;
@@ -35,6 +37,8 @@ public class SettingsActivity extends AppCompatActivity {
         coordinator = findViewById(R.id.settings_coordinator);
         baseUrlEditText = findViewById(R.id.base_url_edit_text);
         endpointEditText = findViewById(R.id.endpoint_edit_text);
+        otpRequestEndpointEditText = findViewById(R.id.otp_request_endpoint_edit_text);
+        otpVerifyEndpointEditText = findViewById(R.id.otp_verify_endpoint_edit_text);
         saveButton = findViewById(R.id.save_button);
         saveProgress = findViewById(R.id.save_progress);
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -58,14 +62,18 @@ public class SettingsActivity extends AppCompatActivity {
         if (config != null) {
             baseUrlEditText.setText(config.baseUrl);
             endpointEditText.setText(config.loginEndpoint);
+            otpRequestEndpointEditText.setText(config.otpRequestEndpoint);
+            otpVerifyEndpointEditText.setText(config.otpVerifyEndpoint);
         }
     }
 
     private void saveSettings() {
         String baseUrl = baseUrlEditText.getText().toString().trim();
         String endpoint = endpointEditText.getText().toString().trim();
+        String otpRequestEndpoint = otpRequestEndpointEditText.getText().toString().trim();
+        String otpVerifyEndpoint = otpVerifyEndpointEditText.getText().toString().trim();
 
-        if (baseUrl.isEmpty() || endpoint.isEmpty()) {
+        if (baseUrl.isEmpty() || endpoint.isEmpty() || otpRequestEndpoint.isEmpty() || otpVerifyEndpoint.isEmpty()) {
             showError(getString(R.string.invalid_input));
             return;
         }
@@ -76,6 +84,9 @@ public class SettingsActivity extends AppCompatActivity {
         AppConfig newConfig = new AppConfig();
         newConfig.baseUrl = baseUrl;
         newConfig.loginEndpoint = endpoint;
+        newConfig.otpRequestEndpoint = otpRequestEndpoint;
+        newConfig.otpVerifyEndpoint = otpVerifyEndpoint;
+        newConfig.otpTtlSeconds = 120;
 
         configLoader.saveConfig(newConfig);
         

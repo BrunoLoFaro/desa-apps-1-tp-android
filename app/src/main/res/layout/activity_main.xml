@@ -104,6 +104,14 @@
                     android:text="@string/login_button_text" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/otp_login_button"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/login_with_otp" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/forgot_password_button"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"

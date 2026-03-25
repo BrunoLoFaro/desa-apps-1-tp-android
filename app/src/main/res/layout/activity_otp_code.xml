@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/otp_code_coordinator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".OtpCodeActivity">
+
+    <!-- Toolbar with back button -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/otp_code_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/otp_enter_code_title"
+            app:navigationIcon="@android:drawable/ic_media_previous" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Email confirmation text -->
+            <!-- Comment: Shows masked email like "Code sent to mic***@gmail.com" -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_code_email_text"
+                style="@style/TextAppearance.XploreNow.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Code sent to mic***@gmail.com" />
+
+            <!-- OTP Input field -->
+            <!-- Comment: 6-digit numeric input with maxLength=6 -->
+            <!-- Comment: inputType="number" restricts to digits only -->
+            <!-- Comment: Auto-focus on screen open via requestFocus() in Activity -->
+            <!-- Comment: Supports paste from clipboard (handled in Activity code) -->
+            <!-- Comment: Error message shown below if invalid/expired -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/otp_code_input_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="@string/otp_code_hint"
+                app:startIconDrawable="@android:drawable/ic_lock_idle_lock">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/otp_code_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="6"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Error message (initially hidden) -->
+            <!-- Comment: Shows "Invalid code" or "Code expired" errors -->
+            <!-- Comment: Clears when user starts editing input -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_code_error"
+                style="@style/TextAppearance.XploreNow.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="?attr/colorError"
+                android:visibility="gone"
+                tools:text="Invalid code"
+                tools:visibility="visible" />
+
+            <!-- Timer text -->
+            <!-- Comment: Shows "Expires in 01:59" and counts down -->
+            <!-- Comment: Updates every second from OTP expiration timestamp -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_code_timer"
+                style="@style/TextAppearance.XploreNow.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:textColor="?attr/colorSecondary"
+                android:textAlignment="center"
+                tools:text="Expires in 01:59" />
+
+            <!-- Verify Button -->
+            <!-- Comment: Primary CTA button (orange #FF6D00) -->
+            <!-- Comment: Disabled state: button.isEnabled = false when OTP code length < 6 -->
+            <!-- Comment: Loading state: shows progress and is disabled during verification -->
+            <!-- Comment: On click: validate 6 digits → verifyOtp(email, code) → create session → navigate HomeActivity -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_code_verify_button"
+                style="@style/Widget.XploreNow.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:enabled="false"
+                android:text="@string/otp_verify" />
+
+            <!-- Loading progress indicator (initially hidden) -->
+            <!-- Comment: Shows below button during OTP verification API call -->
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/otp_code_verify_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+            <!-- Resend Code Button -->
+            <!-- Comment: Secondary action button (outline style) -->
+            <!-- Comment: Disabled while timer > 0 (countdown in progress) -->
+            <!-- Comment: Enabled when timer reaches 0 -->
+            <!-- Comment: On click: sendOtp(email) again → restart timer (30s) → show "New code sent" message -->
+            <!-- Comment: Uses same email from Screen 1 (passed via Intent) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_code_resend_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="16dp"
+                android:enabled="false"
+                android:text="@string/otp_resend_code" />
+
+            <!-- Spacer -->
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="16dp" />
+
+            <!-- Change Email Button -->
+            <!-- Comment: TextButton (no background) for secondary action -->
+            <!-- Comment: On click: popBackStack() or startActivity(OtpEmailActivity) -->
+            <!-- Comment: Should preserve previously entered email if possible -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_code_change_email_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/otp_change_email" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

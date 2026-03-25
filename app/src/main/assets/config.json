@@ -1,4 +1,7 @@
 {
   "base_url": "https://api.example.com/",
-  "login_endpoint": "auth/login"
+  "login_endpoint": "auth/login",
+  "otp_request_endpoint": "auth/otp/request",
+  "otp_verify_endpoint": "auth/otp/verify",
+  "otp_ttl_seconds": 120
 }

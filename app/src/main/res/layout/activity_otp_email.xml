@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/otp_email_coordinator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".OtpEmailActivity">
+
+    <!-- Toolbar with back button -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/otp_email_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/otp_access_title"
+            app:navigationIcon="@android:drawable/ic_media_previous" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Title: "Verifica tu email" -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_email_title"
+                style="@style/TextAppearance.XploreNow.H2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:text="@string/otp_verify_email_title"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+            <!-- Email input field -->
+            <!-- Comment: TextField with email validation (emailAddress inputType) -->
+            <!-- Comment: Hint and start icon for visual guidance -->
+            <!-- Comment: Error state will be shown below if email is invalid -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/otp_email_input_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="@string/otp_email_hint"
+                app:startIconDrawable="@android:drawable/ic_dialog_email">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/otp_email_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Error message (initially hidden) -->
+            <!-- Comment: Shows validation errors like "Enter a valid email" or "Failed to send code" -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_email_error"
+                style="@style/TextAppearance.XploreNow.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="?attr/colorError"
+                android:visibility="gone"
+                tools:text="Enter a valid email"
+                tools:visibility="visible" />
+
+            <!-- Send Code Button -->
+            <!-- Comment: Primary CTA button (orange #FF6D00) -->
+            <!-- Comment: Disabled state: button.isEnabled = false when email is empty or invalid -->
+            <!-- Comment: Loading state: shows progress spinner while sending OTP -->
+            <!-- Comment: On click: validate email → sendOtp() → navigate to OtpCodeActivity -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_email_send_button"
+                style="@style/Widget.XploreNow.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:enabled="false"
+                android:text="@string/otp_send_code" />
+
+            <!-- Loading progress indicator (initially hidden) -->
+            <!-- Comment: Shows below button during API call -->
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/otp_email_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

@@ -14,6 +14,9 @@ public class ConfigLoader {
     private static final String PREFS_NAME = "app_config";
     private static final String KEY_BASE_URL = "base_url";
     private static final String KEY_LOGIN_ENDPOINT = "login_endpoint";
+    private static final String KEY_OTP_REQUEST_ENDPOINT = "otp_request_endpoint";
+    private static final String KEY_OTP_VERIFY_ENDPOINT = "otp_verify_endpoint";
+    private static final String KEY_OTP_TTL_SECONDS = "otp_ttl_seconds";
     
     private final Context context;
     private final Moshi moshi;
@@ -29,6 +32,9 @@ public class ConfigLoader {
             AppConfig config = new AppConfig();
             config.baseUrl = prefs.getString(KEY_BASE_URL, "");
             config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, "");
+            config.otpRequestEndpoint = prefs.getString(KEY_OTP_REQUEST_ENDPOINT, "auth/otp/request");
+            config.otpVerifyEndpoint = prefs.getString(KEY_OTP_VERIFY_ENDPOINT, "auth/otp/verify");
+            config.otpTtlSeconds = prefs.getInt(KEY_OTP_TTL_SECONDS, 120);
             return config;
         }
 
@@ -48,6 +54,9 @@ public class ConfigLoader {
         prefs.edit()
                 .putString(KEY_BASE_URL, config.baseUrl)
                 .putString(KEY_LOGIN_ENDPOINT, config.loginEndpoint)
+                .putString(KEY_OTP_REQUEST_ENDPOINT, config.otpRequestEndpoint)
+                .putString(KEY_OTP_VERIFY_ENDPOINT, config.otpVerifyEndpoint)
+                .putInt(KEY_OTP_TTL_SECONDS, config.otpTtlSeconds)
                 .apply();
     }
 }

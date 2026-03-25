@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -20,6 +21,7 @@ import com.example.myapplication.data.model.LoginRequest;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.RetrofitClient;
+import com.example.myapplication.data.session.SessionManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText usernameEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
+    private MaterialButton otpLoginButton;
     private CircularProgressIndicator progressIndicator;
     private View coordinator;
 
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private AppConfig appConfig;
     private AuthService authService;
     private ConfigLoader configLoader;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +55,18 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        sessionManager = new SessionManager(this);
+        if (sessionManager.hasActiveSession()) {
+            navigateToHome();
+            return;
+        }
+
         configLoader = new ConfigLoader(this);
         coordinator = findViewById(R.id.coordinator);
         usernameEditText = findViewById(R.id.username_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         loginButton = findViewById(R.id.login_button);
+        otpLoginButton = findViewById(R.id.otp_login_button);
         progressIndicator = findViewById(R.id.progress_indicator);
         Toolbar toolbar = findViewById(R.id.toolbar);
 
@@ -68,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(v -> attemptLogin());
+        otpLoginButton.setOnClickListener(v -> openOtpFlow());
     }
 
     @Override
@@ -89,10 +101,23 @@ public class MainActivity extends AppCompatActivity {
         if (appConfig != null) {
             authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
             loginButton.setEnabled(true);
+            otpLoginButton.setEnabled(true);
         } else {
             showError(getString(R.string.error_config_load));
             loginButton.setEnabled(false);
+            otpLoginButton.setEnabled(false);
         }
+    }
+
+    private void openOtpFlow() {
+        String emailCandidate = usernameEditText.getText() == null
+                ? ""
+                : usernameEditText.getText().toString().trim();
+        Intent intent = new Intent(this, OtpEmailActivity.class);
+        if (Patterns.EMAIL_ADDRESS.matcher(emailCandidate).matches()) {
+            intent.putExtra(OtpEmailActivity.EXTRA_EMAIL, emailCandidate);
+        }
+        startActivity(intent);
     }
 
     private void attemptLogin() {
@@ -130,8 +155,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleLoginSuccess(LoginResponse response) {
+        navigateToHome();
+    }
+
+    private void navigateToHome() {
         Intent intent = new Intent(this, HomeActivity.class);
-        // Estas flags limpian todo el stack de actividades y hacen que HomeActivity sea la nueva raíz
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
@@ -139,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setLoading(boolean isLoading) {
         loginButton.setEnabled(!isLoading);
+        otpLoginButton.setEnabled(!isLoading);
         usernameEditText.setEnabled(!isLoading);
         passwordEditText.setEnabled(!isLoading);
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
