@@ -19,9 +19,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="XploreNow"
-            app:titleCentered="true" />
+            app:titleCentered="true"
+            app:titleTextAppearance="@style/TextAppearance.XploreNow.H2" />
 
-        <!-- Buscador Estilo Material 3 -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/search_bar_card"
             style="@style/Widget.Material3.CardView.Elevated"
@@ -30,7 +30,8 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="28dp"
-            app:cardElevation="2dp">
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -56,7 +57,7 @@
                     android:hint="@string/home_search_hint"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+                    android:textAppearance="@style/TextAppearance.XploreNow.Body" />
 
             </LinearLayout>
 
@@ -75,7 +76,6 @@
             android:orientation="vertical"
             android:paddingBottom="80dp">
 
-            <!-- Filtros Rápidos / Categorías -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/categories_recycler_view"
                 android:layout_width="match_parent"
@@ -87,15 +87,14 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@android:layout/simple_list_item_1" />
 
-            <!-- Sección Actividades Destacadas -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/home_featured_title"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/featured_recycler_view"
@@ -108,15 +107,14 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_activity" />
 
-            <!-- Sección Listado General -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/home_all_activities_title"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/activities_recycler_view"
@@ -137,6 +135,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:labelVisibilityMode="labeled" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
