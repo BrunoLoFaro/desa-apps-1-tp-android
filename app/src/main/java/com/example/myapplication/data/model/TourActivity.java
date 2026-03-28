@@ -8,8 +8,11 @@ public class TourActivity {
     private String price;
     private int availableSlots;
     private String imageUrl;
+    private String description;
+    private float rating;
+    private int reviewsCount;
 
-    public TourActivity(String name, String destination, String category, String duration, String price, int availableSlots, String imageUrl) {
+    public TourActivity(String name, String destination, String category, String duration, String price, int availableSlots, String imageUrl, String description, float rating, int reviewsCount) {
         this.name = name;
         this.destination = destination;
         this.category = category;
@@ -17,6 +20,9 @@ public class TourActivity {
         this.price = price;
         this.availableSlots = availableSlots;
         this.imageUrl = imageUrl;
+        this.description = description;
+        this.rating = rating;
+        this.reviewsCount = reviewsCount;
     }
 
     public String getName() { return name; }
@@ -26,4 +32,7 @@ public class TourActivity {
     public String getPrice() { return price; }
     public int getAvailableSlots() { return availableSlots; }
     public String getImageUrl() { return imageUrl; }
+    public String getDescription() { return description; }
+    public float getRating() { return rating; }
+    public int getReviewsCount() { return reviewsCount; }
 }

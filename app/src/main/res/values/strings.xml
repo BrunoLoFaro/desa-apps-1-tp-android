@@ -32,4 +32,6 @@
     <string name="nav_bookings">Mis Reservas</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+    <string name="price_from">desde</string>
+    <string name="favorite_desc">Marcar como favorito</string>
 </resources>

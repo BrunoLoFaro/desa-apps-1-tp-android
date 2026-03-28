@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.data.model.TourActivity;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
 
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
@@ -26,11 +27,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     public TourViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         if (isHorizontal) {
-            // Ajustamos el ancho al 80% de la pantalla
-            int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.80);
+            int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-            // Añadimos margen a la derecha para separar las cards
-            params.setMargins(0, 0, 24, 0);
+            params.setMargins(0, 0, 32, 0);
             view.setLayoutParams(params);
         }
         return new TourViewHolder(view);
@@ -44,26 +43,31 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.category.setText(activity.getCategory().toUpperCase());
         holder.duration.setText(activity.getDuration());
         holder.price.setText(activity.getPrice());
+        holder.description.setText(activity.getDescription());
+        holder.rating.setText(String.valueOf(activity.getRating()));
+        holder.reviews.setText("(" + activity.getReviewsCount() + ")");
         holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         
-        // Imágenes reales de prueba basadas en la categoría
-        String imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500"; // Default
-        if (activity.getCategory().equalsIgnoreCase("Gastronomía")) {
-            imageUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500";
-        } else if (activity.getCategory().equalsIgnoreCase("Excursión")) {
-            imageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500";
-        } else if (activity.getCategory().equalsIgnoreCase("Free Tour")) {
-            imageUrl = "https://images.openqa.com/photo-1467269204594-9661b134dd2b?w=500";
-        } else if (activity.getCategory().equalsIgnoreCase("Visita Guiada")) {
-            imageUrl = "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500";
+        // Imágenes basadas en la categoría o URL si existe
+        String imageUrl = activity.getImageUrl();
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500";
+            if (activity.getCategory().equalsIgnoreCase("Gastronomía")) {
+                imageUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500";
+            } else if (activity.getCategory().equalsIgnoreCase("Excursión")) {
+                imageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500";
+            }
         }
 
         Glide.with(holder.itemView.getContext())
                 .load(imageUrl)
                 .placeholder(android.R.drawable.ic_menu_gallery)
-                .error(android.R.drawable.ic_menu_report_image)
                 .centerCrop()
                 .into(holder.image);
+
+        holder.favoriteBtn.setOnClickListener(v -> {
+            // Lógica de favoritos
+        });
     }
 
     @Override
@@ -73,7 +77,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
     static class TourViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
-        TextView category, name, destination, duration, price, slots;
+        TextView category, name, destination, duration, price, slots, description, rating, reviews;
+        FloatingActionButton favoriteBtn;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -84,6 +89,10 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             duration = itemView.findViewById(R.id.activity_duration);
             price = itemView.findViewById(R.id.activity_price);
             slots = itemView.findViewById(R.id.activity_slots);
+            description = itemView.findViewById(R.id.activity_description);
+            rating = itemView.findViewById(R.id.activity_rating);
+            reviews = itemView.findViewById(R.id.activity_reviews);
+            favoriteBtn = itemView.findViewById(R.id.favorite_button);
         }
     }
 }
