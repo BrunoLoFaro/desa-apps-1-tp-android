@@ -1,4 +1,5 @@
 {
-  "base_url": "https://api.xplorenow.com/",
-  "login_endpoint": "users/login"
+  "base_url": "http://192.168.1.11:8080/api/v1/",
+  "login_endpoint": "auth/login",
+  "register_endpoint": "auth/register"
 }
