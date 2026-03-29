@@ -83,7 +83,8 @@
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="0dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@android:layout/simple_list_item_1" />
 
@@ -91,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="@string/home_featured_title"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
                 android:textColor="?attr/colorPrimary" />
