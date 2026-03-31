@@ -1,8 +1,9 @@
 package com.example.myapplication.data.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class TourActivity {
+public class TourActivity implements Serializable {
     private String name;
     private String destination;
     private String category;

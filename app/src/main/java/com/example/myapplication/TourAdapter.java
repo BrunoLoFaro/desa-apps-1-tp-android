@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,31 +44,39 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.category.setText(activity.getCategory().toUpperCase());
         holder.duration.setText(activity.getDuration());
         holder.price.setText(activity.getPrice());
-        holder.description.setText(activity.getDescription());
-        holder.rating.setText(String.valueOf(activity.getRating()));
-        holder.reviews.setText("(" + activity.getReviewsCount() + ")");
         holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         
-        // Imágenes basadas en la categoría o URL si existe
-        String imageUrl = activity.getImageUrl();
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500";
-            if (activity.getCategory().equalsIgnoreCase("Gastronomía")) {
-                imageUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500";
-            } else if (activity.getCategory().equalsIgnoreCase("Excursión")) {
-                imageUrl = "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500";
-            }
+        // Configuración para el modo compacto (Home)
+        if (isHorizontal) {
+            if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
+        } else {
+            // Modo detalle
+            if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
+            if (holder.description != null) holder.description.setText(activity.getDescription());
+            if (holder.rating != null) holder.rating.setText(String.valueOf(activity.getRating()));
+            if (holder.language != null) holder.language.setText("Idioma: " + activity.getLanguage());
+            if (holder.guide != null) holder.guide.setText("Guía: " + activity.getGuideName());
+            if (holder.meetingPoint != null) holder.meetingPoint.setText("Encuentro: " + activity.getMeetingPoint());
+            if (holder.includes != null) holder.includes.setText(activity.getWhatIncluded());
+            if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
         }
 
         Glide.with(holder.itemView.getContext())
-                .load(imageUrl)
+                .load(activity.getImageUrl())
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .centerCrop()
                 .into(holder.image);
 
-        holder.favoriteBtn.setOnClickListener(v -> {
-            // Lógica de favoritos
-        });
+        // Asignamos el clic a la vista completa
+        View.OnClickListener listener = v -> {
+            Intent intent = new Intent(v.getContext(), DetailActivity.class);
+            intent.putExtra("activity_data", activity);
+            v.getContext().startActivity(intent);
+        };
+
+        holder.itemView.setOnClickListener(listener);
+        holder.image.setOnClickListener(listener);
+        holder.name.setOnClickListener(listener);
     }
 
     @Override
@@ -77,7 +86,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
     static class TourViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
-        TextView category, name, destination, duration, price, slots, description, rating, reviews;
+        TextView category, name, destination, duration, price, slots;
+        TextView description, rating, language, guide, meetingPoint, includes, cancellation;
+        View detailedContainer;
         FloatingActionButton favoriteBtn;
 
         public TourViewHolder(@NonNull View itemView) {
@@ -89,9 +100,18 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             duration = itemView.findViewById(R.id.activity_duration);
             price = itemView.findViewById(R.id.activity_price);
             slots = itemView.findViewById(R.id.activity_slots);
+            
+            detailedContainer = itemView.findViewById(R.id.detailed_info_container);
+            
+            // Campos de detalle
             description = itemView.findViewById(R.id.activity_description);
             rating = itemView.findViewById(R.id.activity_rating);
-            reviews = itemView.findViewById(R.id.activity_reviews);
+            language = itemView.findViewById(R.id.activity_language);
+            guide = itemView.findViewById(R.id.activity_guide);
+            meetingPoint = itemView.findViewById(R.id.activity_meeting_point);
+            includes = itemView.findViewById(R.id.activity_includes);
+            cancellation = itemView.findViewById(R.id.activity_cancellation);
+
             favoriteBtn = itemView.findViewById(R.id.favorite_button);
         }
     }
