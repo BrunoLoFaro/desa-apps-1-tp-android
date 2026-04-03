@@ -161,17 +161,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openPasswordResetScreen() {
-        Intent intent = new Intent(this, OtpLoginActivity.class);
-        intent.putExtra(OtpLoginActivity.EXTRA_MODE, OtpLoginActivity.MODE_PASSWORD_RESET);
+        Intent intent = new Intent(this, ForgotPasswordRequestActivity.class);
         String email = usernameEditText.getText() != null ? usernameEditText.getText().toString().trim() : "";
         if (!email.isEmpty()) {
-            intent.putExtra(OtpLoginActivity.EXTRA_PREFILL_EMAIL, email);
+            intent.putExtra(ForgotPasswordRequestActivity.EXTRA_PREFILL_EMAIL, email);
         }
         startActivity(intent);
     }
 
     private void openRegisterScreen() {
-        startActivity(new Intent(this, RegisterActivity.class));
+        startActivity(new Intent(this, SignupActivity.class));
     }
 
     private void handleLoginSuccess(LoginResponse response) {

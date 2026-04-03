@@ -26,6 +26,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText signupOtpCompleteEndpointEditText;
     private TextInputEditText passwordResetRequestEndpointEditText;
     private TextInputEditText passwordResetResendEndpointEditText;
+    private TextInputEditText passwordResetVerifyEndpointEditText;
     private TextInputEditText passwordResetConfirmEndpointEditText;
     private MaterialButton saveButton;
     private LinearProgressIndicator saveProgress;
@@ -48,6 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
         signupOtpCompleteEndpointEditText = findViewById(R.id.signup_otp_complete_endpoint_edit_text);
         passwordResetRequestEndpointEditText = findViewById(R.id.password_reset_request_endpoint_edit_text);
         passwordResetResendEndpointEditText = findViewById(R.id.password_reset_resend_endpoint_edit_text);
+        passwordResetVerifyEndpointEditText = findViewById(R.id.password_reset_verify_endpoint_edit_text);
         passwordResetConfirmEndpointEditText = findViewById(R.id.password_reset_confirm_endpoint_edit_text);
         saveButton = findViewById(R.id.save_button);
         saveProgress = findViewById(R.id.save_progress);
@@ -78,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
             signupOtpCompleteEndpointEditText.setText(config.signupOtpCompleteEndpoint);
             passwordResetRequestEndpointEditText.setText(config.passwordResetRequestEndpoint);
             passwordResetResendEndpointEditText.setText(config.passwordResetResendEndpoint);
+            passwordResetVerifyEndpointEditText.setText(config.passwordResetVerifyEndpoint);
             passwordResetConfirmEndpointEditText.setText(config.passwordResetConfirmEndpoint);
         }
     }
@@ -91,6 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
         String signupOtpCompleteEndpoint = signupOtpCompleteEndpointEditText.getText().toString().trim();
         String passwordResetRequestEndpoint = passwordResetRequestEndpointEditText.getText().toString().trim();
         String passwordResetResendEndpoint = passwordResetResendEndpointEditText.getText().toString().trim();
+        String passwordResetVerifyEndpoint = passwordResetVerifyEndpointEditText.getText().toString().trim();
         String passwordResetConfirmEndpoint = passwordResetConfirmEndpointEditText.getText().toString().trim();
 
         if (baseUrl.isEmpty()
@@ -101,6 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
             || signupOtpCompleteEndpoint.isEmpty()
             || passwordResetRequestEndpoint.isEmpty()
             || passwordResetResendEndpoint.isEmpty()
+            || passwordResetVerifyEndpoint.isEmpty()
             || passwordResetConfirmEndpoint.isEmpty()) {
             showError(getString(R.string.invalid_input));
             return;
@@ -118,6 +123,7 @@ public class SettingsActivity extends AppCompatActivity {
         newConfig.signupOtpCompleteEndpoint = signupOtpCompleteEndpoint;
         newConfig.passwordResetRequestEndpoint = passwordResetRequestEndpoint;
         newConfig.passwordResetResendEndpoint = passwordResetResendEndpoint;
+        newConfig.passwordResetVerifyEndpoint = passwordResetVerifyEndpoint;
         newConfig.passwordResetConfirmEndpoint = passwordResetConfirmEndpoint;
 
         configLoader.saveConfig(newConfig);

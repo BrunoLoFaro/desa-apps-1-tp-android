@@ -7,5 +7,6 @@
   "signup_otp_complete_endpoint": "api/v1/auth/signup/otp/complete",
   "password_reset_request_endpoint": "api/v1/auth/password-reset/request",
   "password_reset_resend_endpoint": "api/v1/auth/password-reset/resend",
+  "password_reset_verify_endpoint": "api/v1/auth/password-reset/verify",
   "password_reset_confirm_endpoint": "api/v1/auth/password-reset/confirm"
 }

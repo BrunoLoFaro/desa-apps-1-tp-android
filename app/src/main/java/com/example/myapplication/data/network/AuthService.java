@@ -2,6 +2,7 @@ package com.example.myapplication.data.network;
 
 import com.example.myapplication.data.model.LoginRequest;
 import com.example.myapplication.data.model.LoginResponse;
+import com.example.myapplication.data.model.OtpCodeVerificationRequest;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpRegistrationCompleteRequest;
 import com.example.myapplication.data.model.OtpResponse;
@@ -34,6 +35,9 @@ public interface AuthService {
 
     @POST
     Call<OtpResponse> resendPasswordReset(@Url String url, @Body OtpRequest request);
+
+    @POST
+    Call<OtpResponse> verifyPasswordResetCode(@Url String url, @Body OtpCodeVerificationRequest request);
 
     @POST
     Call<LoginResponse> confirmPasswordReset(@Url String url, @Body PasswordResetConfirmRequest request);

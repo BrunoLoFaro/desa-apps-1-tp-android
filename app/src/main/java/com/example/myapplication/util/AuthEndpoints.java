@@ -11,6 +11,7 @@ public final class AuthEndpoints {
     public static final String SIGNUP_OTP_COMPLETE = "api/v1/auth/signup/otp/complete";
     public static final String PASSWORD_RESET_REQUEST = "api/v1/auth/password-reset/request";
     public static final String PASSWORD_RESET_RESEND = "api/v1/auth/password-reset/resend";
+    public static final String PASSWORD_RESET_VERIFY = "api/v1/auth/password-reset/verify";
     public static final String PASSWORD_RESET_CONFIRM = "api/v1/auth/password-reset/confirm";
 
     private AuthEndpoints() {
@@ -42,6 +43,10 @@ public final class AuthEndpoints {
 
     public static String passwordResetResend(AppConfig config) {
         return valueOrDefault(config != null ? config.passwordResetResendEndpoint : null, PASSWORD_RESET_RESEND);
+    }
+
+    public static String passwordResetVerify(AppConfig config) {
+        return valueOrDefault(config != null ? config.passwordResetVerifyEndpoint : null, PASSWORD_RESET_VERIFY);
     }
 
     public static String passwordResetConfirm(AppConfig config) {

@@ -27,6 +27,9 @@ public class AppConfig {
     @Json(name = "password_reset_resend_endpoint")
     public String passwordResetResendEndpoint;
 
+    @Json(name = "password_reset_verify_endpoint")
+    public String passwordResetVerifyEndpoint;
+
     @Json(name = "password_reset_confirm_endpoint")
     public String passwordResetConfirmEndpoint;
 }
