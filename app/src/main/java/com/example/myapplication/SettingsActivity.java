@@ -19,7 +19,11 @@ import com.google.android.material.textfield.TextInputEditText;
 public class SettingsActivity extends AppCompatActivity {
 
     private TextInputEditText baseUrlEditText;
-    private TextInputEditText endpointEditText;
+    private TextInputEditText loginEndpointEditText;
+    private TextInputEditText registerEndpointEditText;
+    private TextInputEditText otpRequestEndpointEditText;
+    private TextInputEditText otpVerifyEndpointEditText;
+    private TextInputEditText otpResendEndpointEditText;
     private MaterialButton saveButton;
     private LinearProgressIndicator saveProgress;
     private View coordinator;
@@ -34,7 +38,11 @@ public class SettingsActivity extends AppCompatActivity {
         configLoader = new ConfigLoader(this);
         coordinator = findViewById(R.id.settings_coordinator);
         baseUrlEditText = findViewById(R.id.base_url_edit_text);
-        endpointEditText = findViewById(R.id.endpoint_edit_text);
+        loginEndpointEditText = findViewById(R.id.login_endpoint_edit_text);
+        registerEndpointEditText = findViewById(R.id.register_endpoint_edit_text);
+        otpRequestEndpointEditText = findViewById(R.id.otp_request_endpoint_edit_text);
+        otpVerifyEndpointEditText = findViewById(R.id.otp_verify_endpoint_edit_text);
+        otpResendEndpointEditText = findViewById(R.id.otp_resend_endpoint_edit_text);
         saveButton = findViewById(R.id.save_button);
         saveProgress = findViewById(R.id.save_progress);
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -57,15 +65,23 @@ public class SettingsActivity extends AppCompatActivity {
         AppConfig config = configLoader.loadConfig();
         if (config != null) {
             baseUrlEditText.setText(config.baseUrl);
-            endpointEditText.setText(config.loginEndpoint);
+            loginEndpointEditText.setText(config.loginEndpoint);
+            registerEndpointEditText.setText(config.registerEndpoint);
+            otpRequestEndpointEditText.setText(config.otpRequestEndpoint);
+            otpVerifyEndpointEditText.setText(config.otpVerifyEndpoint);
+            otpResendEndpointEditText.setText(config.otpResendEndpoint);
         }
     }
 
     private void saveSettings() {
         String baseUrl = baseUrlEditText.getText().toString().trim();
-        String endpoint = endpointEditText.getText().toString().trim();
+        String loginEndpoint = loginEndpointEditText.getText().toString().trim();
+        String registerEndpoint = registerEndpointEditText.getText().toString().trim();
+        String otpRequestEndpoint = otpRequestEndpointEditText.getText().toString().trim();
+        String otpVerifyEndpoint = otpVerifyEndpointEditText.getText().toString().trim();
+        String otpResendEndpoint = otpResendEndpointEditText.getText().toString().trim();
 
-        if (baseUrl.isEmpty() || endpoint.isEmpty()) {
+        if (baseUrl.isEmpty() || loginEndpoint.isEmpty() || registerEndpoint.isEmpty() || otpRequestEndpoint.isEmpty() || otpVerifyEndpoint.isEmpty() || otpResendEndpoint.isEmpty()) {
             showError(getString(R.string.invalid_input));
             return;
         }
@@ -75,7 +91,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         AppConfig newConfig = new AppConfig();
         newConfig.baseUrl = baseUrl;
-        newConfig.loginEndpoint = endpoint;
+        newConfig.loginEndpoint = loginEndpoint;
+        newConfig.registerEndpoint = registerEndpoint;
+        newConfig.otpRequestEndpoint = otpRequestEndpoint;
+        newConfig.otpVerifyEndpoint = otpVerifyEndpoint;
+        newConfig.otpResendEndpoint = otpResendEndpoint;
 
         configLoader.saveConfig(newConfig);
         

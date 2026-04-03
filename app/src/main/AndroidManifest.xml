@@ -33,6 +33,16 @@
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/Theme.XploreNow" />
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:label="@string/register_title"
+            android:theme="@style/Theme.XploreNow" />
+        <activity
+            android:name=".OtpLoginActivity"
+            android:exported="false"
+            android:label="@string/otp_login_title"
+            android:theme="@style/Theme.XploreNow" />
     </application>
 
 </manifest>

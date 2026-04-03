@@ -1,11 +1,14 @@
 <resources>
     <string name="app_name">XploreNow</string>
     <string name="login_title">Welcome Back</string>
-    <string name="username_hint">Username</string>
+    <string name="username_hint">Email</string>
     <string name="password_hint">Password</string>
     <string name="login_button_text">Sign In</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="sign_up_prompt">Don\'t have an account? Sign Up</string>
+    <string name="sign_up_button">Create Account</string>
+    <string name="otp_login_button">Sign In with OTP</string>
+    <string name="register_success_login_prompt">Cuenta creada. Iniciá sesión para continuar.</string>
     <string name="error_config_load">Failed to load application configuration.</string>
     <string name="error_empty_fields">Please enter both username and password.</string>
     <string name="login_success">Login successful!</string>
@@ -14,9 +17,14 @@
     <string name="welcome_message">Welcome!</string>
 
     <string name="settings_title">Settings</string>
+    <string name="logout">Cerrar sesión</string>
     <string name="backend_config_title">Backend Configuration</string>
     <string name="base_url_hint">Base URL</string>
-    <string name="endpoint_hint">Login Endpoint</string>
+    <string name="login_endpoint_hint">Login Endpoint</string>
+    <string name="register_endpoint_hint">Register Endpoint</string>
+    <string name="otp_request_endpoint_hint">OTP Request Endpoint</string>
+    <string name="otp_verify_endpoint_hint">OTP Verify Endpoint</string>
+    <string name="otp_resend_endpoint_hint">OTP Resend Endpoint</string>
     <string name="save_changes">Save Changes</string>
     <string name="settings_saved">Settings saved successfully</string>
     <string name="invalid_input">Please enter valid values</string>
@@ -32,4 +40,38 @@
     <string name="nav_bookings">Mis Reservas</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+
+    <string name="register_title">Create your account</string>
+    <string name="register_subtitle">Completá tus datos para registrarte</string>
+    <string name="otp_login_title">Login con OTP</string>
+    <string name="otp_login_subtitle">Solicitá y verificá tu código de acceso</string>
+    <string name="email_hint">Email</string>
+    <string name="first_name_hint">Nombre</string>
+    <string name="last_name_hint">Apellido</string>
+    <string name="dni_hint">DNI</string>
+    <string name="otp_hint">Código OTP (6 dígitos)</string>
+    <string name="register_use_otp">Ingresar con OTP</string>
+    <string name="register_button_text">Registrarme</string>
+    <string name="register_mode_classic">Registro clásico</string>
+    <string name="register_mode_otp">OTP habilitado</string>
+    <string name="register_success">Registro exitoso</string>
+    <string name="register_failed">Registro fallido: %1$s</string>
+    <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_invalid_password">La contraseña debe tener entre 6 y 72 caracteres.</string>
+    <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
+    <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
+    <string name="error_register_service_not_initialized">Servicio de registro no inicializado. Revisá tu configuración.</string>
+    <string name="error_register_endpoint_missing">No se encontró endpoint de registro en la configuración.</string>
+    <string name="error_otp_request_endpoint_missing">No se encontró endpoint de solicitud OTP en la configuración.</string>
+    <string name="error_otp_verify_endpoint_missing">No se encontró endpoint de verificación OTP en la configuración.</string>
+    <string name="error_otp_resend_endpoint_missing">No se encontró endpoint de reenvío OTP en la configuración.</string>
+    <string name="otp_sent_message">OTP enviado. Revisá tu email y completá el código.</string>
+    <string name="otp_resent_message">OTP reenviado. Revisá tu email.</string>
+    <string name="otp_action_request">Solicitar OTP</string>
+    <string name="otp_action_request_countdown">Solicitar OTP (%1$ds)</string>
+    <string name="otp_action_verify">Verificar OTP</string>
+    <string name="otp_action_resend">Reenviar OTP</string>
+    <string name="otp_action_resend_countdown">Reenviar OTP (%1$ds)</string>
 </resources>

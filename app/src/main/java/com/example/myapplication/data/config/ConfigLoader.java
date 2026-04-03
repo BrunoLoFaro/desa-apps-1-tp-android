@@ -14,6 +14,10 @@ public class ConfigLoader {
     private static final String PREFS_NAME = "app_config";
     private static final String KEY_BASE_URL = "base_url";
     private static final String KEY_LOGIN_ENDPOINT = "login_endpoint";
+    private static final String KEY_REGISTER_ENDPOINT = "register_endpoint";
+    private static final String KEY_OTP_REQUEST_ENDPOINT = "otp_request_endpoint";
+    private static final String KEY_OTP_VERIFY_ENDPOINT = "otp_verify_endpoint";
+    private static final String KEY_OTP_RESEND_ENDPOINT = "otp_resend_endpoint";
     
     private final Context context;
     private final Moshi moshi;
@@ -28,7 +32,16 @@ public class ConfigLoader {
         if (prefs.contains(KEY_BASE_URL)) {
             AppConfig config = new AppConfig();
             config.baseUrl = prefs.getString(KEY_BASE_URL, "");
-            config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, "");
+            config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, "api/v1/auth/login");
+            config.registerEndpoint = prefs.getString(KEY_REGISTER_ENDPOINT, "api/v1/auth/register");
+            config.otpRequestEndpoint = prefs.getString(KEY_OTP_REQUEST_ENDPOINT, "api/v1/auth/otp/request");
+            config.otpVerifyEndpoint = prefs.getString(KEY_OTP_VERIFY_ENDPOINT, "api/v1/auth/otp/verify");
+            config.otpResendEndpoint = prefs.getString(KEY_OTP_RESEND_ENDPOINT, "api/v1/auth/otp/resend");
+
+            if ("users/login".equals(config.loginEndpoint)) {
+                config.loginEndpoint = "api/v1/auth/login";
+            }
+
             return config;
         }
 
@@ -48,6 +61,10 @@ public class ConfigLoader {
         prefs.edit()
                 .putString(KEY_BASE_URL, config.baseUrl)
                 .putString(KEY_LOGIN_ENDPOINT, config.loginEndpoint)
+                .putString(KEY_REGISTER_ENDPOINT, config.registerEndpoint)
+                .putString(KEY_OTP_REQUEST_ENDPOINT, config.otpRequestEndpoint)
+                .putString(KEY_OTP_VERIFY_ENDPOINT, config.otpVerifyEndpoint)
+                .putString(KEY_OTP_RESEND_ENDPOINT, config.otpResendEndpoint)
                 .apply();
     }
 }
