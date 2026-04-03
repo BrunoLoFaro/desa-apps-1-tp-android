@@ -2,7 +2,10 @@
   "base_url": "http://10.0.2.2:8080/",
   "login_endpoint": "api/v1/auth/login",
   "register_endpoint": "api/v1/auth/register",
-  "otp_request_endpoint": "api/v1/auth/otp/request",
-  "otp_verify_endpoint": "api/v1/auth/otp/verify",
-  "otp_resend_endpoint": "api/v1/auth/otp/resend"
+  "signup_otp_request_endpoint": "api/v1/auth/signup/otp/request",
+  "signup_otp_resend_endpoint": "api/v1/auth/signup/otp/resend",
+  "signup_otp_complete_endpoint": "api/v1/auth/signup/otp/complete",
+  "password_reset_request_endpoint": "api/v1/auth/password-reset/request",
+  "password_reset_resend_endpoint": "api/v1/auth/password-reset/resend",
+  "password_reset_confirm_endpoint": "api/v1/auth/password-reset/confirm"
 }

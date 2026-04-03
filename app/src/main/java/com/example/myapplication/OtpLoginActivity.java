@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
-import android.util.Patterns;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
@@ -16,17 +15,23 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
+import com.example.myapplication.data.model.OtpRegistrationCompleteRequest;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.data.model.OtpVerificationRequest;
+import com.example.myapplication.data.model.PasswordResetConfirmRequest;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.RetrofitClient;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.util.AuthInputValidator;
+import com.example.myapplication.util.NetworkErrorParser;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textview.MaterialTextView;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -34,14 +39,29 @@ import retrofit2.Response;
 
 public class OtpLoginActivity extends AppCompatActivity {
 
+    public static final String EXTRA_MODE = "mode";
+    public static final String EXTRA_PREFILL_EMAIL = "prefill_email";
+    public static final String MODE_SIGNUP = "signup";
+    public static final String MODE_PASSWORD_RESET = "password_reset";
+
     private static final String STATE_REQUEST_COOLDOWN_END = "state_request_cooldown_end";
     private static final String STATE_RESEND_COOLDOWN_END = "state_resend_cooldown_end";
     private static final long OTP_COOLDOWN_MILLIS = 30_000L;
 
+    private MaterialToolbar toolbar;
+    private MaterialTextView subtitleTextView;
+    private TextInputLayout passwordLayout;
+    private View firstNameLayout;
+    private View lastNameLayout;
+    private View dniLayout;
     private TextInputEditText emailEditText;
     private TextInputEditText otpEditText;
+    private TextInputEditText passwordEditText;
+    private TextInputEditText firstNameEditText;
+    private TextInputEditText lastNameEditText;
+    private TextInputEditText dniEditText;
     private MaterialButton requestOtpButton;
-    private MaterialButton verifyOtpButton;
+    private MaterialButton submitButton;
     private MaterialButton resendOtpButton;
     private CircularProgressIndicator progressIndicator;
     private View coordinator;
@@ -57,6 +77,7 @@ public class OtpLoginActivity extends AppCompatActivity {
     private boolean isLoading = false;
     private long requestCooldownEndElapsedMs = 0L;
     private long resendCooldownEndElapsedMs = 0L;
+    private String mode = MODE_PASSWORD_RESET;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,17 +90,31 @@ public class OtpLoginActivity extends AppCompatActivity {
             resendCooldownEndElapsedMs = savedInstanceState.getLong(STATE_RESEND_COOLDOWN_END, 0L);
         }
 
+        mode = getIntent().getStringExtra(EXTRA_MODE);
+        if (!MODE_SIGNUP.equals(mode)) {
+            mode = MODE_PASSWORD_RESET;
+        }
+
         configLoader = new ConfigLoader(this);
         sessionManager = new SessionManager(this);
         coordinator = findViewById(R.id.otp_coordinator);
+        toolbar = findViewById(R.id.toolbar);
+        subtitleTextView = findViewById(R.id.otp_subtitle);
+        passwordLayout = findViewById(R.id.password_layout);
+        firstNameLayout = findViewById(R.id.first_name_layout);
+        lastNameLayout = findViewById(R.id.last_name_layout);
+        dniLayout = findViewById(R.id.dni_layout);
         emailEditText = findViewById(R.id.otp_email_edit_text);
         otpEditText = findViewById(R.id.otp_code_edit_text);
+        passwordEditText = findViewById(R.id.password_edit_text);
+        firstNameEditText = findViewById(R.id.first_name_edit_text);
+        lastNameEditText = findViewById(R.id.last_name_edit_text);
+        dniEditText = findViewById(R.id.dni_edit_text);
         requestOtpButton = findViewById(R.id.request_otp_button);
-        verifyOtpButton = findViewById(R.id.verify_otp_button);
+        submitButton = findViewById(R.id.verify_otp_button);
         resendOtpButton = findViewById(R.id.resend_otp_button);
         progressIndicator = findViewById(R.id.otp_progress_indicator);
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
@@ -89,8 +124,15 @@ public class OtpLoginActivity extends AppCompatActivity {
             return insets;
         });
 
+        String prefillEmail = getIntent().getStringExtra(EXTRA_PREFILL_EMAIL);
+        if (prefillEmail != null && !prefillEmail.isEmpty()) {
+            emailEditText.setText(prefillEmail);
+        }
+
+        applyModeUi();
+
         requestOtpButton.setOnClickListener(v -> requestOtp());
-        verifyOtpButton.setOnClickListener(v -> verifyOtp());
+        submitButton.setOnClickListener(v -> submitFlow());
         resendOtpButton.setOnClickListener(v -> resendOtp());
     }
 
@@ -108,46 +150,57 @@ public class OtpLoginActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
     }
 
+    private void applyModeUi() {
+        if (MODE_SIGNUP.equals(mode)) {
+            toolbar.setTitle(R.string.otp_signup_title);
+            subtitleTextView.setText(R.string.otp_signup_subtitle);
+            submitButton.setText(R.string.otp_action_complete_signup);
+            passwordLayout.setVisibility(View.VISIBLE);
+            firstNameLayout.setVisibility(View.VISIBLE);
+            lastNameLayout.setVisibility(View.VISIBLE);
+            dniLayout.setVisibility(View.VISIBLE);
+            passwordLayout.setHint(getString(R.string.password_hint));
+        } else {
+            toolbar.setTitle(R.string.password_reset_title);
+            subtitleTextView.setText(R.string.password_reset_subtitle);
+            submitButton.setText(R.string.password_reset_confirm_button);
+            passwordLayout.setVisibility(View.VISIBLE);
+            firstNameLayout.setVisibility(View.GONE);
+            lastNameLayout.setVisibility(View.GONE);
+            dniLayout.setVisibility(View.GONE);
+            passwordLayout.setHint(getString(R.string.new_password_hint));
+        }
+    }
+
     private void loadConfiguration() {
         try {
             appConfig = configLoader.loadConfig();
-            if (appConfig != null) {
-                if (appConfig.otpRequestEndpoint == null || appConfig.otpRequestEndpoint.trim().isEmpty()) {
-                    appConfig.otpRequestEndpoint = "api/v1/auth/otp/request";
-                }
-                if (appConfig.otpVerifyEndpoint == null || appConfig.otpVerifyEndpoint.trim().isEmpty()) {
-                    appConfig.otpVerifyEndpoint = "api/v1/auth/otp/verify";
-                }
-                if (appConfig.otpResendEndpoint == null || appConfig.otpResendEndpoint.trim().isEmpty()) {
-                    appConfig.otpResendEndpoint = "api/v1/auth/otp/resend";
-                }
-            }
-
             if (appConfig != null && appConfig.baseUrl != null && !appConfig.baseUrl.isEmpty()) {
                 authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
                 updateRequestButtonState();
-                verifyOtpButton.setEnabled(true);
+                submitButton.setEnabled(true);
                 updateResendButtonState();
             } else {
-                showError(getString(R.string.error_config_load));
+                authService = null;
                 requestOtpButton.setEnabled(false);
-                verifyOtpButton.setEnabled(false);
+                submitButton.setEnabled(false);
                 resendOtpButton.setEnabled(false);
+                showError(getString(R.string.error_config_load));
             }
         } catch (Exception e) {
-            showError(getString(R.string.error_invalid_config));
-            requestOtpButton.setEnabled(false);
-            verifyOtpButton.setEnabled(false);
-            resendOtpButton.setEnabled(false);
             authService = null;
+            requestOtpButton.setEnabled(false);
+            submitButton.setEnabled(false);
+            resendOtpButton.setEnabled(false);
+            showError(getString(R.string.error_invalid_config));
         }
     }
 
     private void requestOtp() {
-        String email = emailEditText.getText().toString().trim();
-
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError(getString(R.string.error_invalid_email));
+        String email = getEmail();
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            showError(emailError);
             return;
         }
 
@@ -156,23 +209,26 @@ public class OtpLoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (appConfig.otpRequestEndpoint == null || appConfig.otpRequestEndpoint.isEmpty()) {
-            showError(getString(R.string.error_otp_request_endpoint_missing));
-            return;
-        }
-
         setLoading(true);
-        authService.requestOtp(appConfig.otpRequestEndpoint, new OtpRequest(email)).enqueue(new Callback<OtpResponse>() {
+        Call<OtpResponse> requestCall = MODE_SIGNUP.equals(mode)
+                ? authService.requestSignupOtp(AuthEndpoints.signupOtpRequest(appConfig), new OtpRequest(email))
+                : authService.requestPasswordReset(AuthEndpoints.passwordResetRequest(appConfig), new OtpRequest(email));
+
+        requestCall.enqueue(new Callback<OtpResponse>() {
             @Override
             public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
-                    showInfo(getString(R.string.otp_sent_message));
+                    showInfo(getString(MODE_SIGNUP.equals(mode)
+                            ? R.string.signup_otp_sent_message
+                            : R.string.password_reset_sent_message));
                     startRequestCooldown(OTP_COOLDOWN_MILLIS);
                     startResendCooldown(OTP_COOLDOWN_MILLIS);
                 } else {
-                    String errorMsg = response.message().isEmpty() ? "No se pudo solicitar OTP" : response.message();
-                    showError(getString(R.string.register_failed, errorMsg));
+                    String fallback = getString(MODE_SIGNUP.equals(mode)
+                            ? R.string.error_signup_otp_request_default
+                            : R.string.error_password_reset_request_default);
+                    showError(NetworkErrorParser.getErrorMessage(response, fallback));
                 }
             }
 
@@ -181,23 +237,31 @@ public class OtpLoginActivity extends AppCompatActivity {
                 setLoading(false);
                 String message = t != null && t.getLocalizedMessage() != null
                         ? t.getLocalizedMessage()
-                        : "Network error";
+                        : getString(R.string.error_network_generic);
                 showError(getString(R.string.generic_error, message));
             }
         });
     }
 
-    private void verifyOtp() {
-        String email = emailEditText.getText().toString().trim();
-        String code = otpEditText.getText().toString().trim();
-
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError(getString(R.string.error_invalid_email));
-            return;
+    private void submitFlow() {
+        if (MODE_SIGNUP.equals(mode)) {
+            completeSignupWithOtp();
+        } else {
+            confirmPasswordReset();
         }
+    }
 
-        if (!code.matches("^\\d{6}$")) {
-            showError(getString(R.string.error_invalid_otp));
+    private void completeSignupWithOtp() {
+        String email = getEmail();
+        String code = getOtpCode();
+        String password = getPassword();
+        String firstName = getFirstName();
+        String lastName = getLastName();
+        String dni = getDni();
+
+        String validationError = validateSignupInput(email, code, password, firstName, lastName, dni);
+        if (validationError != null) {
+            showError(validationError);
             return;
         }
 
@@ -206,26 +270,17 @@ public class OtpLoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (appConfig.otpVerifyEndpoint == null || appConfig.otpVerifyEndpoint.isEmpty()) {
-            showError(getString(R.string.error_otp_verify_endpoint_missing));
-            return;
-        }
-
         setLoading(true);
-        OtpVerificationRequest request = new OtpVerificationRequest(email, code);
-        authService.verifyOtp(appConfig.otpVerifyEndpoint, request).enqueue(new Callback<LoginResponse>() {
+        OtpRegistrationCompleteRequest request = new OtpRegistrationCompleteRequest(email, code, password, firstName, lastName, dni);
+        authService.completeSignupWithOtp(AuthEndpoints.signupOtpComplete(appConfig), request).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 setLoading(false);
-                if (response.isSuccessful() && response.body() != null && response.body().token != null && !response.body().token.trim().isEmpty()) {
-                    sessionManager.saveAccessToken(response.body().token);
-                    Intent intent = new Intent(OtpLoginActivity.this, HomeActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
+                if (response.isSuccessful() && response.body() != null) {
+                    handleLoginSuccess(response.body());
                 } else {
-                    String errorMsg = response.message().isEmpty() ? "No se pudo iniciar sesión con OTP" : response.message();
-                    showError(getString(R.string.register_failed, errorMsg));
+                    String errorMessage = NetworkErrorParser.getErrorMessage(response, getString(R.string.error_signup_complete_default));
+                    showError(errorMessage);
                 }
             }
 
@@ -234,17 +289,20 @@ public class OtpLoginActivity extends AppCompatActivity {
                 setLoading(false);
                 String message = t != null && t.getLocalizedMessage() != null
                         ? t.getLocalizedMessage()
-                        : "Network error";
+                        : getString(R.string.error_network_generic);
                 showError(getString(R.string.generic_error, message));
             }
         });
     }
 
-    private void resendOtp() {
-        String email = emailEditText.getText().toString().trim();
+    private void confirmPasswordReset() {
+        String email = getEmail();
+        String code = getOtpCode();
+        String password = getPassword();
 
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showError(getString(R.string.error_invalid_email));
+        String validationError = validatePasswordResetInput(email, code, password);
+        if (validationError != null) {
+            showError(validationError);
             return;
         }
 
@@ -253,23 +311,64 @@ public class OtpLoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (appConfig.otpResendEndpoint == null || appConfig.otpResendEndpoint.isEmpty()) {
-            showError(getString(R.string.error_otp_resend_endpoint_missing));
+        setLoading(true);
+        PasswordResetConfirmRequest request = new PasswordResetConfirmRequest(email, code, password);
+        authService.confirmPasswordReset(AuthEndpoints.passwordResetConfirm(appConfig), request).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                setLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    handleLoginSuccess(response.body());
+                } else {
+                    String errorMessage = NetworkErrorParser.getErrorMessage(response, getString(R.string.error_password_reset_confirm_default));
+                    showError(errorMessage);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                setLoading(false);
+                String message = t != null && t.getLocalizedMessage() != null
+                        ? t.getLocalizedMessage()
+                        : getString(R.string.error_network_generic);
+                showError(getString(R.string.generic_error, message));
+            }
+        });
+    }
+
+    private void resendOtp() {
+        String email = getEmail();
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            showError(emailError);
+            return;
+        }
+
+        if (authService == null || appConfig == null) {
+            showError(getString(R.string.error_service_not_initialized));
             return;
         }
 
         setLoading(true);
-        authService.resendOtp(appConfig.otpResendEndpoint, new OtpRequest(email)).enqueue(new Callback<OtpResponse>() {
+        Call<OtpResponse> requestCall = MODE_SIGNUP.equals(mode)
+                ? authService.resendSignupOtp(AuthEndpoints.signupOtpResend(appConfig), new OtpRequest(email))
+                : authService.resendPasswordReset(AuthEndpoints.passwordResetResend(appConfig), new OtpRequest(email));
+
+        requestCall.enqueue(new Callback<OtpResponse>() {
             @Override
             public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
-                    showInfo(getString(R.string.otp_resent_message));
+                    showInfo(getString(MODE_SIGNUP.equals(mode)
+                            ? R.string.signup_otp_resent_message
+                            : R.string.password_reset_resent_message));
                     startRequestCooldown(OTP_COOLDOWN_MILLIS);
                     startResendCooldown(OTP_COOLDOWN_MILLIS);
                 } else {
-                    String errorMsg = response.message().isEmpty() ? "No se pudo reenviar OTP" : response.message();
-                    showError(getString(R.string.register_failed, errorMsg));
+                    String fallback = getString(MODE_SIGNUP.equals(mode)
+                            ? R.string.error_signup_otp_resend_default
+                            : R.string.error_password_reset_resend_default);
+                    showError(NetworkErrorParser.getErrorMessage(response, fallback));
                 }
             }
 
@@ -278,18 +377,99 @@ public class OtpLoginActivity extends AppCompatActivity {
                 setLoading(false);
                 String message = t != null && t.getLocalizedMessage() != null
                         ? t.getLocalizedMessage()
-                        : "Network error";
+                        : getString(R.string.error_network_generic);
                 showError(getString(R.string.generic_error, message));
             }
         });
+    }
+
+    private String validateSignupInput(String email, String code, String password, String firstName, String lastName, String dni) {
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            return emailError;
+        }
+
+        String otpError = AuthInputValidator.validateOtp(this, code);
+        if (otpError != null) {
+            return otpError;
+        }
+
+        String passwordError = AuthInputValidator.validatePassword(this, password);
+        if (passwordError != null) {
+            return passwordError;
+        }
+
+        String firstNameError = AuthInputValidator.validateFirstName(this, firstName);
+        if (firstNameError != null) {
+            return firstNameError;
+        }
+
+        String lastNameError = AuthInputValidator.validateLastName(this, lastName);
+        if (lastNameError != null) {
+            return lastNameError;
+        }
+
+        return AuthInputValidator.validateDni(this, dni);
+    }
+
+    private String validatePasswordResetInput(String email, String code, String password) {
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            return emailError;
+        }
+
+        String otpError = AuthInputValidator.validateOtp(this, code);
+        if (otpError != null) {
+            return otpError;
+        }
+
+        return AuthInputValidator.validatePassword(this, password);
+    }
+
+    private String getEmail() {
+        return emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+    }
+
+    private String getOtpCode() {
+        return otpEditText.getText() != null ? otpEditText.getText().toString().trim() : "";
+    }
+
+    private String getPassword() {
+        return passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
+    }
+
+    private String getFirstName() {
+        return firstNameEditText.getText() != null ? firstNameEditText.getText().toString().trim() : "";
+    }
+
+    private String getLastName() {
+        return lastNameEditText.getText() != null ? lastNameEditText.getText().toString().trim() : "";
+    }
+
+    private String getDni() {
+        return dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
+    }
+
+    private void handleLoginSuccess(LoginResponse response) {
+        if (response != null && response.token != null && !response.token.trim().isEmpty()) {
+            sessionManager.saveAccessToken(response.token);
+        }
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void setLoading(boolean isLoading) {
         this.isLoading = isLoading;
         emailEditText.setEnabled(!isLoading);
         otpEditText.setEnabled(!isLoading);
+        passwordEditText.setEnabled(!isLoading);
+        firstNameEditText.setEnabled(!isLoading);
+        lastNameEditText.setEnabled(!isLoading);
+        dniEditText.setEnabled(!isLoading);
         updateRequestButtonState();
-        verifyOtpButton.setEnabled(!isLoading);
+        submitButton.setEnabled(!isLoading);
         updateResendButtonState();
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
     }

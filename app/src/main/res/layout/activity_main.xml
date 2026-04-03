@@ -110,26 +110,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.XploreNow.Button"
-                    android:text="@string/forgot_password" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/sign_up_button"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textAppearance="@style/TextAppearance.XploreNow.Button"
-                    android:text="@string/sign_up_button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/otp_login_button"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textAppearance="@style/TextAppearance.XploreNow.Button"
-                    android:text="@string/otp_login_button" />
+                    android:text="@string/forgot_password"
+                    android:textAppearance="@style/TextAppearance.XploreNow.Button" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -146,13 +128,15 @@
             app:layout_constraintTop_toBottomOf="@id/login_card"
             tools:visibility="visible" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sign_up_button"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
-            android:textAppearance="@style/TextAppearance.XploreNow.Body"
-            android:text="@string/sign_up_prompt"
-            android:textColor="?attr/colorSecondary"
+            android:text="@string/sign_up_button"
+            android:textAppearance="@style/TextAppearance.XploreNow.Button"
+            android:textColor="?attr/colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

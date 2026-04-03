@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -21,6 +19,9 @@ import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.RetrofitClient;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.util.AuthInputValidator;
+import com.example.myapplication.util.NetworkErrorParser;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
@@ -35,11 +36,10 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText usernameEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
+    private MaterialButton forgotPasswordButton;
     private MaterialButton signUpButton;
-    private MaterialButton otpLoginButton;
     private CircularProgressIndicator progressIndicator;
     private View coordinator;
-    private ActivityResultLauncher<Intent> registerLauncher;
 
     private AppConfig appConfig;
     private AuthService authService;
@@ -58,23 +58,10 @@ public class MainActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.username_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         loginButton = findViewById(R.id.login_button);
+        forgotPasswordButton = findViewById(R.id.forgot_password_button);
         signUpButton = findViewById(R.id.sign_up_button);
-        otpLoginButton = findViewById(R.id.otp_login_button);
         progressIndicator = findViewById(R.id.progress_indicator);
         Toolbar toolbar = findViewById(R.id.toolbar);
-
-        registerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        String registeredEmail = result.getData().getStringExtra("registered_email");
-                        if (registeredEmail != null && !registeredEmail.isEmpty()) {
-                            usernameEditText.setText(registeredEmail);
-                        }
-                        Snackbar.make(coordinator, R.string.register_success_login_prompt, Snackbar.LENGTH_LONG).show();
-                    }
-                }
-        );
 
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
 
@@ -85,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loginButton.setOnClickListener(v -> attemptLogin());
+        forgotPasswordButton.setOnClickListener(v -> openPasswordResetScreen());
         signUpButton.setOnClickListener(v -> openRegisterScreen());
-        otpLoginButton.setOnClickListener(v -> openOtpLoginScreen());
     }
 
     @Override
@@ -113,57 +100,52 @@ public class MainActivity extends AppCompatActivity {
             if (appConfig != null && appConfig.baseUrl != null && !appConfig.baseUrl.isEmpty()) {
                 authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
                 loginButton.setEnabled(true);
+                forgotPasswordButton.setEnabled(true);
             } else {
-                showError(getString(R.string.error_config_load));
+                authService = null;
                 loginButton.setEnabled(false);
+                forgotPasswordButton.setEnabled(false);
+                showError(getString(R.string.error_config_load));
             }
-        } catch (IllegalArgumentException e) {
-            showError(getString(R.string.error_invalid_config));
-            loginButton.setEnabled(false);
-            authService = null;
         } catch (Exception e) {
-            showError(getString(R.string.error_config_load));
-            loginButton.setEnabled(false);
             authService = null;
+            loginButton.setEnabled(false);
+            forgotPasswordButton.setEnabled(false);
+            showError(getString(R.string.error_invalid_config));
         }
     }
 
     private void attemptLogin() {
-        String email = usernameEditText.getText().toString().trim();
-        String password = passwordEditText.getText().toString().trim();
+        String email = usernameEditText.getText() != null ? usernameEditText.getText().toString().trim() : "";
+        String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
 
-        if (email.isEmpty() || password.isEmpty()) {
-            showError(getString(R.string.error_empty_fields));
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            showError(emailError);
             return;
         }
 
-        // --- BYPASS LOGIN PARA DESARROLLO ---
-        if (BuildConfig.DEBUG && "admin".equals(email) && "admin".equals(password)) {
-            LoginResponse bypassResponse = new LoginResponse();
-            bypassResponse.token = "fake-dev-token";
-            bypassResponse.userId = 1L;
-            handleLoginSuccess(bypassResponse);
+        String passwordError = AuthInputValidator.validatePassword(this, password);
+        if (passwordError != null) {
+            showError(passwordError);
             return;
         }
-        // ------------------------------------
 
-        if (authService == null) {
+        if (authService == null || appConfig == null) {
             showError(getString(R.string.error_service_not_initialized));
             return;
         }
 
         setLoading(true);
-
-        LoginRequest request = new LoginRequest(email, password);
-        authService.login(appConfig.loginEndpoint, request).enqueue(new Callback<LoginResponse>() {
+        authService.login(AuthEndpoints.login(appConfig), new LoginRequest(email, password)).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     handleLoginSuccess(response.body());
                 } else {
-                    String errorMsg = response.message().isEmpty() ? "Invalid credentials" : response.message();
-                    showError(getString(R.string.login_failed, errorMsg));
+                    String errorMessage = NetworkErrorParser.getErrorMessage(response, getString(R.string.error_login_failed_default));
+                    showError(getString(R.string.login_failed, errorMessage));
                 }
             }
 
@@ -172,19 +154,24 @@ public class MainActivity extends AppCompatActivity {
                 setLoading(false);
                 String message = t != null && t.getLocalizedMessage() != null
                         ? t.getLocalizedMessage()
-                        : "Network error";
+                        : getString(R.string.error_network_generic);
                 showError(getString(R.string.generic_error, message));
             }
         });
     }
 
-    private void openRegisterScreen() {
-        Intent intent = new Intent(this, RegisterActivity.class);
-        registerLauncher.launch(intent);
+    private void openPasswordResetScreen() {
+        Intent intent = new Intent(this, OtpLoginActivity.class);
+        intent.putExtra(OtpLoginActivity.EXTRA_MODE, OtpLoginActivity.MODE_PASSWORD_RESET);
+        String email = usernameEditText.getText() != null ? usernameEditText.getText().toString().trim() : "";
+        if (!email.isEmpty()) {
+            intent.putExtra(OtpLoginActivity.EXTRA_PREFILL_EMAIL, email);
+        }
+        startActivity(intent);
     }
 
-    private void openOtpLoginScreen() {
-        startActivity(new Intent(this, OtpLoginActivity.class));
+    private void openRegisterScreen() {
+        startActivity(new Intent(this, RegisterActivity.class));
     }
 
     private void handleLoginSuccess(LoginResponse response) {
@@ -203,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void setLoading(boolean isLoading) {
         loginButton.setEnabled(!isLoading);
+        forgotPasswordButton.setEnabled(!isLoading);
         signUpButton.setEnabled(!isLoading);
-        otpLoginButton.setEnabled(!isLoading);
         usernameEditText.setEnabled(!isLoading);
         passwordEditText.setEnabled(!isLoading);
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
@@ -216,5 +203,4 @@ public class MainActivity extends AppCompatActivity {
                 .setTextColor(getResources().getColor(R.color.onError, getTheme()))
                 .show();
     }
-
 }

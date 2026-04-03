@@ -12,12 +12,21 @@ public class AppConfig {
     @Json(name = "register_endpoint")
     public String registerEndpoint;
 
-    @Json(name = "otp_request_endpoint")
-    public String otpRequestEndpoint;
+    @Json(name = "signup_otp_request_endpoint")
+    public String signupOtpRequestEndpoint;
 
-    @Json(name = "otp_verify_endpoint")
-    public String otpVerifyEndpoint;
+    @Json(name = "signup_otp_resend_endpoint")
+    public String signupOtpResendEndpoint;
 
-    @Json(name = "otp_resend_endpoint")
-    public String otpResendEndpoint;
+    @Json(name = "signup_otp_complete_endpoint")
+    public String signupOtpCompleteEndpoint;
+
+    @Json(name = "password_reset_request_endpoint")
+    public String passwordResetRequestEndpoint;
+
+    @Json(name = "password_reset_resend_endpoint")
+    public String passwordResetResendEndpoint;
+
+    @Json(name = "password_reset_confirm_endpoint")
+    public String passwordResetConfirmEndpoint;
 }

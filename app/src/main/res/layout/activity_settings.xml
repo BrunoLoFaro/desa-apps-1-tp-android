@@ -88,49 +88,94 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/otp_request_endpoint_layout"
+                android:id="@+id/signup_otp_request_endpoint_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="@string/otp_request_endpoint_hint">
+                android:hint="@string/signup_otp_request_endpoint_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/otp_request_endpoint_edit_text"
+                    android:id="@+id/signup_otp_request_endpoint_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/otp_verify_endpoint_layout"
+                android:id="@+id/signup_otp_resend_endpoint_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="@string/otp_verify_endpoint_hint">
+                android:hint="@string/signup_otp_resend_endpoint_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/otp_verify_endpoint_edit_text"
+                    android:id="@+id/signup_otp_resend_endpoint_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/otp_resend_endpoint_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/signup_otp_complete_endpoint_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="@string/signup_otp_complete_endpoint_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/signup_otp_complete_endpoint_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="32dp"
-                    android:hint="@string/otp_resend_endpoint_hint">
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/otp_resend_endpoint_edit_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text" />
-                    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_reset_request_endpoint_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="@string/password_reset_request_endpoint_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/password_reset_request_endpoint_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_reset_resend_endpoint_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="@string/password_reset_resend_endpoint_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/password_reset_resend_endpoint_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_reset_confirm_endpoint_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:hint="@string/password_reset_confirm_endpoint_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/password_reset_confirm_endpoint_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/save_button"

@@ -2,7 +2,6 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Patterns;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
@@ -14,10 +13,15 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
+import com.example.myapplication.data.model.OtpRequest;
+import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.data.model.RegisterRequest;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.RetrofitClient;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.util.AuthInputValidator;
+import com.example.myapplication.util.NetworkErrorParser;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -30,11 +34,13 @@ import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private TextInputEditText otpEmailEditText;
     private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
     private TextInputEditText firstNameEditText;
     private TextInputEditText lastNameEditText;
     private TextInputEditText dniEditText;
+    private MaterialButton startOtpRegisterButton;
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
     private View coordinator;
@@ -53,11 +59,13 @@ public class RegisterActivity extends AppCompatActivity {
         configLoader = new ConfigLoader(this);
         sessionManager = new SessionManager(this);
         coordinator = findViewById(R.id.register_coordinator);
+        otpEmailEditText = findViewById(R.id.otp_signup_email_edit_text);
         emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         firstNameEditText = findViewById(R.id.first_name_edit_text);
         lastNameEditText = findViewById(R.id.last_name_edit_text);
         dniEditText = findViewById(R.id.dni_edit_text);
+        startOtpRegisterButton = findViewById(R.id.start_otp_register_button);
         registerButton = findViewById(R.id.register_button);
         progressIndicator = findViewById(R.id.register_progress_indicator);
 
@@ -71,7 +79,8 @@ public class RegisterActivity extends AppCompatActivity {
             return insets;
         });
 
-        registerButton.setOnClickListener(v -> attemptRegister());
+        startOtpRegisterButton.setOnClickListener(v -> requestSignupOtp());
+        registerButton.setOnClickListener(v -> attemptClassicRegister());
     }
 
     @Override
@@ -83,32 +92,70 @@ public class RegisterActivity extends AppCompatActivity {
     private void loadConfiguration() {
         try {
             appConfig = configLoader.loadConfig();
-            if (appConfig != null && (appConfig.registerEndpoint == null || appConfig.registerEndpoint.trim().isEmpty())) {
-                appConfig.registerEndpoint = "api/v1/auth/register";
-            }
-
             if (appConfig != null && appConfig.baseUrl != null && !appConfig.baseUrl.isEmpty()) {
                 authService = RetrofitClient.getClient(appConfig).create(AuthService.class);
+                startOtpRegisterButton.setEnabled(true);
                 registerButton.setEnabled(true);
             } else {
-                showError(getString(R.string.error_config_load));
+                authService = null;
+                startOtpRegisterButton.setEnabled(false);
                 registerButton.setEnabled(false);
+                showError(getString(R.string.error_config_load));
             }
         } catch (Exception e) {
-            showError(getString(R.string.error_invalid_config));
-            registerButton.setEnabled(false);
             authService = null;
+            startOtpRegisterButton.setEnabled(false);
+            registerButton.setEnabled(false);
+            showError(getString(R.string.error_invalid_config));
         }
     }
 
-    private void attemptRegister() {
-        String email = emailEditText.getText().toString().trim();
-        String password = passwordEditText.getText().toString().trim();
-        String firstName = firstNameEditText.getText().toString().trim();
-        String lastName = lastNameEditText.getText().toString().trim();
-        String dni = dniEditText.getText().toString().trim();
+    private void requestSignupOtp() {
+        String email = otpEmailEditText.getText() != null ? otpEmailEditText.getText().toString().trim() : "";
 
-        String validationError = validateInput(email, password, firstName, lastName, dni);
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            showError(emailError);
+            return;
+        }
+
+        if (authService == null || appConfig == null) {
+            showError(getString(R.string.error_service_not_initialized));
+            return;
+        }
+
+        setLoading(true);
+        authService.requestSignupOtp(AuthEndpoints.signupOtpRequest(appConfig), new OtpRequest(email)).enqueue(new Callback<OtpResponse>() {
+            @Override
+            public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
+                setLoading(false);
+                if (response.isSuccessful()) {
+                    openOtpSignupScreen(email);
+                } else {
+                    String errorMessage = NetworkErrorParser.getErrorMessage(response, getString(R.string.error_signup_otp_request_default));
+                    showError(errorMessage);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OtpResponse> call, Throwable t) {
+                setLoading(false);
+                String message = t != null && t.getLocalizedMessage() != null
+                        ? t.getLocalizedMessage()
+                        : getString(R.string.error_network_generic);
+                showError(getString(R.string.generic_error, message));
+            }
+        });
+    }
+
+    private void attemptClassicRegister() {
+        String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+        String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
+        String firstName = firstNameEditText.getText() != null ? firstNameEditText.getText().toString().trim() : "";
+        String lastName = lastNameEditText.getText() != null ? lastNameEditText.getText().toString().trim() : "";
+        String dni = dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
+
+        String validationError = validateClassicInput(email, password, firstName, lastName, dni);
         if (validationError != null) {
             showError(validationError);
             return;
@@ -119,23 +166,17 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (appConfig.registerEndpoint == null || appConfig.registerEndpoint.isEmpty()) {
-            showError(getString(R.string.error_register_endpoint_missing));
-            return;
-        }
-
         setLoading(true);
-
         RegisterRequest request = new RegisterRequest(email, password, firstName, lastName, dni);
-        authService.register(appConfig.registerEndpoint, request).enqueue(new Callback<LoginResponse>() {
+        authService.register(AuthEndpoints.register(appConfig), request).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    handleRegisterSuccess(response.body());
+                    handleLoginSuccess(response.body());
                 } else {
-                    String errorMsg = response.message().isEmpty() ? "Error en registro" : response.message();
-                    showError(getString(R.string.register_failed, errorMsg));
+                    String errorMessage = NetworkErrorParser.getErrorMessage(response, getString(R.string.error_register_failed_default));
+                    showError(getString(R.string.register_failed, errorMessage));
                 }
             }
 
@@ -144,32 +185,44 @@ public class RegisterActivity extends AppCompatActivity {
                 setLoading(false);
                 String message = t != null && t.getLocalizedMessage() != null
                         ? t.getLocalizedMessage()
-                        : "Network error";
+                        : getString(R.string.error_network_generic);
                 showError(getString(R.string.generic_error, message));
             }
         });
     }
 
-    private String validateInput(String email, String password, String firstName, String lastName, String dni) {
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            return getString(R.string.error_invalid_email);
+    private String validateClassicInput(String email, String password, String firstName, String lastName, String dni) {
+        String emailError = AuthInputValidator.validateEmail(this, email);
+        if (emailError != null) {
+            return emailError;
         }
-        if (password.length() < 6 || password.length() > 72) {
-            return getString(R.string.error_invalid_password);
+
+        String passwordError = AuthInputValidator.validatePassword(this, password);
+        if (passwordError != null) {
+            return passwordError;
         }
-        if (firstName.length() < 2 || firstName.length() > 80) {
-            return getString(R.string.error_invalid_first_name);
+
+        String firstNameError = AuthInputValidator.validateFirstName(this, firstName);
+        if (firstNameError != null) {
+            return firstNameError;
         }
-        if (lastName.length() < 2 || lastName.length() > 80) {
-            return getString(R.string.error_invalid_last_name);
+
+        String lastNameError = AuthInputValidator.validateLastName(this, lastName);
+        if (lastNameError != null) {
+            return lastNameError;
         }
-        if (!dni.matches("^[0-9]{7,10}$")) {
-            return getString(R.string.error_invalid_dni);
-        }
-        return null;
+
+        return AuthInputValidator.validateDni(this, dni);
     }
 
-    private void handleRegisterSuccess(LoginResponse response) {
+    private void openOtpSignupScreen(String email) {
+        Intent intent = new Intent(this, OtpLoginActivity.class);
+        intent.putExtra(OtpLoginActivity.EXTRA_MODE, OtpLoginActivity.MODE_SIGNUP);
+        intent.putExtra(OtpLoginActivity.EXTRA_PREFILL_EMAIL, email);
+        startActivity(intent);
+    }
+
+    private void handleLoginSuccess(LoginResponse response) {
         if (response != null && response.token != null && !response.token.trim().isEmpty()) {
             sessionManager.saveAccessToken(response.token);
         }
@@ -180,7 +233,9 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void setLoading(boolean isLoading) {
+        startOtpRegisterButton.setEnabled(!isLoading);
         registerButton.setEnabled(!isLoading);
+        otpEmailEditText.setEnabled(!isLoading);
         emailEditText.setEnabled(!isLoading);
         passwordEditText.setEnabled(!isLoading);
         firstNameEditText.setEnabled(!isLoading);
@@ -195,5 +250,4 @@ public class RegisterActivity extends AppCompatActivity {
                 .setTextColor(getResources().getColor(R.color.onError, getTheme()))
                 .show();
     }
-
 }
