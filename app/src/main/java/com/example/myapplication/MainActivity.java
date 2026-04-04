@@ -32,7 +32,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextInputEditText usernameEditText;
+    private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
     private CircularProgressIndicator progressIndicator;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         configLoader = new ConfigLoader(this);
         coordinator = findViewById(R.id.coordinator);
-        usernameEditText = findViewById(R.id.username_edit_text);
+        emailEditText = findViewById(R.id.email_edit_text);
         passwordEditText = findViewById(R.id.password_edit_text);
         loginButton = findViewById(R.id.login_button);
         progressIndicator = findViewById(R.id.progress_indicator);
@@ -106,16 +106,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
-        String username = usernameEditText.getText().toString().trim();
+        String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             showError(getString(R.string.error_empty_fields));
             return;
         }
 
         // --- BYPASS LOGIN PARA DESARROLLO ---
-        if (BuildConfig.DEBUG && "admin".equals(username) && "admin".equals(password)) {
+        if (BuildConfig.DEBUG && "admin".equals(email) && "admin".equals(password)) {
             LoginResponse bypassResponse = new LoginResponse();
             bypassResponse.token = "fake-dev-token";
             bypassResponse.userId = "dev-user-id";
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
         executorService.execute(() -> {
             try {
-                LoginRequest request = new LoginRequest(username, password);
+                LoginRequest request = new LoginRequest(email, password);
                 Response<LoginResponse> response = authService.login(appConfig.loginEndpoint, request).execute();
 
                 mainHandler.post(() -> {
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 mainHandler.post(() -> {
                     setLoading(false);
-                    showError(getString(R.string.generic_error, e.getLocalizedMessage()));
+                    showError(getString(R.string.error_network_generic));
                 });
             }
         });
@@ -156,28 +156,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleLoginSuccess(LoginResponse response) {
         Intent intent = new Intent(this, HomeActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra("TOKEN", response.token);
+        intent.putExtra("USER_ID", response.userId);
         startActivity(intent);
         finish();
     }
 
     private void setLoading(boolean isLoading) {
         loginButton.setEnabled(!isLoading);
-        usernameEditText.setEnabled(!isLoading);
-        passwordEditText.setEnabled(!isLoading);
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
     }
 
     private void showError(String message) {
-        Snackbar.make(coordinator, message, Snackbar.LENGTH_LONG)
-                .setBackgroundTint(getResources().getColor(R.color.error, getTheme()))
-                .setTextColor(getResources().getColor(R.color.onError, getTheme()))
-                .show();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();
+        Snackbar.make(coordinator, message, Snackbar.LENGTH_LONG).show();
     }
 }

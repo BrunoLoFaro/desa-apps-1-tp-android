@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">XploreNow</string>
     <string name="login_title">Welcome Back</string>
-    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
     <string name="login_button_text">Sign In</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="sign_up_prompt">Don\'t have an account? Sign Up</string>
     <string name="error_config_load">Failed to load application configuration.</string>
-    <string name="error_empty_fields">Please enter both username and password.</string>
+    <string name="error_empty_fields">Please enter both email and password.</string>
     <string name="login_success">Login successful!</string>
     <string name="login_failed">Login failed: %1$s</string>
     <string name="generic_error">An error occurred: %1$s</string>
@@ -23,6 +23,7 @@
     <string name="error_invalid_url">Invalid Base URL. It must start with http:// or https://</string>
     <string name="error_invalid_config">Invalid server configuration. Please check Settings.</string>
     <string name="error_service_not_initialized">Service not initialized. Check your settings.</string>
+    <string name="error_network_generic">Network error. Please try again.</string>
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
     <string name="home_featured_title">Recomendados para ti</string>
