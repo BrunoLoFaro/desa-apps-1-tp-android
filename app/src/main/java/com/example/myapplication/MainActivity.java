@@ -26,7 +26,7 @@ import retrofit2.Response;
 
 public class MainActivity extends BaseAuthActivity {
 
-    private TextInputEditText emailEditText;
+    private TextInputEditText usernameEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
     private MaterialButton forgotPasswordButton;
@@ -40,7 +40,7 @@ public class MainActivity extends BaseAuthActivity {
         setContentView(R.layout.activity_main);
 
         // sessionManager es inicializado en BaseAuthActivity.onCreate()
-        emailEditText     = findViewById(R.id.email_edit_text);
+        usernameEditText  = findViewById(R.id.username_edit_text);
         passwordEditText  = findViewById(R.id.password_edit_text);
         loginButton       = findViewById(R.id.login_button);
         forgotPasswordButton = findViewById(R.id.forgot_password_button);
@@ -98,7 +98,7 @@ public class MainActivity extends BaseAuthActivity {
     }
 
     private void attemptLogin() {
-        String email    = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+        String email    = usernameEditText.getText() != null ? usernameEditText.getText().toString().trim() : "";
         String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
 
         String emailError = AuthInputValidator.validateEmail(this, email);
@@ -139,8 +139,8 @@ public class MainActivity extends BaseAuthActivity {
 
     private void openPasswordResetScreen() {
         Intent intent = new Intent(this, ForgotPasswordRequestActivity.class);
-        String email = emailEditText.getText() != null
-                ? emailEditText.getText().toString().trim() : "";
+        String email = usernameEditText.getText() != null
+                ? usernameEditText.getText().toString().trim() : "";
         if (!email.isEmpty()) {
             intent.putExtra(ForgotPasswordRequestActivity.EXTRA_PREFILL_EMAIL, email);
         }
@@ -151,7 +151,7 @@ public class MainActivity extends BaseAuthActivity {
         loginButton.setEnabled(!isLoading);
         forgotPasswordButton.setEnabled(!isLoading);
         signUpButton.setEnabled(!isLoading);
-        emailEditText.setEnabled(!isLoading);
+        usernameEditText.setEnabled(!isLoading);
         passwordEditText.setEnabled(!isLoading);
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
     }
