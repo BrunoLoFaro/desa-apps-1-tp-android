@@ -38,7 +38,7 @@
         <activity
             android:name=".SignupActivity"
             android:exported="false"
-            android:label="@string/signup_title"
+            android:label="@string/action_register"
             android:theme="@style/Theme.XploreNow" />
         <activity
             android:name=".ClassicRegisterActivity"
@@ -53,7 +53,7 @@
         <activity
             android:name=".ForgotPasswordCodeActivity"
             android:exported="false"
-            android:label="@string/password_reset_verify_title"
+            android:label="@string/action_verify_code"
             android:theme="@style/Theme.XploreNow" />
         <activity
             android:name=".ForgotPasswordNewPasswordActivity"
@@ -63,12 +63,12 @@
         <activity
             android:name=".OtpSignupCodeActivity"
             android:exported="false"
-            android:label="@string/otp_signup_code_title"
+            android:label="@string/action_verify_code"
             android:theme="@style/Theme.XploreNow" />
         <activity
             android:name=".OtpSignupCompleteActivity"
             android:exported="false"
-            android:label="@string/otp_signup_complete_title"
+            android:label="@string/action_complete_registration"
             android:theme="@style/Theme.XploreNow" />
     </application>
 

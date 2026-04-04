@@ -100,7 +100,7 @@ public class ForgotPasswordRequestActivity extends BaseAuthActivity {
                             startActivity(intent);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_password_reset_request_default)));
+                                    response, getString(R.string.error_send_code_default)));
                         }
                     }
 

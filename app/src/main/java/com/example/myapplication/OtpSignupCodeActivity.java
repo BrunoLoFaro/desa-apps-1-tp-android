@@ -111,7 +111,7 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                             openCompleteStep(code);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_verify_default)));
+                                    response, getString(R.string.error_verify_code_default)));
                         }
                     }
 
@@ -148,7 +148,7 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                             showInfo(getString(R.string.signup_otp_resent_message));
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_resend_default)));
+                                    response, getString(R.string.error_resend_code_default)));
                         }
                     }
 

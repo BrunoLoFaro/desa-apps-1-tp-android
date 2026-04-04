@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:title="@string/signup_title" />
+            app:title="@string/action_register" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/email_hint">
+                android:hint="@string/label_email">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/signup_email_edit_text"

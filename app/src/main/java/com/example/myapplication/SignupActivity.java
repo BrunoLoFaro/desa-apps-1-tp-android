@@ -98,7 +98,7 @@ public class SignupActivity extends BaseAuthActivity {
                             startActivity(intent);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_request_default)));
+                                    response, getString(R.string.error_send_code_default)));
                         }
                     }
 

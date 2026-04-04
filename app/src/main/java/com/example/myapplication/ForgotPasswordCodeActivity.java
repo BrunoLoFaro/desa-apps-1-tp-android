@@ -111,7 +111,7 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                             startActivity(intent);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_password_reset_verify_default)));
+                                    response, getString(R.string.error_verify_code_default)));
                         }
                     }
 
@@ -141,7 +141,7 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                             showInfo(getString(R.string.password_reset_resent_message));
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_password_reset_resend_default)));
+                                    response, getString(R.string.error_resend_code_default)));
                         }
                     }
 
