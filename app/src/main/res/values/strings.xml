@@ -96,6 +96,7 @@
     <string name="error_register_failed_default">No se pudo completar el registro.</string>
     <string name="error_signup_otp_request_default">No se pudo enviar el código de registro.</string>
     <string name="error_signup_otp_resend_default">No se pudo reenviar el código de registro.</string>
+    <string name="error_signup_otp_verify_default">No se pudo verificar el código de registro.</string>
     <string name="error_signup_complete_default">No se pudo completar el registro con OTP.</string>
     <string name="error_password_reset_request_default">No se pudo enviar el código de recuperación.</string>
     <string name="error_password_reset_resend_default">No se pudo reenviar el código de recuperación.</string>
@@ -114,4 +115,9 @@
     <string name="password_reset_confirm_button">Cambiar contraseña</string>
     <string name="otp_action_resend">Reenviar código</string>
     <string name="otp_action_resend_countdown">Reenviar código (%1$ds)</string>
+
+    <string name="otp_signup_code_title">Verificar código</string>
+    <string name="otp_signup_code_subtitle">Ingresá el código de 6 dígitos que recibiste en tu correo.</string>
+    <string name="otp_signup_complete_title">Completar registro</string>
+    <string name="otp_signup_complete_subtitle">Completá tus datos para finalizar el registro.</string>
 </resources>

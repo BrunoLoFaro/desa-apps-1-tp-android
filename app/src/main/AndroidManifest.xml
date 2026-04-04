@@ -12,7 +12,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.XploreNow">
+        android:theme="@style/Theme.XploreNow"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -59,14 +60,14 @@
             android:label="@string/password_reset_new_password_title"
             android:theme="@style/Theme.XploreNow" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".OtpSignupCodeActivity"
             android:exported="false"
-            android:label="@string/register_title"
+            android:label="@string/otp_signup_code_title"
             android:theme="@style/Theme.XploreNow" />
         <activity
-            android:name=".OtpLoginActivity"
+            android:name=".OtpSignupCompleteActivity"
             android:exported="false"
-            android:label="@string/otp_login_title"
+            android:label="@string/otp_signup_complete_title"
             android:theme="@style/Theme.XploreNow" />
     </application>
 

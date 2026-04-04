@@ -21,6 +21,7 @@ public interface AuthService {
     @POST
     Call<LoginResponse> register(@Url String url, @Body RegisterRequest request);
 
+    // ── OTP signup ────────────────────────────────────────────────────────────
     @POST
     Call<OtpResponse> requestSignupOtp(@Url String url, @Body OtpRequest request);
 
@@ -28,8 +29,12 @@ public interface AuthService {
     Call<OtpResponse> resendSignupOtp(@Url String url, @Body OtpRequest request);
 
     @POST
+    Call<OtpResponse> verifySignupOtp(@Url String url, @Body OtpCodeVerificationRequest request);
+
+    @POST
     Call<LoginResponse> completeSignupWithOtp(@Url String url, @Body OtpRegistrationCompleteRequest request);
 
+    // ── Password reset ────────────────────────────────────────────────────────
     @POST
     Call<OtpResponse> requestPasswordReset(@Url String url, @Body OtpRequest request);
 

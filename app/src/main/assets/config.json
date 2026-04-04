@@ -4,6 +4,7 @@
   "register_endpoint": "api/v1/auth/register",
   "signup_otp_request_endpoint": "api/v1/auth/signup/otp/request",
   "signup_otp_resend_endpoint": "api/v1/auth/signup/otp/resend",
+  "signup_otp_verify_endpoint": "api/v1/auth/signup/otp/verify",
   "signup_otp_complete_endpoint": "api/v1/auth/signup/otp/complete",
   "password_reset_request_endpoint": "api/v1/auth/password-reset/request",
   "password_reset_resend_endpoint": "api/v1/auth/password-reset/resend",

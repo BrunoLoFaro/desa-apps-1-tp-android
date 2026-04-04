@@ -25,13 +25,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordCodeActivity extends BaseAuthActivity {
+public class OtpSignupCodeActivity extends BaseAuthActivity {
 
     public static final String EXTRA_EMAIL = "email";
 
     private TextInputEditText codeEditText;
-    private MaterialButton verifyCodeButton;
-    private MaterialButton resendCodeButton;
+    private MaterialButton verifyButton;
+    private MaterialButton resendButton;
     private CircularProgressIndicator progressIndicator;
 
     private String email;
@@ -40,12 +40,12 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_forgot_password_code);
+        setContentView(R.layout.activity_otp_signup_code);
 
-        codeEditText = findViewById(R.id.forgot_code_edit_text);
-        verifyCodeButton = findViewById(R.id.forgot_verify_code_button);
-        resendCodeButton = findViewById(R.id.forgot_resend_code_button);
-        progressIndicator = findViewById(R.id.forgot_code_progress_indicator);
+        codeEditText = findViewById(R.id.otp_signup_code_edit_text);
+        verifyButton = findViewById(R.id.otp_signup_verify_button);
+        resendButton = findViewById(R.id.otp_signup_resend_button);
+        progressIndicator = findViewById(R.id.otp_signup_code_progress_indicator);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         ToolbarHelper.setupBackToolbar(this, toolbar);
@@ -62,31 +62,35 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
             return;
         }
 
-        verifyCodeButton.setOnClickListener(v -> verifyCode());
-        resendCodeButton.setOnClickListener(v -> resendCode());
+        verifyButton.setOnClickListener(v -> verifyCode());
+        resendButton.setOnClickListener(v -> resendCode());
     }
 
     @Override
     protected View getRootView() {
-        return findViewById(R.id.forgot_code_coordinator);
+        return findViewById(R.id.otp_signup_code_coordinator);
     }
 
     @Override
     protected void onConfigReady() {
-        verifyCodeButton.setEnabled(true);
-        resendCodeButton.setEnabled(true);
+        verifyButton.setEnabled(true);
+        resendButton.setEnabled(true);
     }
 
     @Override
     protected void onConfigError(String error) {
-        verifyCodeButton.setEnabled(false);
-        resendCodeButton.setEnabled(false);
+        verifyButton.setEnabled(false);
+        resendButton.setEnabled(false);
         super.onConfigError(error);
     }
 
+    /**
+     * FIX: antes navegaba directamente a pantalla 3 sin verificar el código en el backend.
+     * Ahora llama a /signup/otp/verify primero y solo navega si el servidor confirma el código.
+     * Esto garantiza que el usuario no llegue a la pantalla de datos con un código incorrecto.
+     */
     private void verifyCode() {
-        String code = codeEditText.getText() != null
-                ? codeEditText.getText().toString().trim() : "";
+        String code = codeEditText.getText() != null ? codeEditText.getText().toString().trim() : "";
         String codeError = AuthInputValidator.validateOtp(this, code);
         if (codeError != null) { showError(codeError); return; }
 
@@ -96,22 +100,18 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
         }
 
         setLoading(true);
-        authService.verifyPasswordResetCode(
-                AuthEndpoints.passwordResetVerify(appConfig),
+        authService.verifySignupOtp(
+                AuthEndpoints.signupOtpVerify(appConfig),
                 new OtpCodeVerificationRequest(email, code))
                 .enqueue(new Callback<OtpResponse>() {
                     @Override
                     public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                         setLoading(false);
                         if (response.isSuccessful()) {
-                            Intent intent = new Intent(ForgotPasswordCodeActivity.this,
-                                    ForgotPasswordNewPasswordActivity.class);
-                            intent.putExtra(ForgotPasswordNewPasswordActivity.EXTRA_EMAIL, email);
-                            intent.putExtra(ForgotPasswordNewPasswordActivity.EXTRA_CODE, code);
-                            startActivity(intent);
+                            openCompleteStep(code);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_password_reset_verify_default)));
+                                    response, getString(R.string.error_signup_otp_verify_default)));
                         }
                     }
 
@@ -125,6 +125,13 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                 });
     }
 
+    private void openCompleteStep(String verifiedCode) {
+        Intent intent = new Intent(this, OtpSignupCompleteActivity.class);
+        intent.putExtra(OtpSignupCompleteActivity.EXTRA_EMAIL, email);
+        intent.putExtra(OtpSignupCompleteActivity.EXTRA_CODE, verifiedCode);
+        startActivity(intent);
+    }
+
     private void resendCode() {
         if (authService == null || appConfig == null) {
             showError(getString(R.string.error_service_not_initialized));
@@ -132,16 +139,16 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
         }
 
         setLoading(true);
-        authService.resendPasswordReset(AuthEndpoints.passwordResetResend(appConfig), new OtpRequest(email))
+        authService.resendSignupOtp(AuthEndpoints.signupOtpResend(appConfig), new OtpRequest(email))
                 .enqueue(new Callback<OtpResponse>() {
                     @Override
                     public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                         setLoading(false);
                         if (response.isSuccessful()) {
-                            showInfo(getString(R.string.password_reset_resent_message));
+                            showInfo(getString(R.string.signup_otp_resent_message));
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_password_reset_resend_default)));
+                                    response, getString(R.string.error_signup_otp_resend_default)));
                         }
                     }
 
@@ -156,8 +163,8 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
     }
 
     private void setLoading(boolean isLoading) {
-        verifyCodeButton.setEnabled(!isLoading);
-        resendCodeButton.setEnabled(!isLoading);
+        verifyButton.setEnabled(!isLoading);
+        resendButton.setEnabled(!isLoading);
         codeEditText.setEnabled(!isLoading);
         progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
     }

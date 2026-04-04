@@ -8,14 +8,14 @@ public final class AuthEndpoints {
     public static final String REGISTER = "api/v1/auth/register";
     public static final String SIGNUP_OTP_REQUEST = "api/v1/auth/signup/otp/request";
     public static final String SIGNUP_OTP_RESEND = "api/v1/auth/signup/otp/resend";
+    public static final String SIGNUP_OTP_VERIFY = "api/v1/auth/signup/otp/verify";
     public static final String SIGNUP_OTP_COMPLETE = "api/v1/auth/signup/otp/complete";
     public static final String PASSWORD_RESET_REQUEST = "api/v1/auth/password-reset/request";
     public static final String PASSWORD_RESET_RESEND = "api/v1/auth/password-reset/resend";
     public static final String PASSWORD_RESET_VERIFY = "api/v1/auth/password-reset/verify";
     public static final String PASSWORD_RESET_CONFIRM = "api/v1/auth/password-reset/confirm";
 
-    private AuthEndpoints() {
-    }
+    private AuthEndpoints() {}
 
     public static String login(AppConfig config) {
         return valueOrDefault(config != null ? config.loginEndpoint : null, LOGIN);
@@ -31,6 +31,10 @@ public final class AuthEndpoints {
 
     public static String signupOtpResend(AppConfig config) {
         return valueOrDefault(config != null ? config.signupOtpResendEndpoint : null, SIGNUP_OTP_RESEND);
+    }
+
+    public static String signupOtpVerify(AppConfig config) {
+        return valueOrDefault(config != null ? config.signupOtpVerifyEndpoint : null, SIGNUP_OTP_VERIFY);
     }
 
     public static String signupOtpComplete(AppConfig config) {

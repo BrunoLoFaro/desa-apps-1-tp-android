@@ -18,6 +18,9 @@ public class AppConfig {
     @Json(name = "signup_otp_resend_endpoint")
     public String signupOtpResendEndpoint;
 
+    @Json(name = "signup_otp_verify_endpoint")
+    public String signupOtpVerifyEndpoint;
+
     @Json(name = "signup_otp_complete_endpoint")
     public String signupOtpCompleteEndpoint;
 

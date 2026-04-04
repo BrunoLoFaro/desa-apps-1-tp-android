@@ -9,7 +9,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.myapplication.data.model.LoginResponse;
-import com.example.myapplication.data.model.RegisterRequest;
+import com.example.myapplication.data.model.OtpRegistrationCompleteRequest;
 import com.example.myapplication.util.AuthEndpoints;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.NetworkErrorParser;
@@ -23,77 +23,87 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ClassicRegisterActivity extends BaseAuthActivity {
+public class OtpSignupCompleteActivity extends BaseAuthActivity {
 
-    private TextInputEditText emailEditText;
+    public static final String EXTRA_EMAIL = "email";
+    public static final String EXTRA_CODE  = "code";
+
     private TextInputEditText passwordEditText;
     private TextInputEditText firstNameEditText;
     private TextInputEditText lastNameEditText;
     private TextInputEditText dniEditText;
-    private MaterialButton registerButton;
+    private MaterialButton completeButton;
     private CircularProgressIndicator progressIndicator;
+
+    private String email;
+    private String code;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_classic_register);
+        setContentView(R.layout.activity_otp_signup_complete);
 
-        emailEditText     = findViewById(R.id.email_edit_text);
-        passwordEditText  = findViewById(R.id.password_edit_text);
-        firstNameEditText = findViewById(R.id.first_name_edit_text);
-        lastNameEditText  = findViewById(R.id.last_name_edit_text);
-        dniEditText       = findViewById(R.id.dni_edit_text);
-        registerButton    = findViewById(R.id.register_button);
-        progressIndicator = findViewById(R.id.register_progress_indicator);
+        passwordEditText  = findViewById(R.id.otp_signup_complete_password_edit_text);
+        firstNameEditText = findViewById(R.id.otp_signup_complete_first_name_edit_text);
+        lastNameEditText  = findViewById(R.id.otp_signup_complete_last_name_edit_text);
+        dniEditText       = findViewById(R.id.otp_signup_complete_dni_edit_text);
+        completeButton    = findViewById(R.id.otp_signup_complete_button);
+        progressIndicator = findViewById(R.id.otp_signup_complete_progress_indicator);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         ToolbarHelper.setupBackToolbar(this, toolbar);
 
-        // FIX: antes se llamaba findViewById(R.id.classic_register_coordinator) dos veces —
-        // una al asignar 'coordinator' y otra al pasar a ViewCompat. Ahora se usa getRootView().
         ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        registerButton.setOnClickListener(v -> attemptClassicRegister());
+        email = getIntent().getStringExtra(EXTRA_EMAIL);
+        code  = getIntent().getStringExtra(EXTRA_CODE);
+        if (email == null || email.trim().isEmpty() || code == null || code.trim().isEmpty()) {
+            finish();
+            return;
+        }
+
+        completeButton.setOnClickListener(v -> completeRegistration());
     }
 
     @Override
     protected View getRootView() {
-        return findViewById(R.id.classic_register_coordinator);
+        return findViewById(R.id.otp_signup_complete_coordinator);
     }
 
     @Override
     protected void onConfigReady() {
-        registerButton.setEnabled(true);
+        completeButton.setEnabled(true);
     }
 
     @Override
     protected void onConfigError(String error) {
-        registerButton.setEnabled(false);
+        completeButton.setEnabled(false);
         super.onConfigError(error);
     }
 
-    private void attemptClassicRegister() {
-        String email     = emailEditText.getText()     != null ? emailEditText.getText().toString().trim() : "";
+    private void completeRegistration() {
         String password  = passwordEditText.getText()  != null ? passwordEditText.getText().toString() : "";
         String firstName = firstNameEditText.getText() != null ? firstNameEditText.getText().toString().trim() : "";
         String lastName  = lastNameEditText.getText()  != null ? lastNameEditText.getText().toString().trim() : "";
         String dni       = dniEditText.getText()       != null ? dniEditText.getText().toString().trim() : "";
 
-        String error = validateFields(email, password, firstName, lastName, dni);
+        String error = validateFields(password, firstName, lastName, dni);
         if (error != null) { showError(error); return; }
 
         if (authService == null || appConfig == null) {
-            showError(getString(R.string.error_register_service_not_initialized));
+            showError(getString(R.string.error_service_not_initialized));
             return;
         }
 
         setLoading(true);
-        authService.register(AuthEndpoints.register(appConfig), new RegisterRequest(email, password, firstName, lastName, dni))
+        OtpRegistrationCompleteRequest request =
+                new OtpRegistrationCompleteRequest(email, code, password, firstName, lastName, dni);
+        authService.completeSignupWithOtp(AuthEndpoints.signupOtpComplete(appConfig), request)
                 .enqueue(new Callback<LoginResponse>() {
                     @Override
                     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
@@ -101,9 +111,8 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             handleLoginSuccess(response.body());
                         } else {
-                            String msg = NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_register_failed_default));
-                            showError(getString(R.string.register_failed, msg));
+                            showError(NetworkErrorParser.getErrorMessage(
+                                    response, getString(R.string.error_signup_complete_default)));
                         }
                     }
 
@@ -117,10 +126,8 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
                 });
     }
 
-    private String validateFields(String email, String password, String firstName, String lastName, String dni) {
-        String err = AuthInputValidator.validateEmail(this, email);
-        if (err != null) return err;
-        err = AuthInputValidator.validatePassword(this, password);
+    private String validateFields(String password, String firstName, String lastName, String dni) {
+        String err = AuthInputValidator.validatePassword(this, password);
         if (err != null) return err;
         err = AuthInputValidator.validateFirstName(this, firstName);
         if (err != null) return err;
@@ -130,8 +137,7 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
     }
 
     private void setLoading(boolean isLoading) {
-        registerButton.setEnabled(!isLoading);
-        emailEditText.setEnabled(!isLoading);
+        completeButton.setEnabled(!isLoading);
         passwordEditText.setEnabled(!isLoading);
         firstNameEditText.setEnabled(!isLoading);
         lastNameEditText.setEnabled(!isLoading);
