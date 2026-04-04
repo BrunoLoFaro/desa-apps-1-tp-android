@@ -110,6 +110,7 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                         if (response.isSuccessful()) {
                             openCompleteStep(code);
                         } else {
+                            // El log del error 500 ahora ocurre automáticamente dentro de NetworkErrorParser
                             showError(NetworkErrorParser.getErrorMessage(
                                     response, getString(R.string.error_signup_otp_verify_default)));
                         }
@@ -118,9 +119,8 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(
+                                t, getString(R.string.error_signup_otp_verify_default)));
                     }
                 });
     }
@@ -147,6 +147,7 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                         if (response.isSuccessful()) {
                             showInfo(getString(R.string.signup_otp_resent_message));
                         } else {
+                            // El log del error 500 ahora ocurre automáticamente dentro de NetworkErrorParser
                             showError(NetworkErrorParser.getErrorMessage(
                                     response, getString(R.string.error_signup_otp_resend_default)));
                         }
@@ -155,9 +156,8 @@ public class OtpSignupCodeActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(
+                                t, getString(R.string.error_signup_otp_verify_default)));
                     }
                 });
     }

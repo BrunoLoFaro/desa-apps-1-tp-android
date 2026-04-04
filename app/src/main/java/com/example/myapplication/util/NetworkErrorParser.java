@@ -23,18 +23,46 @@ public final class NetworkErrorParser {
             return fallbackMessage;
         }
 
-        ResponseBody errorBody = response.errorBody();
-        if (errorBody != null) {
-            try {
-                ApiErrorResponse apiError = ADAPTER.fromJson(errorBody.string());
-                if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
-                    return apiError.message.trim();
+        try (ResponseBody errorBody = response.errorBody()) {
+            if (errorBody != null) {
+                String errorJson = errorBody.string();
+                
+                // LOG PARA DEBUG: Imprimimos el error real del backend en el Logcat
+                if (response.code() >= 400) {
+                    android.util.Log.e("API_ERROR", "Status: " + response.code() + " | Body: " + errorJson);
                 }
-            } catch (IOException ignored) {
+
+                if (errorJson != null && !errorJson.isEmpty()) {
+                    ApiErrorResponse apiError = ADAPTER.fromJson(errorJson);
+                    if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
+                        return apiError.message.trim();
+                    }
+                }
             }
+        } catch (Exception e) {
+            android.util.Log.e("NetworkErrorParser", "Error al parsear el cuerpo del error", e);
         }
 
         String message = response.message();
         return message == null || message.trim().isEmpty() ? fallbackMessage : message.trim();
+    }
+
+    /**
+     * MEJORA: Maneja los errores de onFailure (cuando no hay Response).
+     * Útil para distinguir entre "Sin Internet", "Timeout" o "Servidor Caído".
+     */
+    public static String getFailureMessage(Throwable t, String fallbackMessage) {
+        if (t == null) return fallbackMessage;
+        
+        android.util.Log.e("API_FAILURE", "Error de red/petición", t);
+
+        if (t instanceof java.net.UnknownHostException || t instanceof java.net.ConnectException) {
+            return "No se pudo establecer conexión con el servidor. Verifica tu internet.";
+        } else if (t instanceof java.net.SocketTimeoutException) {
+            return "La conexión ha expirado. Reintenta en unos momentos.";
+        }
+        
+        String msg = t.getLocalizedMessage();
+        return (msg == null || msg.isEmpty()) ? fallbackMessage : msg;
     }
 }
