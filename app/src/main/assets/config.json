@@ -1,5 +1,13 @@
 {
-  "base_url": "http://192.168.1.11:8080/api/v1/",
+  "base_url": "http://10.0.2.2:8080/api/v1/",
   "login_endpoint": "auth/login",
-  "register_endpoint": "auth/register"
+  "register_endpoint": "auth/register",
+  "signup_otp_request_endpoint": "auth/signup/otp/request",
+  "signup_otp_resend_endpoint": "auth/signup/otp/resend",
+  "signup_otp_verify_endpoint": "auth/signup/otp/verify",
+  "signup_otp_complete_endpoint": "auth/signup/otp/complete",
+  "password_reset_request_endpoint": "auth/password-reset/request",
+  "password_reset_resend_endpoint": "auth/password-reset/resend",
+  "password_reset_verify_endpoint": "auth/password-reset/verify",
+  "password_reset_confirm_endpoint": "auth/password-reset/confirm"
 }

@@ -19,7 +19,15 @@ import com.google.android.material.textfield.TextInputEditText;
 public class SettingsActivity extends AppCompatActivity {
 
     private TextInputEditText baseUrlEditText;
-    private TextInputEditText endpointEditText;
+    private TextInputEditText loginEndpointEditText;
+    private TextInputEditText registerEndpointEditText;
+    private TextInputEditText signupOtpRequestEndpointEditText;
+    private TextInputEditText signupOtpResendEndpointEditText;
+    private TextInputEditText signupOtpCompleteEndpointEditText;
+    private TextInputEditText passwordResetRequestEndpointEditText;
+    private TextInputEditText passwordResetResendEndpointEditText;
+    private TextInputEditText passwordResetVerifyEndpointEditText;
+    private TextInputEditText passwordResetConfirmEndpointEditText;
     private MaterialButton saveButton;
     private LinearProgressIndicator saveProgress;
     private View coordinator;
@@ -34,7 +42,15 @@ public class SettingsActivity extends AppCompatActivity {
         configLoader = new ConfigLoader(this);
         coordinator = findViewById(R.id.settings_coordinator);
         baseUrlEditText = findViewById(R.id.base_url_edit_text);
-        endpointEditText = findViewById(R.id.endpoint_edit_text);
+        loginEndpointEditText = findViewById(R.id.login_endpoint_edit_text);
+        registerEndpointEditText = findViewById(R.id.register_endpoint_edit_text);
+        signupOtpRequestEndpointEditText = findViewById(R.id.signup_otp_request_endpoint_edit_text);
+        signupOtpResendEndpointEditText = findViewById(R.id.signup_otp_resend_endpoint_edit_text);
+        signupOtpCompleteEndpointEditText = findViewById(R.id.signup_otp_complete_endpoint_edit_text);
+        passwordResetRequestEndpointEditText = findViewById(R.id.password_reset_request_endpoint_edit_text);
+        passwordResetResendEndpointEditText = findViewById(R.id.password_reset_resend_endpoint_edit_text);
+        passwordResetVerifyEndpointEditText = findViewById(R.id.password_reset_verify_endpoint_edit_text);
+        passwordResetConfirmEndpointEditText = findViewById(R.id.password_reset_confirm_endpoint_edit_text);
         saveButton = findViewById(R.id.save_button);
         saveProgress = findViewById(R.id.save_progress);
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -57,15 +73,40 @@ public class SettingsActivity extends AppCompatActivity {
         AppConfig config = configLoader.loadConfig();
         if (config != null) {
             baseUrlEditText.setText(config.baseUrl);
-            endpointEditText.setText(config.loginEndpoint);
+            loginEndpointEditText.setText(config.loginEndpoint);
+            registerEndpointEditText.setText(config.registerEndpoint);
+            signupOtpRequestEndpointEditText.setText(config.signupOtpRequestEndpoint);
+            signupOtpResendEndpointEditText.setText(config.signupOtpResendEndpoint);
+            signupOtpCompleteEndpointEditText.setText(config.signupOtpCompleteEndpoint);
+            passwordResetRequestEndpointEditText.setText(config.passwordResetRequestEndpoint);
+            passwordResetResendEndpointEditText.setText(config.passwordResetResendEndpoint);
+            passwordResetVerifyEndpointEditText.setText(config.passwordResetVerifyEndpoint);
+            passwordResetConfirmEndpointEditText.setText(config.passwordResetConfirmEndpoint);
         }
     }
 
     private void saveSettings() {
         String baseUrl = baseUrlEditText.getText().toString().trim();
-        String endpoint = endpointEditText.getText().toString().trim();
+        String loginEndpoint = loginEndpointEditText.getText().toString().trim();
+        String registerEndpoint = registerEndpointEditText.getText().toString().trim();
+        String signupOtpRequestEndpoint = signupOtpRequestEndpointEditText.getText().toString().trim();
+        String signupOtpResendEndpoint = signupOtpResendEndpointEditText.getText().toString().trim();
+        String signupOtpCompleteEndpoint = signupOtpCompleteEndpointEditText.getText().toString().trim();
+        String passwordResetRequestEndpoint = passwordResetRequestEndpointEditText.getText().toString().trim();
+        String passwordResetResendEndpoint = passwordResetResendEndpointEditText.getText().toString().trim();
+        String passwordResetVerifyEndpoint = passwordResetVerifyEndpointEditText.getText().toString().trim();
+        String passwordResetConfirmEndpoint = passwordResetConfirmEndpointEditText.getText().toString().trim();
 
-        if (baseUrl.isEmpty() || endpoint.isEmpty()) {
+        if (baseUrl.isEmpty()
+            || loginEndpoint.isEmpty()
+            || registerEndpoint.isEmpty()
+            || signupOtpRequestEndpoint.isEmpty()
+            || signupOtpResendEndpoint.isEmpty()
+            || signupOtpCompleteEndpoint.isEmpty()
+            || passwordResetRequestEndpoint.isEmpty()
+            || passwordResetResendEndpoint.isEmpty()
+            || passwordResetVerifyEndpoint.isEmpty()
+            || passwordResetConfirmEndpoint.isEmpty()) {
             showError(getString(R.string.invalid_input));
             return;
         }
@@ -75,7 +116,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         AppConfig newConfig = new AppConfig();
         newConfig.baseUrl = baseUrl;
-        newConfig.loginEndpoint = endpoint;
+        newConfig.loginEndpoint = loginEndpoint;
+        newConfig.registerEndpoint = registerEndpoint;
+        newConfig.signupOtpRequestEndpoint = signupOtpRequestEndpoint;
+        newConfig.signupOtpResendEndpoint = signupOtpResendEndpoint;
+        newConfig.signupOtpCompleteEndpoint = signupOtpCompleteEndpoint;
+        newConfig.passwordResetRequestEndpoint = passwordResetRequestEndpoint;
+        newConfig.passwordResetResendEndpoint = passwordResetResendEndpoint;
+        newConfig.passwordResetVerifyEndpoint = passwordResetVerifyEndpoint;
+        newConfig.passwordResetConfirmEndpoint = passwordResetConfirmEndpoint;
 
         configLoader.saveConfig(newConfig);
         
