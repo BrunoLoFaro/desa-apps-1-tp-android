@@ -56,14 +56,6 @@ public class RetrofitClient {
         return retrofit;
     }
 
-    /**
-     * Método legacy sin Context (sin interceptor de auth).
-     * Mantener por compatibilidad con OtpLoginActivity/RegisterActivity hasta que se eliminen.
-     */
-    public static Retrofit getClient(AppConfig config) {
-        return getClient(config, null);
-    }
-
     public static void reset() {
         retrofit = null;
     }

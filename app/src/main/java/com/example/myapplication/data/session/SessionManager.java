@@ -22,10 +22,6 @@ public class SessionManager {
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveAccessToken(String token) {
-        preferences.edit().putString(KEY_ACCESS_TOKEN, token).apply();
-    }
-
     /**
      * Guarda el token JWT junto con los datos del usuario obtenidos en el login/registro.
      * Evita que pantallas futuras (perfil, etc.) tengan que hacer un fetch extra solo para

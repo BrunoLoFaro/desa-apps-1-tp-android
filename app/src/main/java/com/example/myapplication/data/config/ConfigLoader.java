@@ -48,11 +48,6 @@ public class ConfigLoader {
             config.passwordResetResendEndpoint = prefs.getString(KEY_PASSWORD_RESET_RESEND_ENDPOINT, "api/v1/auth/password-reset/resend");
             config.passwordResetVerifyEndpoint = prefs.getString(KEY_PASSWORD_RESET_VERIFY_ENDPOINT, "api/v1/auth/password-reset/verify");
             config.passwordResetConfirmEndpoint = prefs.getString(KEY_PASSWORD_RESET_CONFIRM_ENDPOINT, "api/v1/auth/password-reset/confirm");
-
-            // migración: corregir endpoint viejo si alguien tenía guardado el valor incorrecto
-            if ("users/login".equals(config.loginEndpoint)) {
-                config.loginEndpoint = "api/v1/auth/login";
-            }
             return config;
         }
 
