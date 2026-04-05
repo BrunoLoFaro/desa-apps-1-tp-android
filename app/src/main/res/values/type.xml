@@ -11,6 +11,8 @@
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">@font/poppins_family</item>
         <item name="android:textFontWeight">600</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="TextAppearance.XploreNow.Body" parent="TextAppearance.Material3.BodyMedium">
