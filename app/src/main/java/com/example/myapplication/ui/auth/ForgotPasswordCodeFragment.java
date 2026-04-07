@@ -1,14 +1,14 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.auth;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.OtpCodeVerificationRequest;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpResponse;
@@ -25,9 +25,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordCodeActivity extends BaseAuthActivity {
-
-    public static final String EXTRA_EMAIL = "email";
+public class ForgotPasswordCodeFragment extends BaseAuthFragment {
 
     private TextInputEditText codeEditText;
     private MaterialButton verifyCodeButton;
@@ -36,59 +34,51 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
 
     private String email;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_forgot_password_code);
-
-        codeEditText = findViewById(R.id.forgot_code_edit_text);
-        verifyCodeButton = findViewById(R.id.forgot_verify_code_button);
-        resendCodeButton = findViewById(R.id.forgot_resend_code_button);
-        progressIndicator = findViewById(R.id.forgot_code_progress_indicator);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(this, toolbar);
-
-        ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        email = getIntent().getStringExtra(EXTRA_EMAIL);
-        if (email == null || email.trim().isEmpty()) {
-            finish();
-            return;
-        }
-
-        verifyCodeButton.setOnClickListener(v -> verifyCode());
-        resendCodeButton.setOnClickListener(v -> resendCode());
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_forgot_password_code, container, false);
     }
 
     @Override
-    protected View getRootView() {
-        return findViewById(R.id.forgot_code_coordinator);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        if (getArguments() != null) {
+            email = getArguments().getString("email");
+        }
+
+        codeEditText = view.findViewById(R.id.forgot_code_edit_text);
+        verifyCodeButton = view.findViewById(R.id.forgot_verify_code_button);
+        resendCodeButton = view.findViewById(R.id.forgot_resend_code_button);
+        progressIndicator = view.findViewById(R.id.forgot_code_progress_indicator);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
+        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+
+        verifyCodeButton.setOnClickListener(v -> verifyCode());
+        resendCodeButton.setOnClickListener(v -> resendCode());
+
+        super.onViewCreated(view, savedInstanceState);
+
+        if (email == null) {
+            navController.navigateUp();
+        }
     }
 
     @Override
     protected void onConfigReady() {
-        verifyCodeButton.setEnabled(true);
-        resendCodeButton.setEnabled(true);
-    }
-
-    @Override
-    protected void onConfigError(String error) {
-        verifyCodeButton.setEnabled(false);
-        resendCodeButton.setEnabled(false);
-        super.onConfigError(error);
+        if (verifyCodeButton != null) verifyCodeButton.setEnabled(true);
+        if (resendCodeButton != null) resendCodeButton.setEnabled(true);
     }
 
     private void verifyCode() {
         String code = codeEditText.getText() != null
                 ? codeEditText.getText().toString().trim() : "";
-        String codeError = AuthInputValidator.validateOtp(this, code);
-        if (codeError != null) { showError(codeError); return; }
+        String codeError = AuthInputValidator.validateOtp(requireContext(), code);
+        if (codeError != null) {
+            showError(codeError);
+            return;
+        }
 
         if (authService == null || appConfig == null) {
             showError(getString(R.string.error_service_not_initialized));
@@ -104,11 +94,10 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                     public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                         setLoading(false);
                         if (response.isSuccessful()) {
-                            Intent intent = new Intent(ForgotPasswordCodeActivity.this,
-                                    ForgotPasswordNewPasswordActivity.class);
-                            intent.putExtra(ForgotPasswordNewPasswordActivity.EXTRA_EMAIL, email);
-                            intent.putExtra(ForgotPasswordNewPasswordActivity.EXTRA_CODE, code);
-                            startActivity(intent);
+                            Bundle args = new Bundle();
+                            args.putString("email", email);
+                            args.putString("code", code);
+                            navController.navigate(R.id.action_forgotPasswordCodeFragment_to_forgotPasswordNewPasswordFragment, args);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
                                     response, getString(R.string.error_password_reset_verify_default)));
@@ -118,9 +107,7 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
     }
@@ -148,9 +135,7 @@ public class ForgotPasswordCodeActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
     }

@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/otp_signup_complete_coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:context=".OtpSignupCompleteActivity">
+    android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -18,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@android:drawable/ic_menu_revert"
+            app:navigationIcon="@drawable/ic_back"
             app:title="@string/otp_signup_complete_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,29 +31,6 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <com.google.android.material.textview.MaterialTextView
-                style="@style/TextAppearance.XploreNow.H2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:text="@string/otp_signup_complete_subtitle"
-                android:textColor="?attr/colorPrimary" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="@string/password_hint"
-                app:endIconMode="password_toggle">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/otp_signup_complete_password_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPassword" />
-            </com.google.android.material.textfield.TextInputLayout>
-
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
@@ -67,7 +42,7 @@
                     android:id="@+id/otp_signup_complete_first_name_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName|textCapWords" />
+                    android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -81,22 +56,36 @@
                     android:id="@+id/otp_signup_complete_last_name_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName|textCapWords" />
+                    android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:hint="@string/dni_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/otp_signup_complete_dni_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:maxLength="10" />
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:hint="@string/password_hint"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/otp_signup_complete_password_edit_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -104,7 +93,7 @@
                 style="@style/Widget.XploreNow.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="@string/otp_action_complete_signup" />
+                android:text="@string/signup_button" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/otp_signup_complete_progress_indicator"

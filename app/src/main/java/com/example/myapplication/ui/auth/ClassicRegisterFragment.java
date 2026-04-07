@@ -1,13 +1,14 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.auth;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.RegisterRequest;
 import com.example.myapplication.util.AuthEndpoints;
@@ -23,7 +24,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ClassicRegisterActivity extends BaseAuthActivity {
+public class ClassicRegisterFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
@@ -33,37 +34,29 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_classic_register);
-
-        emailEditText     = findViewById(R.id.email_edit_text);
-        passwordEditText  = findViewById(R.id.password_edit_text);
-        firstNameEditText = findViewById(R.id.first_name_edit_text);
-        lastNameEditText  = findViewById(R.id.last_name_edit_text);
-        dniEditText       = findViewById(R.id.dni_edit_text);
-        registerButton    = findViewById(R.id.register_button);
-        progressIndicator = findViewById(R.id.register_progress_indicator);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(this, toolbar);
-
-        // FIX: antes se llamaba findViewById(R.id.classic_register_coordinator) dos veces —
-        // una al asignar 'coordinator' y otra al pasar a ViewCompat. Ahora se usa getRootView().
-        ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        registerButton.setOnClickListener(v -> attemptClassicRegister());
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_classic_register, container, false);
     }
 
     @Override
-    protected View getRootView() {
-        return findViewById(R.id.classic_register_coordinator);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailEditText = view.findViewById(R.id.email_edit_text);
+        passwordEditText = view.findViewById(R.id.password_edit_text);
+        firstNameEditText = view.findViewById(R.id.first_name_edit_text);
+        lastNameEditText = view.findViewById(R.id.last_name_edit_text);
+        dniEditText = view.findViewById(R.id.dni_edit_text);
+        registerButton = view.findViewById(R.id.register_button);
+        progressIndicator = view.findViewById(R.id.register_progress_indicator);
+
+        super.onViewCreated(view, savedInstanceState);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
+        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+
+        registerButton.setOnClickListener(v -> attemptClassicRegister());
     }
 
     @Override
@@ -71,21 +64,18 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
         registerButton.setEnabled(true);
     }
 
-    @Override
-    protected void onConfigError(String error) {
-        registerButton.setEnabled(false);
-        super.onConfigError(error);
-    }
-
     private void attemptClassicRegister() {
-        String email     = emailEditText.getText()     != null ? emailEditText.getText().toString().trim() : "";
-        String password  = passwordEditText.getText()  != null ? passwordEditText.getText().toString() : "";
+        String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+        String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
         String firstName = firstNameEditText.getText() != null ? firstNameEditText.getText().toString().trim() : "";
-        String lastName  = lastNameEditText.getText()  != null ? lastNameEditText.getText().toString().trim() : "";
-        String dni       = dniEditText.getText()       != null ? dniEditText.getText().toString().trim() : "";
+        String lastName = lastNameEditText.getText() != null ? lastNameEditText.getText().toString().trim() : "";
+        String dni = dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
 
         String error = validateFields(email, password, firstName, lastName, dni);
-        if (error != null) { showError(error); return; }
+        if (error != null) {
+            showError(error);
+            return;
+        }
 
         if (authService == null || appConfig == null) {
             showError(getString(R.string.error_register_service_not_initialized));
@@ -110,23 +100,26 @@ public class ClassicRegisterActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<LoginResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
     }
 
     private String validateFields(String email, String password, String firstName, String lastName, String dni) {
-        String err = AuthInputValidator.validateEmail(this, email);
+        String err = AuthInputValidator.validateEmail(requireContext(), email);
         if (err != null) return err;
-        err = AuthInputValidator.validatePassword(this, password);
+        err = AuthInputValidator.validatePassword(requireContext(), password);
         if (err != null) return err;
-        err = AuthInputValidator.validateFirstName(this, firstName);
+        err = AuthInputValidator.validateFirstName(requireContext(), firstName);
         if (err != null) return err;
-        err = AuthInputValidator.validateLastName(this, lastName);
+        err = AuthInputValidator.validateLastName(requireContext(), lastName);
         if (err != null) return err;
-        return AuthInputValidator.validateDni(this, dni);
+        return AuthInputValidator.validateDni(requireContext(), dni);
+    }
+
+    @Override
+    protected void navigateToHome() {
+        navController.navigate(R.id.action_classicRegisterFragment_to_homeFragment);
     }
 
     private void setLoading(boolean isLoading) {

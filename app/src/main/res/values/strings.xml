@@ -109,4 +109,20 @@
     <string name="otp_signup_code_subtitle">Ingresá el código de 6 dígitos que recibiste en tu correo.</string>
     <string name="otp_signup_complete_title">Completar registro</string>
     <string name="otp_signup_complete_subtitle">Completá tus datos para finalizar el registro.</string>
+
+    <!-- Recursos añadidos para la migración a Fragments -->
+    <string name="register_button">Registrarse</string>
+    <string name="forgot_password_title">Recuperar contraseña</string>
+    <string name="forgot_password_request_subtitle">Solicitar código</string>
+    <string name="forgot_password_request_hint">Ingresá tu correo electrónico para recibir un código de recuperación.</string>
+    <string name="forgot_password_send_code_button">Enviar código</string>
+    <string name="forgot_password_code_subtitle">Verificar código</string>
+    <string name="forgot_password_code_hint">Ingresá el código de 6 dígitos que enviamos a tu correo.</string>
+    <string name="verify_code_button">Verificar código</string>
+    <string name="resend_code_button">Reenviar código</string>
+    <string name="forgot_password_new_subtitle">Nueva contraseña</string>
+    <string name="forgot_password_new_hint">Ingresá tu nueva contraseña para acceder a tu cuenta.</string>
+    <string name="forgot_password_save_button">Guardar contraseña</string>
+    <string name="signup_button">Registrarse</string>
+    <string name="home_menu_logout">Cerrar sesión</string>
 </resources>

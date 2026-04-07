@@ -1,14 +1,14 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.auth;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.util.AuthEndpoints;
@@ -24,63 +24,54 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordRequestActivity extends BaseAuthActivity {
-
-    public static final String EXTRA_PREFILL_EMAIL = "prefill_email";
+public class ForgotPasswordRequestFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
     private MaterialButton sendCodeButton;
     private CircularProgressIndicator progressIndicator;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_forgot_password_request);
-
-        emailEditText = findViewById(R.id.forgot_request_email_edit_text);
-        sendCodeButton = findViewById(R.id.forgot_request_send_code_button);
-        progressIndicator = findViewById(R.id.forgot_request_progress_indicator);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(this, toolbar);
-
-        ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        String prefillEmail = getIntent().getStringExtra(EXTRA_PREFILL_EMAIL);
-        if (prefillEmail != null && !prefillEmail.isEmpty()) {
-            emailEditText.setText(prefillEmail);
-        }
-
-        sendCodeButton.setOnClickListener(v -> requestCode());
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_forgot_password_request, container, false);
     }
 
     @Override
-    protected View getRootView() {
-        return findViewById(R.id.forgot_request_coordinator);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailEditText = view.findViewById(R.id.forgot_request_email_edit_text);
+        sendCodeButton = view.findViewById(R.id.forgot_request_send_code_button);
+        progressIndicator = view.findViewById(R.id.forgot_request_progress_indicator);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
+        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+
+        if (getArguments() != null) {
+            String prefillEmail = getArguments().getString("prefill_email");
+            if (prefillEmail != null && !prefillEmail.isEmpty()) {
+                emailEditText.setText(prefillEmail);
+            }
+        }
+
+        sendCodeButton.setOnClickListener(v -> requestCode());
+
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
     protected void onConfigReady() {
-        sendCodeButton.setEnabled(true);
-    }
-
-    @Override
-    protected void onConfigError(String error) {
-        sendCodeButton.setEnabled(false);
-        super.onConfigError(error);
+        if (sendCodeButton != null) sendCodeButton.setEnabled(true);
     }
 
     private void requestCode() {
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
 
-        String emailError = AuthInputValidator.validateEmail(this, email);
-        if (emailError != null) { showError(emailError); return; }
+        String emailError = AuthInputValidator.validateEmail(requireContext(), email);
+        if (emailError != null) {
+            showError(emailError);
+            return;
+        }
 
         if (authService == null || appConfig == null) {
             showError(getString(R.string.error_service_not_initialized));
@@ -94,10 +85,9 @@ public class ForgotPasswordRequestActivity extends BaseAuthActivity {
                     public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                         setLoading(false);
                         if (response.isSuccessful()) {
-                            Intent intent = new Intent(ForgotPasswordRequestActivity.this,
-                                    ForgotPasswordCodeActivity.class);
-                            intent.putExtra(ForgotPasswordCodeActivity.EXTRA_EMAIL, email);
-                            startActivity(intent);
+                            Bundle args = new Bundle();
+                            args.putString("email", email);
+                            navController.navigate(R.id.action_forgotPasswordRequestFragment_to_forgotPasswordCodeFragment, args);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
                                     response, getString(R.string.error_password_reset_request_default)));
@@ -107,9 +97,7 @@ public class ForgotPasswordRequestActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
     }

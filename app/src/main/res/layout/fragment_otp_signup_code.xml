@@ -2,11 +2,9 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/forgot_new_password_coordinator"
+    android:id="@+id/otp_signup_code_coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:context=".ForgotPasswordNewPasswordActivity">
+    android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -18,8 +16,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@android:drawable/ic_menu_revert"
-            app:title="@string/password_reset_new_password_title" />
+            app:navigationIcon="@drawable/ic_back"
+            app:title="@string/otp_signup_code_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -38,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:text="@string/password_reset_new_password_subtitle"
+                android:text="@string/otp_signup_code_subtitle"
                 android:textColor="?attr/colorPrimary" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -46,25 +44,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/new_password_hint"
-                app:endIconMode="password_toggle">
+                android:hint="@string/otp_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/forgot_new_password_edit_text"
+                    android:id="@+id/otp_signup_code_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPassword" />
+                    android:inputType="number"
+                    android:maxLength="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/forgot_save_password_button"
+                android:id="@+id/otp_signup_verify_button"
                 style="@style/Widget.XploreNow.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="@string/password_reset_confirm_button" />
+                android:text="@string/password_reset_verify_code_button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_signup_resend_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/otp_action_resend"
+                android:textAppearance="@style/TextAppearance.XploreNow.Button" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/forgot_new_password_progress_indicator"
+                android:id="@+id/otp_signup_code_progress_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"

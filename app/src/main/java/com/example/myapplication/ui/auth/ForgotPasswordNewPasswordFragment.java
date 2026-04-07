@@ -1,13 +1,14 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.auth;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.PasswordResetConfirmRequest;
 import com.example.myapplication.util.AuthEndpoints;
@@ -23,10 +24,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordNewPasswordActivity extends BaseAuthActivity {
-
-    public static final String EXTRA_EMAIL = "email";
-    public static final String EXTRA_CODE  = "code";
+public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
 
     private TextInputEditText passwordEditText;
     private MaterialButton savePasswordButton;
@@ -35,55 +33,48 @@ public class ForgotPasswordNewPasswordActivity extends BaseAuthActivity {
     private String email;
     private String code;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_forgot_password_new_password);
-
-        passwordEditText  = findViewById(R.id.forgot_new_password_edit_text);
-        savePasswordButton = findViewById(R.id.forgot_save_password_button);
-        progressIndicator = findViewById(R.id.forgot_new_password_progress_indicator);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(this, toolbar);
-
-        ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        email = getIntent().getStringExtra(EXTRA_EMAIL);
-        code  = getIntent().getStringExtra(EXTRA_CODE);
-        if (email == null || email.trim().isEmpty() || code == null || code.trim().isEmpty()) {
-            finish();
-            return;
-        }
-
-        savePasswordButton.setOnClickListener(v -> confirmNewPassword());
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_forgot_password_new_password, container, false);
     }
 
     @Override
-    protected View getRootView() {
-        return findViewById(R.id.forgot_new_password_coordinator);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        if (getArguments() != null) {
+            email = getArguments().getString("email");
+            code = getArguments().getString("code");
+        }
+
+        passwordEditText = view.findViewById(R.id.forgot_new_password_edit_text);
+        savePasswordButton = view.findViewById(R.id.forgot_save_password_button);
+        progressIndicator = view.findViewById(R.id.forgot_new_password_progress_indicator);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
+        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+
+        savePasswordButton.setOnClickListener(v -> confirmNewPassword());
+
+        super.onViewCreated(view, savedInstanceState);
+
+        if (email == null || code == null) {
+            navController.navigateUp();
+        }
     }
 
     @Override
     protected void onConfigReady() {
-        savePasswordButton.setEnabled(true);
-    }
-
-    @Override
-    protected void onConfigError(String error) {
-        savePasswordButton.setEnabled(false);
-        super.onConfigError(error);
+        if (savePasswordButton != null) savePasswordButton.setEnabled(true);
     }
 
     private void confirmNewPassword() {
         String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
-        String passwordError = AuthInputValidator.validatePassword(this, password);
-        if (passwordError != null) { showError(passwordError); return; }
+        String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
+        if (passwordError != null) {
+            showError(passwordError);
+            return;
+        }
 
         if (authService == null || appConfig == null) {
             showError(getString(R.string.error_service_not_initialized));
@@ -109,11 +100,14 @@ public class ForgotPasswordNewPasswordActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<LoginResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
+    }
+
+    @Override
+    protected void navigateToHome() {
+        navController.navigate(R.id.action_forgotPasswordNewPasswordFragment_to_homeFragment);
     }
 
     private void setLoading(boolean isLoading) {

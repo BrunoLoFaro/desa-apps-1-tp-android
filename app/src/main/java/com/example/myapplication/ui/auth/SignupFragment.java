@@ -1,14 +1,12 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.auth;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.util.AuthEndpoints;
@@ -19,46 +17,38 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SignupActivity extends BaseAuthActivity {
+public class SignupFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
     private MaterialButton registerWithEmailButton;
     private MaterialButton classicRegisterButton;
     private CircularProgressIndicator progressIndicator;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_signup);
-
-        emailEditText = findViewById(R.id.signup_email_edit_text);
-        registerWithEmailButton = findViewById(R.id.signup_with_email_button);
-        classicRegisterButton = findViewById(R.id.signup_classic_button);
-        progressIndicator = findViewById(R.id.signup_progress_indicator);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(this, toolbar);
-
-        ViewCompat.setOnApplyWindowInsetsListener(getRootView(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        registerWithEmailButton.setOnClickListener(v -> startOtpSignup());
-        classicRegisterButton.setOnClickListener(v ->
-                startActivity(new Intent(this, ClassicRegisterActivity.class)));
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_signup, container, false);
     }
 
     @Override
-    protected View getRootView() {
-        return findViewById(R.id.signup_coordinator);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailEditText = view.findViewById(R.id.signup_email_edit_text);
+        registerWithEmailButton = view.findViewById(R.id.signup_with_email_button);
+        classicRegisterButton = view.findViewById(R.id.signup_classic_button);
+        progressIndicator = view.findViewById(R.id.signup_progress_indicator);
+
+        super.onViewCreated(view, savedInstanceState);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
+        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+
+        registerWithEmailButton.setOnClickListener(v -> startOtpSignup());
+        classicRegisterButton.setOnClickListener(v -> navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
     }
 
     @Override
@@ -78,7 +68,7 @@ public class SignupActivity extends BaseAuthActivity {
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
 
-        String emailError = AuthInputValidator.validateEmail(this, email);
+        String emailError = AuthInputValidator.validateEmail(requireContext(), email);
         if (emailError != null) { showError(emailError); return; }
 
         if (authService == null || appConfig == null) {
@@ -93,9 +83,9 @@ public class SignupActivity extends BaseAuthActivity {
                     public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
                         setLoading(false);
                         if (response.isSuccessful()) {
-                            Intent intent = new Intent(SignupActivity.this, OtpSignupCodeActivity.class);
-                            intent.putExtra(OtpSignupCodeActivity.EXTRA_EMAIL, email);
-                            startActivity(intent);
+                            Bundle args = new Bundle();
+                            args.putString("email", email);
+                            navController.navigate(R.id.action_signupFragment_to_otpSignupCodeFragment, args);
                         } else {
                             showError(NetworkErrorParser.getErrorMessage(
                                     response, getString(R.string.error_signup_otp_request_default)));
@@ -105,9 +95,7 @@ public class SignupActivity extends BaseAuthActivity {
                     @Override
                     public void onFailure(Call<OtpResponse> call, Throwable t) {
                         setLoading(false);
-                        String msg = t != null && t.getLocalizedMessage() != null
-                                ? t.getLocalizedMessage() : getString(R.string.error_network_generic);
-                        showError(getString(R.string.generic_error, msg));
+                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
                     }
                 });
     }

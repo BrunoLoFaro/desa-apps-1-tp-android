@@ -20,6 +20,7 @@ android {
 
     buildTypes {
         release {
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -40,6 +41,11 @@ android {
         viewBinding = true
         buildConfig = true
     }
+    configurations.all {
+        resolutionStrategy {
+            force("org.slf4j:slf4j-api:1.7.36")
+        }
+    }
 }
 
 dependencies {
@@ -50,6 +56,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity)
     
+    // Navigation Component
+    val nav_version = "2.8.4"
+    implementation("androidx.navigation:navigation-fragment:$nav_version")
+    implementation("androidx.navigation:navigation-ui:$nav_version")
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
