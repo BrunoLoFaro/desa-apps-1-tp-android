@@ -2,28 +2,25 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/settings_coordinator"
+    android:id="@+id/otp_signup_code_coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:context=".SettingsActivity">
+    android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface">
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="@string/settings_title"
-            app:navigationIcon="@android:drawable/ic_menu_revert" />
+            app:navigationIcon="@drawable/ic_back"
+            app:title="@string/otp_signup_code_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/settings_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -38,53 +35,47 @@
                 style="@style/TextAppearance.XploreNow.H2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:text="@string/backend_config_title"
+                android:layout_marginBottom="20dp"
+                android:text="@string/otp_signup_code_subtitle"
                 android:textColor="?attr/colorPrimary" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/base_url_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/base_url_hint">
+                android:layout_marginBottom="12dp"
+                android:hint="@string/otp_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/base_url_edit_text"
+                    android:id="@+id/otp_signup_code_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textUri" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/endpoint_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:hint="@string/endpoint_hint">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/endpoint_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="number"
+                    android:maxLength="6" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/save_button"
+                android:id="@+id/otp_signup_verify_button"
                 style="@style/Widget.XploreNow.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="@string/save_changes" />
+                android:text="@string/password_reset_verify_code_button" />
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/save_progress"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/otp_signup_resend_button"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/otp_action_resend"
+                android:textAppearance="@style/TextAppearance.XploreNow.Button" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/otp_signup_code_progress_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="16dp"
-                android:indeterminate="true"
                 android:visibility="gone" />
 
         </LinearLayout>

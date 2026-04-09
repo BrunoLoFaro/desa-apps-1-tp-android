@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Typography Styles -->
+    <style name="TextAppearance.XploreNow.Body1" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Button Styles -->
     <style name="Widget.XploreNow.Button.Primary" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/md_theme_tertiary</item>
-        <item name="android:textColor">@color/md_theme_onTertiary</item>
         <item name="cornerRadius">12dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.XploreNow.Button</item>
+        <item name="android:paddingVertical">12dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Widget.XploreNow.Button.Secondary" parent="Widget.Material3.Button.TonalButton">
+        <item name="cornerRadius">12dp</item>
+        <item name="android:paddingVertical">12dp</item>
     </style>
 </resources>
-
