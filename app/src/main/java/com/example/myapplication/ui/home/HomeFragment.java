@@ -70,8 +70,22 @@ public class HomeFragment extends Fragment {
     private void setupFeaturedList(View view) {
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         List<TourActivity> featured = new ArrayList<>();
-        featured.add(new TourActivity("Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5, ""));
-        featured.add(new TourActivity("Excursión a Tigre", "Delta del Tigre", "Excursión", "6 horas", "$80.00", 2, ""));
+        
+        featured.add(new TourActivity(
+            "Navegación por el Delta", "Tigre, Buenos Aires", "Aventura", "6 horas", "$85.00", 2,
+            "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800",
+            "Disfruta de un día inolvidable navegando por los canales del Delta. Conoce la flora y fauna local mientras te relajas con el sonido del agua. Ideal para desconectar de la ciudad.",
+            4.9f, 124, "Equipos de seguridad, Almuerzo criollo y Traslados.", "Estación Fluvial de Tigre, Muelle 4",
+            "Juan Pérez", "Español e Inglés", "Cancelación gratuita 24hs antes", null
+        ));
+
+        featured.add(new TourActivity(
+            "Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5, 
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500",
+            "Disfruta de los mejores sabores porteños en un recorrido por bodegones históricos.",
+            4.8f, 85, "Degustación de 3 platos, bebida y postre.", "Plaza de Mayo", 
+            "Carlos Gómez", "Español", "Cancelación gratuita 24hs antes", null
+        ));
         
         TourAdapter adapter = new TourAdapter(featured, true);
         featuredRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -81,12 +95,22 @@ public class HomeFragment extends Fragment {
     private void setupAllActivitiesList(View view) {
         RecyclerView activitiesRecycler = view.findViewById(R.id.activities_recycler_view);
         List<TourActivity> all = new ArrayList<>();
-        all.add(new TourActivity("Free Tour Recoleta", "Buenos Aires", "Free Tour", "2 horas", "Gratis", 10, ""));
-        all.add(new TourActivity("Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8, ""));
-        all.add(new TourActivity("Show de Tango", "San Telmo", "Experiencia", "4 horas", "$120.00", 15, ""));
-        all.add(new TourActivity("Clase de Cocina Criolla", "Palermo", "Gastronomía", "3 horas", "$60.00", 4, ""));
+        all.add(new TourActivity(
+            "Free Tour Recoleta", "Buenos Aires", "Free Tour", "2 horas", "Gratis", 10,
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500",
+            "Conoce la historia del barrio más elegante de Buenos Aires.",
+            4.7f, 250, "Recorrido guiado.", "Cementerio de la Recoleta",
+            "Ana Torres", "Español", "Cancelación libre", null
+        ));
+        all.add(new TourActivity(
+            "Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8,
+            "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500",
+            "Recorre uno de los teatros de ópera más importantes del mundo.",
+            5.0f, 500, "Entrada al teatro y guía oficial.", "Entrada principal Teatro Colón",
+            "Personal del Teatro", "Multilingüe", "Sujeto a disponibilidad", null
+        ));
 
-        TourAdapter adapter = new TourAdapter(all, false);
+        TourAdapter adapter = new TourAdapter(all, true);
         activitiesRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         activitiesRecycler.setAdapter(adapter);
     }
