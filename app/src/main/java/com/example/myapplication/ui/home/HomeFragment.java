@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -41,12 +42,6 @@ public class HomeFragment extends Fragment {
         sessionManager = new SessionManager(requireContext());
         navController = Navigation.findNavController(view);
 
-        // Verificación de sesión
-        if (!sessionManager.hasValidSession()) {
-            navController.navigate(R.id.action_homeFragment_to_loginFragment);
-            return;
-        }
-
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
 
@@ -55,11 +50,24 @@ public class HomeFragment extends Fragment {
     }
 
     private boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_logout) {
             logout();
+            return true;
+        } else if (itemId == R.id.action_theme_toggle) {
+            toggleTheme();
             return true;
         }
         return false;
+    }
+
+    private void toggleTheme() {
+        int currentMode = AppCompatDelegate.getDefaultNightMode();
+        if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
     }
 
     private void logout() {

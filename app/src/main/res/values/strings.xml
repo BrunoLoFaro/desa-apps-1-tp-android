@@ -6,12 +6,12 @@
     <string name="login_button_text">Iniciar sesión</string>
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="sign_up_button">Registrarse</string>
-<string name="error_config_load">Error al cargar la configuración de la aplicación.</string>
+    <string name="error_config_load">Error al cargar la configuración de la aplicación.</string>
     <string name="error_empty_fields">Por favor ingresá tu correo electrónico y tu contraseña.</string>
     <string name="login_success">¡Inicio de sesión exitoso!</string>
     <string name="login_failed">Error al iniciar sesión: %1$s</string>
     <string name="generic_error">Ocurrió un error: %1$s</string>
-<string name="error_login_failed_default">No se pudo iniciar sesión.</string>
+    <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red</string>
 
     <string name="settings_title">Configuración</string>
@@ -42,10 +42,8 @@
     <string name="nav_bookings">Mis Reservas</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
-<<<<<<< HEAD
     <string name="price_from">desde</string>
     <string name="favorite_desc">Marcar como favorito</string>
-=======
 
     <string name="register_title">Registrarse</string>
     <string name="register_subtitle">Elegí cómo querés crear tu cuenta</string>
@@ -63,7 +61,7 @@
     <string name="register_classic_section_subtitle">Completá todos los campos y creá tu cuenta en un solo paso.</string>
     <string name="otp_login_title">Código OTP</string>
     <string name="otp_login_subtitle">Solicitá y verificá tu código de acceso</string>
-<string name="password_reset_title">Recuperar contraseña</string>
+    <string name="password_reset_title">Recuperar contraseña</string>
     <string name="password_reset_subtitle">Te enviamos un código para que puedas definir una nueva contraseña.</string>
     <string name="password_reset_request_subtitle">Ingresá tu correo para enviarte un código de recuperación.</string>
     <string name="password_reset_send_code_button">Enviar código</string>
@@ -129,5 +127,5 @@
     <string name="forgot_password_save_button">Guardar contraseña</string>
     <string name="signup_button">Registrarse</string>
     <string name="home_menu_logout">Cerrar sesión</string>
->>>>>>> origin/develop
+    <string name="action_theme_toggle">Cambiar tema</string>
 </resources>

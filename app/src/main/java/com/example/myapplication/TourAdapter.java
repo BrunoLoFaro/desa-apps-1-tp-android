@@ -1,12 +1,13 @@
 package com.example.myapplication;
 
-import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.data.model.TourActivity;
@@ -46,6 +47,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.price.setText(activity.getPrice());
         holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         
+        // PUNTUACIÓN: Siempre visible (Feedback 1)
+        if (holder.rating != null) {
+            holder.rating.setText(String.valueOf(activity.getRating()));
+        }
+
         // Configuración para el modo compacto (Home)
         if (isHorizontal) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
@@ -53,11 +59,15 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             // Modo detalle
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
             if (holder.description != null) holder.description.setText(activity.getDescription());
-            if (holder.rating != null) holder.rating.setText(String.valueOf(activity.getRating()));
             if (holder.language != null) holder.language.setText("Idioma: " + activity.getLanguage());
             if (holder.guide != null) holder.guide.setText("Guía: " + activity.getGuideName());
             if (holder.meetingPoint != null) holder.meetingPoint.setText("Encuentro: " + activity.getMeetingPoint());
-            if (holder.includes != null) holder.includes.setText(activity.getWhatIncluded());
+            
+            // QUÉ INCLUYE: Formateado como lista (Feedback 2)
+            if (holder.includes != null) {
+                holder.includes.setText(formatList(activity.getWhatIncluded()));
+            }
+            
             if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
         }
 
@@ -67,16 +77,29 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                 .centerCrop()
                 .into(holder.image);
 
-        // Asignamos el clic a la vista completa
         View.OnClickListener listener = v -> {
-            Intent intent = new Intent(v.getContext(), DetailActivity.class);
-            intent.putExtra("activity_data", activity);
-            v.getContext().startActivity(intent);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("activity_data", activity);
+            Navigation.findNavController(v).navigate(R.id.action_homeFragment_to_detailFragment, bundle);
         };
 
         holder.itemView.setOnClickListener(listener);
         holder.image.setOnClickListener(listener);
         holder.name.setOnClickListener(listener);
+    }
+
+    private String formatList(String input) {
+        if (input == null || input.isEmpty()) return "";
+        String[] items = input.split("[,\\n]+");
+        StringBuilder sb = new StringBuilder();
+        for (String item : items) {
+            String trimmed = item.trim();
+            if (!trimmed.isEmpty()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append("• ").append(trimmed);
+            }
+        }
+        return sb.toString();
     }
 
     @Override
