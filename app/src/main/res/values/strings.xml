@@ -15,6 +15,8 @@
     <string name="home_featured_title">Recomendados para ti</string>
     <string name="home_all_activities_title">Explora actividades</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+    <string name="price_from">desde</string>
+    <string name="favorite_desc">Marcar como favorito</string>
 
     <string name="signup_title">Registrarse</string>
     <string name="signup_with_email_button">Registrarse con correo electrónico</string>
@@ -65,4 +67,6 @@
     <string name="signup_button">Registrarse</string>
     <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
+    <string name="home_menu_logout">Cerrar sesión</string>
+    <string name="action_theme_toggle">Cambiar tema</string>
 </resources>
