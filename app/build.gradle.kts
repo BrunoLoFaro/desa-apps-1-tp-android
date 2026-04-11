@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
 }
 
 android {
@@ -19,11 +20,14 @@ android {
 
     buildTypes {
         release {
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Usamos la firma de debug para permitir generar el APK de release sin un keystore oficial.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -37,6 +41,11 @@ android {
         viewBinding = true
         buildConfig = true
     }
+    configurations.all {
+        resolutionStrategy {
+            force("org.slf4j:slf4j-api:1.7.36")
+        }
+    }
 }
 
 dependencies {
@@ -47,6 +56,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity)
     
+    // Navigation Component
+    val nav_version = "2.8.4"
+    implementation("androidx.navigation:navigation-fragment:$nav_version")
+    implementation("androidx.navigation:navigation-ui:$nav_version")
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
@@ -54,6 +68,10 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+    
+    // Image Loading
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
