@@ -18,10 +18,6 @@ import dagger.hilt.android.AndroidEntryPoint;
  * - NavController wiring
  * - Snackbar helpers (showError / showInfo)
  *
- * Everything removed from the old BaseAuthFragment:
- * - ConfigLoader / AppConfig (now handled by AuthRepository itself)
- * - AuthViewModel creation (each fragment now injects its own @HiltViewModel)
- * - loadConfig() / onConfigReady() / onConfigError() lifecycle (ViewModel exposes configValid)
  */
 @AndroidEntryPoint
 public abstract class BaseAuthFragment extends Fragment {

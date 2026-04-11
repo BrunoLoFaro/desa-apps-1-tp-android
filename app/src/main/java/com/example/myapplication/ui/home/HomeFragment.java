@@ -61,11 +61,26 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
     }
 
     private boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
+        int id = item.getItemId();
+        if (id == R.id.action_logout) {
             logout();
+            return true;
+        } else if (id == R.id.action_theme_toggle) {
+            toggleTheme();
             return true;
         }
         return false;
+    }
+
+    private void toggleTheme() {
+        int currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode();
+        if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
+        }
     }
 
     private void logout() {

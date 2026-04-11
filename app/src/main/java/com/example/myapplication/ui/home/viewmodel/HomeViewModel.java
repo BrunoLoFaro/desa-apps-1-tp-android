@@ -41,4 +41,9 @@ public class HomeViewModel extends ViewModel {
         _featuredTours.setValue(tourRepository.getFeaturedTours());
         _allTours.setValue(tourRepository.getAllTours());
     }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+    }
 }
