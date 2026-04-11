@@ -1,34 +1,120 @@
 package com.example.myapplication.data.repository;
 
+import com.example.myapplication.R;
+import com.example.myapplication.data.common.RepositoryCallback;
+import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.config.AppConfig;
+import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.model.ActivitiesPageResponse;
+import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
+import com.example.myapplication.data.network.ActivityService;
+import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import retrofit2.Call;
+import retrofit2.Response;
 
-/**
- * Single source of truth for tour/activity data.
- * Currently returns static data; ready to be wired to an API endpoint.
- */
 @Singleton
 public class TourRepository {
 
-    @Inject
-    public TourRepository() {}
+    private final ActivityService activityService;
+    private final ConfigLoader configLoader;
+    private final SessionManager sessionManager;
+    private final NetworkErrorParser errorParser;
+    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
-    public List<TourActivity> getFeaturedTours() {
-        List<TourActivity> featured = new ArrayList<>();
-        featured.add(new TourActivity("Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5, ""));
-        featured.add(new TourActivity("Excursión a Tigre", "Delta del Tigre", "Excursión", "6 horas", "$80.00", 2, ""));
-        return featured;
+    @Inject
+    public TourRepository(ActivityService activityService, ConfigLoader configLoader,
+                          SessionManager sessionManager, NetworkErrorParser errorParser) {
+        this.activityService = activityService;
+        this.configLoader = configLoader;
+        this.sessionManager = sessionManager;
+        this.errorParser = errorParser;
     }
 
-    public List<TourActivity> getAllTours() {
-        List<TourActivity> all = new ArrayList<>();
-        all.add(new TourActivity("Free Tour Recoleta", "Buenos Aires", "Free Tour", "2 horas", "Gratis", 10, ""));
-        all.add(new TourActivity("Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8, ""));
-        all.add(new TourActivity("Show de Tango", "San Telmo", "Experiencia", "4 horas", "$120.00", 15, ""));
-        all.add(new TourActivity("Clase de Cocina Criolla", "Palermo", "Gastronomía", "3 horas", "$60.00", 4, ""));
-        return all;
+    public void getFeaturedTours(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(activityService.listFeatured(config.activitiesFeaturedEndpoint), callback, R.string.error_load_featured);
+    }
+
+    public void getAllTours(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(activityService.listActivities(config.activitiesEndpoint), callback, R.string.error_load_activities);
+    }
+
+    public void cancelAll() {
+        for (Call<?> call : activeCalls) {
+            if (!call.isCanceled()) call.cancel();
+        }
+        activeCalls.clear();
+    }
+
+    private void enqueue(Call<ActivitiesPageResponse> call, RepositoryCallback<List<TourActivity>> callback,
+                         int fallbackErrorResId) {
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<ActivitiesPageResponse>() {
+            @Override
+            public void onResponse(Call<ActivitiesPageResponse> c, Response<ActivitiesPageResponse> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null && response.body().items != null) {
+                    callback.onSuccess(mapToTourActivities(response.body().items));
+                } else {
+                    if (response.code() == 401) {
+                        sessionManager.clearSession();
+                    }
+                    callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ActivitiesPageResponse> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
+    }
+
+    private List<TourActivity> mapToTourActivities(List<ActivitySummaryResponse> items) {
+        List<TourActivity> result = new ArrayList<>(items.size());
+        for (ActivitySummaryResponse item : items) {
+            String destination = item.destination != null ? item.destination.name : "";
+            String category = item.category != null ? item.category.replace("_", " ") : "";
+            String duration = formatDuration(item.durationMinutes);
+            String price = formatPrice(item.price, item.currency);
+            result.add(new TourActivity(item.name, destination, category, duration, price,
+                    item.availableSpots, null));
+        }
+        return result;
+    }
+
+    private static String formatDuration(int minutes) {
+        if (minutes < 60) return minutes + " min";
+        int hours = minutes / 60;
+        int remaining = minutes % 60;
+        if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
+        return hours + " h " + remaining + " min";
+    }
+
+    private static String formatPrice(double price, String currency) {
+        if (price <= 0) return "Gratis";
+        String symbol = "ARS".equals(currency) ? "$" : currency + " ";
+        return symbol + String.format(Locale.US, "%.2f", price);
+    }
+
+    private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
+        AppConfig config = configLoader.loadConfig();
+        if (config == null || !config.hasValidBaseUrl()) {
+            callback.onError(UiMessage.from(R.string.error_invalid_config));
+            return null;
+        }
+        return config;
     }
 }

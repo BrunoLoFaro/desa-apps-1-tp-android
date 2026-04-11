@@ -3,6 +3,8 @@ package com.example.myapplication.ui.home.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import com.example.myapplication.data.common.RepositoryCallback;
+import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
@@ -18,6 +20,7 @@ public class HomeViewModel extends ViewModel {
 
     private final MutableLiveData<List<TourActivity>> _featuredTours = new MutableLiveData<>();
     private final MutableLiveData<List<TourActivity>> _allTours = new MutableLiveData<>();
+    private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
 
     @Inject
     public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository) {
@@ -28,6 +31,7 @@ public class HomeViewModel extends ViewModel {
 
     public LiveData<List<TourActivity>> getFeaturedTours() { return _featuredTours; }
     public LiveData<List<TourActivity>> getAllTours() { return _allTours; }
+    public LiveData<UiMessage> getError() { return _error; }
 
     public boolean hasValidSession() {
         return sessionRepository.hasValidSession();
@@ -38,7 +42,34 @@ public class HomeViewModel extends ViewModel {
     }
 
     private void loadTours() {
-        _featuredTours.setValue(tourRepository.getFeaturedTours());
-        _allTours.setValue(tourRepository.getAllTours());
+        tourRepository.getFeaturedTours(new RepositoryCallback<List<TourActivity>>() {
+            @Override
+            public void onSuccess(List<TourActivity> data) {
+                _featuredTours.setValue(data);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                _error.setValue(error);
+            }
+        });
+
+        tourRepository.getAllTours(new RepositoryCallback<List<TourActivity>>() {
+            @Override
+            public void onSuccess(List<TourActivity> data) {
+                _allTours.setValue(data);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                _error.setValue(error);
+            }
+        });
+    }
+
+    @Override
+    protected void onCleared() {
+        tourRepository.cancelAll();
+        super.onCleared();
     }
 }
