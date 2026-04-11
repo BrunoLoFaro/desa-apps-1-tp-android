@@ -6,16 +6,19 @@ import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.ApiErrorResponse;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-public final class NetworkErrorParser {
+@Singleton
+public class NetworkErrorParser {
 
-    private static final JsonAdapter<ApiErrorResponse> ADAPTER = new Moshi.Builder()
-            .build()
-            .adapter(ApiErrorResponse.class);
+    private final JsonAdapter<ApiErrorResponse> adapter;
 
-    private NetworkErrorParser() {
+    @Inject
+    public NetworkErrorParser(Moshi moshi) {
+        this.adapter = moshi.adapter(ApiErrorResponse.class);
     }
 
     /**
@@ -24,7 +27,7 @@ public final class NetworkErrorParser {
      * or a ResMessage with the fallback resource ID otherwise.
      * No Context required — localization happens in the UI layer.
      */
-    public static UiMessage getErrorMessage(Response<?> response, int fallbackResId) {
+    public UiMessage getErrorMessage(Response<?> response, int fallbackResId) {
         if (response == null) {
             return UiMessage.from(fallbackResId);
         }
@@ -38,7 +41,7 @@ public final class NetworkErrorParser {
                 }
 
                 if (errorJson != null && !errorJson.isEmpty()) {
-                    ApiErrorResponse apiError = ADAPTER.fromJson(errorJson);
+                    ApiErrorResponse apiError = adapter.fromJson(errorJson);
                     if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
                         return UiMessage.from(apiError.message.trim());
                     }
@@ -60,7 +63,7 @@ public final class NetworkErrorParser {
      * or a StringMessage with the exception's localized message as fallback.
      * No Context required — localization happens in the UI layer.
      */
-    public static UiMessage getFailureMessage(Throwable t, int fallbackResId) {
+    public UiMessage getFailureMessage(Throwable t, int fallbackResId) {
         if (t == null) return UiMessage.from(fallbackResId);
 
         Log.e("API_FAILURE", "Error de red/petición", t);

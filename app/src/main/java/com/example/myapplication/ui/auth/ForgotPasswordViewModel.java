@@ -4,13 +4,10 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.example.myapplication.R;
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.config.AppConfig;
-import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.data.repository.AuthRepository;
 import com.example.myapplication.data.usecase.ForgotPasswordUseCase;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import javax.inject.Inject;
@@ -27,26 +24,24 @@ public class ForgotPasswordViewModel extends ViewModel {
 
     public static final class RequestUiState {
         public final boolean isLoading;
-        public final boolean configValid;
         @Nullable public final UiMessage error;
         public final boolean navigateToCode;
 
-        private RequestUiState(boolean isLoading, boolean configValid,
+        private RequestUiState(boolean isLoading,
                                 @Nullable UiMessage error, boolean navigateToCode) {
             this.isLoading = isLoading;
-            this.configValid = configValid;
             this.error = error;
             this.navigateToCode = navigateToCode;
         }
 
-        static RequestUiState idle(boolean configValid) {
-            return new RequestUiState(false, configValid, null, false);
+        static RequestUiState idle() {
+            return new RequestUiState(false, null, false);
         }
-        RequestUiState loading() { return new RequestUiState(true, configValid, null, false); }
-        RequestUiState navigateToCode() { return new RequestUiState(false, configValid, null, true); }
-        RequestUiState withError(UiMessage m) { return new RequestUiState(false, configValid, m, false); }
-        RequestUiState errorConsumed() { return new RequestUiState(isLoading, configValid, null, navigateToCode); }
-        RequestUiState navigationConsumed() { return new RequestUiState(isLoading, configValid, error, false); }
+        RequestUiState loading() { return new RequestUiState(true, null, false); }
+        RequestUiState navigateToCode() { return new RequestUiState(false, null, true); }
+        RequestUiState withError(UiMessage m) { return new RequestUiState(false, m, false); }
+        RequestUiState errorConsumed() { return new RequestUiState(isLoading, null, navigateToCode); }
+        RequestUiState navigationConsumed() { return new RequestUiState(isLoading, error, false); }
     }
 
     // ─────────────── UiState for ForgotPasswordCodeFragment ─────────────────
@@ -104,15 +99,9 @@ public class ForgotPasswordViewModel extends ViewModel {
     private final MutableLiveData<NewPasswordUiState> _newPasswordState = new MutableLiveData<>(NewPasswordUiState.idle());
 
     @Inject
-    public ForgotPasswordViewModel(ForgotPasswordUseCase forgotPasswordUseCase, ConfigLoader configLoader) {
+    public ForgotPasswordViewModel(ForgotPasswordUseCase forgotPasswordUseCase) {
         this.forgotPasswordUseCase = forgotPasswordUseCase;
-        AppConfig config = configLoader.loadConfig();
-        boolean configValid = config != null && config.hasValidBaseUrl();
-        _requestState = new MutableLiveData<>(RequestUiState.idle(configValid));
-        if (!configValid) {
-            _requestState.setValue(RequestUiState.idle(false).withError(
-                    UiMessage.from(R.string.error_invalid_config)));
-        }
+        _requestState = new MutableLiveData<>(RequestUiState.idle());
     }
 
     public LiveData<RequestUiState> getRequestState() { return _requestState; }
@@ -123,9 +112,9 @@ public class ForgotPasswordViewModel extends ViewModel {
 
     public void requestReset(String email) {
         RequestUiState s = _requestState.getValue();
-        if (s == null || !s.configValid) return;
+        if (s == null) return;
         _requestState.setValue(s.loading());
-        forgotPasswordUseCase.requestReset(email, new AuthRepository.Callback<OtpResponse>() {
+        forgotPasswordUseCase.requestReset(email, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 RequestUiState cur = _requestState.getValue();
@@ -155,7 +144,7 @@ public class ForgotPasswordViewModel extends ViewModel {
         CodeUiState s = _codeState.getValue();
         if (s == null) return;
         _codeState.setValue(s.loading());
-        forgotPasswordUseCase.verifyCode(email, code, new AuthRepository.Callback<OtpResponse>() {
+        forgotPasswordUseCase.verifyCode(email, code, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 CodeUiState cur = _codeState.getValue();
@@ -173,7 +162,7 @@ public class ForgotPasswordViewModel extends ViewModel {
         CodeUiState s = _codeState.getValue();
         if (s == null) return;
         _codeState.setValue(s.loading());
-        forgotPasswordUseCase.resendReset(email, new AuthRepository.Callback<OtpResponse>() {
+        forgotPasswordUseCase.resendReset(email, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 CodeUiState cur = _codeState.getValue();
@@ -209,7 +198,7 @@ public class ForgotPasswordViewModel extends ViewModel {
         if (s == null) return;
         _newPasswordState.setValue(s.loading());
         forgotPasswordUseCase.confirmNewPassword(email, code, password,
-                new AuthRepository.Callback<LoginResponse>() {
+                new RepositoryCallback<LoginResponse>() {
                     @Override
                     public void onSuccess(LoginResponse data) {
                         NewPasswordUiState cur = _newPasswordState.getValue();
@@ -231,5 +220,11 @@ public class ForgotPasswordViewModel extends ViewModel {
     public void newPasswordNavigationConsumed() {
         NewPasswordUiState s = _newPasswordState.getValue();
         if (s != null) _newPasswordState.setValue(s.navigationConsumed());
+    }
+
+    @Override
+    protected void onCleared() {
+        forgotPasswordUseCase.cancel();
+        super.onCleared();
     }
 }

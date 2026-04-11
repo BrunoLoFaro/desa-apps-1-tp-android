@@ -4,13 +4,10 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.example.myapplication.R;
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.config.AppConfig;
-import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.data.repository.AuthRepository;
 import com.example.myapplication.data.usecase.OtpSignupUseCase;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import javax.inject.Inject;
@@ -29,26 +26,24 @@ public class SignupViewModel extends ViewModel {
 
     public static final class RequestOtpUiState {
         public final boolean isLoading;
-        public final boolean configValid;
         @Nullable public final UiMessage error;
         public final boolean navigateToOtpCode;
 
-        private RequestOtpUiState(boolean isLoading, boolean configValid,
+        private RequestOtpUiState(boolean isLoading,
                                    @Nullable UiMessage error, boolean navigateToOtpCode) {
             this.isLoading = isLoading;
-            this.configValid = configValid;
             this.error = error;
             this.navigateToOtpCode = navigateToOtpCode;
         }
 
-        static RequestOtpUiState idle(boolean configValid) {
-            return new RequestOtpUiState(false, configValid, null, false);
+        static RequestOtpUiState idle() {
+            return new RequestOtpUiState(false, null, false);
         }
-        RequestOtpUiState loading() { return new RequestOtpUiState(true, configValid, null, false); }
-        RequestOtpUiState navigateToCode() { return new RequestOtpUiState(false, configValid, null, true); }
-        RequestOtpUiState withError(UiMessage m) { return new RequestOtpUiState(false, configValid, m, false); }
-        RequestOtpUiState errorConsumed() { return new RequestOtpUiState(isLoading, configValid, null, navigateToOtpCode); }
-        RequestOtpUiState navigationConsumed() { return new RequestOtpUiState(isLoading, configValid, error, false); }
+        RequestOtpUiState loading() { return new RequestOtpUiState(true, null, false); }
+        RequestOtpUiState navigateToCode() { return new RequestOtpUiState(false, null, true); }
+        RequestOtpUiState withError(UiMessage m) { return new RequestOtpUiState(false, m, false); }
+        RequestOtpUiState errorConsumed() { return new RequestOtpUiState(isLoading, null, navigateToOtpCode); }
+        RequestOtpUiState navigationConsumed() { return new RequestOtpUiState(isLoading, error, false); }
     }
 
     // ──────────────── UiState for OtpSignupCodeFragment ─────────────────────
@@ -106,15 +101,9 @@ public class SignupViewModel extends ViewModel {
     private final MutableLiveData<OtpCompleteUiState> _otpCompleteState = new MutableLiveData<>(OtpCompleteUiState.idle());
 
     @Inject
-    public SignupViewModel(OtpSignupUseCase otpSignupUseCase, ConfigLoader configLoader) {
+    public SignupViewModel(OtpSignupUseCase otpSignupUseCase) {
         this.otpSignupUseCase = otpSignupUseCase;
-        AppConfig config = configLoader.loadConfig();
-        boolean configValid = config != null && config.hasValidBaseUrl();
-        _requestOtpState = new MutableLiveData<>(RequestOtpUiState.idle(configValid));
-        if (!configValid) {
-            _requestOtpState.setValue(RequestOtpUiState.idle(false).withError(
-                    UiMessage.from(R.string.error_invalid_config)));
-        }
+        _requestOtpState = new MutableLiveData<>(RequestOtpUiState.idle());
     }
 
     public LiveData<RequestOtpUiState> getRequestOtpState() { return _requestOtpState; }
@@ -125,9 +114,9 @@ public class SignupViewModel extends ViewModel {
 
     public void requestSignupOtp(String email) {
         RequestOtpUiState s = _requestOtpState.getValue();
-        if (s == null || !s.configValid) return;
+        if (s == null) return;
         _requestOtpState.setValue(s.loading());
-        otpSignupUseCase.requestOtp(email, new AuthRepository.Callback<OtpResponse>() {
+        otpSignupUseCase.requestOtp(email, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 RequestOtpUiState cur = _requestOtpState.getValue();
@@ -157,7 +146,7 @@ public class SignupViewModel extends ViewModel {
         OtpCodeUiState s = _otpCodeState.getValue();
         if (s == null) return;
         _otpCodeState.setValue(s.loading());
-        otpSignupUseCase.verifyOtp(email, code, new AuthRepository.Callback<OtpResponse>() {
+        otpSignupUseCase.verifyOtp(email, code, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 OtpCodeUiState cur = _otpCodeState.getValue();
@@ -175,7 +164,7 @@ public class SignupViewModel extends ViewModel {
         OtpCodeUiState s = _otpCodeState.getValue();
         if (s == null) return;
         _otpCodeState.setValue(s.loading());
-        otpSignupUseCase.resendOtp(email, new AuthRepository.Callback<OtpResponse>() {
+        otpSignupUseCase.resendOtp(email, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
                 OtpCodeUiState cur = _otpCodeState.getValue();
@@ -212,7 +201,7 @@ public class SignupViewModel extends ViewModel {
         if (s == null) return;
         _otpCompleteState.setValue(s.loading());
         otpSignupUseCase.completeSignup(email, code, password, firstName, lastName, dni,
-                new AuthRepository.Callback<LoginResponse>() {
+                new RepositoryCallback<LoginResponse>() {
                     @Override
                     public void onSuccess(LoginResponse data) {
                         OtpCompleteUiState cur = _otpCompleteState.getValue();
@@ -234,5 +223,11 @@ public class SignupViewModel extends ViewModel {
     public void otpCompleteNavigationConsumed() {
         OtpCompleteUiState s = _otpCompleteState.getValue();
         if (s != null) _otpCompleteState.setValue(s.navigationConsumed());
+    }
+
+    @Override
+    protected void onCleared() {
+        otpSignupUseCase.cancel();
+        super.onCleared();
     }
 }

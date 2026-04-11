@@ -2,16 +2,23 @@ package com.example.myapplication.di;
 
 import android.util.Log;
 import com.example.myapplication.BuildConfig;
+import com.example.myapplication.data.config.AppConfig;
+import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.session.SessionManager;
+import com.squareup.moshi.Moshi;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Singleton;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.moshi.MoshiConverterFactory;
 
 @Module
 @InstallIn(SingletonComponent.class)
@@ -27,7 +34,10 @@ public class AppModule {
     @Provides
     @Singleton
     static OkHttpClient provideOkHttpClient(SessionManager sessionManager) {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS);
 
         // 1. HTTP Logging Interceptor
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(
@@ -65,5 +75,32 @@ public class AppModule {
         }
 
         return builder.build();
+    }
+
+    @Provides
+    @Singleton
+    static Moshi provideMoshi() {
+        return new Moshi.Builder().build();
+    }
+
+    @Provides
+    @Singleton
+    static Retrofit provideRetrofit(OkHttpClient okHttpClient, Moshi moshi, ConfigLoader configLoader) {
+        AppConfig config = configLoader.loadConfig();
+        if (config == null || !config.hasValidBaseUrl()) {
+            throw new IllegalStateException(
+                    "Config inválida: verificar que config.json tenga un base_url válido");
+        }
+        return new Retrofit.Builder()
+                .baseUrl(config.baseUrl)
+                .addConverterFactory(MoshiConverterFactory.create(moshi))
+                .client(okHttpClient)
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    static AuthService provideAuthService(Retrofit retrofit) {
+        return retrofit.create(AuthService.class);
     }
 }

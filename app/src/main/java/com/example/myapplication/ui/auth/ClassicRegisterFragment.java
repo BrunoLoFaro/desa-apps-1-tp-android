@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class ClassicRegisterFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -55,7 +57,7 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         registerButton.setOnClickListener(v -> attemptClassicRegister());
 
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
-            registerButton.setEnabled(!state.isLoading && state.configValid);
+            registerButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             passwordEditText.setEnabled(!state.isLoading);
             firstNameEditText.setEnabled(!state.isLoading);
@@ -103,5 +105,17 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         err = AuthInputValidator.validateLastName(requireContext(), lastName);
         if (err != null) return err;
         return AuthInputValidator.validateDni(requireContext(), dni);
+    }
+
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        passwordEditText = null;
+        firstNameEditText = null;
+        lastNameEditText = null;
+        dniEditText = null;
+        registerButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

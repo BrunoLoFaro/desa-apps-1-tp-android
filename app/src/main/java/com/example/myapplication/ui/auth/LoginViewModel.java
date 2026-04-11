@@ -4,12 +4,9 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.example.myapplication.R;
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.config.AppConfig;
-import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
-import com.example.myapplication.data.repository.AuthRepository;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.usecase.LoginUseCase;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -21,28 +18,21 @@ public class LoginViewModel extends ViewModel {
     /** Immutable UI state for the login screen. */
     public static final class UiState {
         public final boolean isLoading;
-        public final boolean configValid;
-        /** Non-null when there is a pending error to display. Fragment clears it by calling errorConsumed(). */
         @Nullable public final UiMessage error;
-        /** True when login succeeded and the Fragment should navigate to Home. */
         public final boolean navigateToHome;
 
-        private UiState(boolean isLoading, boolean configValid,
-                        @Nullable UiMessage error, boolean navigateToHome) {
+        private UiState(boolean isLoading, @Nullable UiMessage error, boolean navigateToHome) {
             this.isLoading = isLoading;
-            this.configValid = configValid;
             this.error = error;
             this.navigateToHome = navigateToHome;
         }
 
-        static UiState idle(boolean configValid) {
-            return new UiState(false, configValid, null, false);
-        }
-        UiState loading() { return new UiState(true, configValid, null, false); }
-        UiState success() { return new UiState(false, configValid, null, true); }
-        UiState withError(UiMessage msg) { return new UiState(false, configValid, msg, false); }
-        UiState errorConsumed() { return new UiState(isLoading, configValid, null, navigateToHome); }
-        UiState navigationConsumed() { return new UiState(isLoading, configValid, error, false); }
+        static UiState idle() { return new UiState(false, null, false); }
+        UiState loading() { return new UiState(true, null, false); }
+        UiState success() { return new UiState(false, null, true); }
+        UiState withError(UiMessage msg) { return new UiState(false, msg, false); }
+        UiState errorConsumed() { return new UiState(isLoading, null, navigateToHome); }
+        UiState navigationConsumed() { return new UiState(isLoading, error, false); }
     }
 
     private final LoginUseCase loginUseCase;
@@ -50,16 +40,10 @@ public class LoginViewModel extends ViewModel {
     private final MutableLiveData<UiState> _uiState;
 
     @Inject
-    public LoginViewModel(LoginUseCase loginUseCase, SessionRepository sessionRepository,
-                          ConfigLoader configLoader) {
+    public LoginViewModel(LoginUseCase loginUseCase, SessionRepository sessionRepository) {
         this.loginUseCase = loginUseCase;
         this.sessionRepository = sessionRepository;
-        AppConfig config = configLoader.loadConfig();
-        boolean configValid = config != null && config.hasValidBaseUrl();
-        _uiState = new MutableLiveData<>(UiState.idle(configValid));
-        if (!configValid) {
-            _uiState.setValue(UiState.idle(false).withError(UiMessage.from(R.string.error_invalid_config)));
-        }
+        _uiState = new MutableLiveData<>(UiState.idle());
     }
 
     public LiveData<UiState> getUiState() { return _uiState; }
@@ -70,9 +54,9 @@ public class LoginViewModel extends ViewModel {
 
     public void login(String email, String password) {
         UiState current = _uiState.getValue();
-        if (current == null || !current.configValid) return;
+        if (current == null) return;
         _uiState.setValue(current.loading());
-        loginUseCase.execute(email, password, new AuthRepository.Callback<LoginResponse>() {
+        loginUseCase.execute(email, password, new RepositoryCallback<LoginResponse>() {
             @Override
             public void onSuccess(LoginResponse data) {
                 UiState s = _uiState.getValue();
@@ -101,7 +85,7 @@ public class LoginViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        // Callback-based API means no active calls to cancel here;
-        // the repository handles lifecycle via its own cancelAll() if needed.
+        loginUseCase.cancel();
+        super.onCleared();
     }
 }

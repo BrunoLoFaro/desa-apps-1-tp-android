@@ -1,5 +1,6 @@
 package com.example.myapplication.data.usecase;
 
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.OtpResponse;
@@ -25,25 +26,28 @@ public class ForgotPasswordUseCase {
         this.sessionRepository = sessionRepository;
     }
 
-    public void requestReset(String email, AuthRepository.Callback<OtpResponse> callback) {
+    public void cancel() {
+        authRepository.cancelAll();
+    }
+
+    public void requestReset(String email, RepositoryCallback<OtpResponse> callback) {
         authRepository.requestPasswordReset(email, callback);
     }
 
-    public void resendReset(String email, AuthRepository.Callback<OtpResponse> callback) {
+    public void resendReset(String email, RepositoryCallback<OtpResponse> callback) {
         authRepository.resendPasswordReset(email, callback);
     }
 
-    public void verifyCode(String email, String code, AuthRepository.Callback<OtpResponse> callback) {
+    public void verifyCode(String email, String code, RepositoryCallback<OtpResponse> callback) {
         authRepository.verifyPasswordResetCode(email, code, callback);
     }
 
     public void confirmNewPassword(String email, String code, String password,
-                                   AuthRepository.Callback<LoginResponse> callback) {
+                                   RepositoryCallback<LoginResponse> callback) {
         authRepository.confirmPasswordReset(email, code, password,
-                new AuthRepository.Callback<LoginResponse>() {
+                new RepositoryCallback<LoginResponse>() {
                     @Override
                     public void onSuccess(LoginResponse data) {
-                        // If the backend returns a session token after reset, persist it
                         if (data.token != null && !data.token.trim().isEmpty()) {
                             User user = new User(
                                     data.userId != null ? data.userId : -1L,

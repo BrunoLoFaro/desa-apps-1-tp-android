@@ -1,5 +1,7 @@
 package com.example.myapplication.data.usecase;
 
+import com.example.myapplication.data.common.RepositoryCallback;
+import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.User;
 import com.example.myapplication.data.repository.AuthRepository;
@@ -23,8 +25,12 @@ public class LoginUseCase {
         this.sessionRepository = sessionRepository;
     }
 
-    public void execute(String email, String password, AuthRepository.Callback<LoginResponse> callback) {
-        authRepository.login(email, password, new AuthRepository.Callback<LoginResponse>() {
+    public void cancel() {
+        authRepository.cancelAll();
+    }
+
+    public void execute(String email, String password, RepositoryCallback<LoginResponse> callback) {
+        authRepository.login(email, password, new RepositoryCallback<LoginResponse>() {
             @Override
             public void onSuccess(LoginResponse data) {
                 if (data.token != null && !data.token.trim().isEmpty()) {
@@ -38,7 +44,7 @@ public class LoginUseCase {
             }
 
             @Override
-            public void onError(com.example.myapplication.data.common.UiMessage error) {
+            public void onError(UiMessage error) {
                 callback.onError(error);
             }
         });

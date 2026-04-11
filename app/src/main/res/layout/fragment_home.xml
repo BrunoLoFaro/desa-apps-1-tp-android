@@ -47,7 +47,7 @@
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_tour_featured" />
+                tools:listitem="@layout/item_activity" />
 
             <com.google.android.material.textview.MaterialTextView
                 style="@style/TextAppearance.XploreNow.H2"
@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_tour_activity" />
+                tools:listitem="@layout/item_activity" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

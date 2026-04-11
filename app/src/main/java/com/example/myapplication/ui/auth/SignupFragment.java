@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class SignupFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -52,8 +54,8 @@ public class SignupFragment extends BaseAuthFragment {
                 navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
 
         viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
-            registerWithEmailButton.setEnabled(!state.isLoading && state.configValid);
-            classicRegisterButton.setEnabled(!state.isLoading && state.configValid);
+            registerWithEmailButton.setEnabled(!state.isLoading);
+            classicRegisterButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
@@ -78,5 +80,14 @@ public class SignupFragment extends BaseAuthFragment {
         String emailError = AuthInputValidator.validateEmail(requireContext(), email);
         if (emailError != null) { showError(emailError); return; }
         viewModel.requestSignupOtp(email);
+    }
+
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        registerWithEmailButton = null;
+        classicRegisterButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

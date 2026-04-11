@@ -2,6 +2,7 @@ package com.example.myapplication.data.config;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import dagger.hilt.android.qualifiers.ApplicationContext;
@@ -33,9 +34,9 @@ public class ConfigLoader {
     private final Moshi moshi;
 
     @Inject
-    public ConfigLoader(@ApplicationContext Context context) {
+    public ConfigLoader(@ApplicationContext Context context, Moshi moshi) {
         this.context = context.getApplicationContext();
-        this.moshi = new Moshi.Builder().build();
+        this.moshi = moshi;
     }
 
     public AppConfig loadConfig() {
@@ -68,25 +69,9 @@ public class ConfigLoader {
             AppConfig config = adapter.fromJson(source);
             return config != null ? config : new AppConfig();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("ConfigLoader", "Error al leer config.json", e);
             return new AppConfig();
         }
     }
 
-    public void saveConfig(AppConfig config) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit()
-                .putString(KEY_BASE_URL, config.baseUrl)
-                .putString(KEY_LOGIN_ENDPOINT, config.loginEndpoint)
-                .putString(KEY_REGISTER_ENDPOINT, config.registerEndpoint)
-                .putString(KEY_SIGNUP_OTP_REQUEST_ENDPOINT, config.signupOtpRequestEndpoint)
-                .putString(KEY_SIGNUP_OTP_RESEND_ENDPOINT, config.signupOtpResendEndpoint)
-                .putString(KEY_SIGNUP_OTP_VERIFY_ENDPOINT, config.signupOtpVerifyEndpoint)
-                .putString(KEY_SIGNUP_OTP_COMPLETE_ENDPOINT, config.signupOtpCompleteEndpoint)
-                .putString(KEY_PASSWORD_RESET_REQUEST_ENDPOINT, config.passwordResetRequestEndpoint)
-                .putString(KEY_PASSWORD_RESET_RESEND_ENDPOINT, config.passwordResetResendEndpoint)
-                .putString(KEY_PASSWORD_RESET_VERIFY_ENDPOINT, config.passwordResetVerifyEndpoint)
-                .putString(KEY_PASSWORD_RESET_CONFIRM_ENDPOINT, config.passwordResetConfirmEndpoint)
-                .apply();
-    }
 }

@@ -1,5 +1,6 @@
 package com.example.myapplication.data.usecase;
 
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.OtpResponse;
@@ -25,23 +26,27 @@ public class OtpSignupUseCase {
         this.sessionRepository = sessionRepository;
     }
 
-    public void requestOtp(String email, AuthRepository.Callback<OtpResponse> callback) {
+    public void cancel() {
+        authRepository.cancelAll();
+    }
+
+    public void requestOtp(String email, RepositoryCallback<OtpResponse> callback) {
         authRepository.requestSignupOtp(email, callback);
     }
 
-    public void resendOtp(String email, AuthRepository.Callback<OtpResponse> callback) {
+    public void resendOtp(String email, RepositoryCallback<OtpResponse> callback) {
         authRepository.resendSignupOtp(email, callback);
     }
 
-    public void verifyOtp(String email, String code, AuthRepository.Callback<OtpResponse> callback) {
+    public void verifyOtp(String email, String code, RepositoryCallback<OtpResponse> callback) {
         authRepository.verifySignupOtp(email, code, callback);
     }
 
     public void completeSignup(String email, String code, String password,
                                String firstName, String lastName, String dni,
-                               AuthRepository.Callback<LoginResponse> callback) {
+                               RepositoryCallback<LoginResponse> callback) {
         authRepository.completeSignupWithOtp(email, code, password, firstName, lastName, dni,
-                new AuthRepository.Callback<LoginResponse>() {
+                new RepositoryCallback<LoginResponse>() {
                     @Override
                     public void onSuccess(LoginResponse data) {
                         if (data.token != null && !data.token.trim().isEmpty()) {

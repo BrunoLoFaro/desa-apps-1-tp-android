@@ -12,7 +12,9 @@ import com.example.myapplication.util.AuthInputValidator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class LoginFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -51,8 +53,8 @@ public class LoginFragment extends BaseAuthFragment {
                 navController.navigate(R.id.action_loginFragment_to_forgotPasswordRequestFragment));
 
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
-            loginButton.setEnabled(!state.isLoading && state.configValid);
-            forgotPasswordButton.setEnabled(!state.isLoading && state.configValid);
+            loginButton.setEnabled(!state.isLoading);
+            forgotPasswordButton.setEnabled(!state.isLoading);
             signUpButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             passwordEditText.setEnabled(!state.isLoading);
@@ -91,5 +93,16 @@ public class LoginFragment extends BaseAuthFragment {
         if (passwordError != null) { showError(passwordError); return; }
 
         viewModel.login(email, password);
+    }
+
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        passwordEditText = null;
+        loginButton = null;
+        forgotPasswordButton = null;
+        signUpButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

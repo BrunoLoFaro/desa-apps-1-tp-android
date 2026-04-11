@@ -13,10 +13,6 @@ public class AppConfig {
         return baseUrl != null && !baseUrl.trim().isEmpty();
     }
 
-    public boolean hasValidEndpoint(String endpoint) {
-        return endpoint != null && !endpoint.trim().isEmpty();
-    }
-
     @Json(name = "register_endpoint")
     public String registerEndpoint;
 

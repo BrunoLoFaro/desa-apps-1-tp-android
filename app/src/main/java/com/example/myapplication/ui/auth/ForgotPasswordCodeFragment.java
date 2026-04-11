@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class ForgotPasswordCodeFragment extends BaseAuthFragment {
 
     private TextInputEditText codeEditText;
@@ -96,5 +98,14 @@ public class ForgotPasswordCodeFragment extends BaseAuthFragment {
 
     private void resendCode() {
         viewModel.resendReset(email);
+    }
+
+    @Override
+    public void onDestroyView() {
+        codeEditText = null;
+        verifyCodeButton = null;
+        resendCodeButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

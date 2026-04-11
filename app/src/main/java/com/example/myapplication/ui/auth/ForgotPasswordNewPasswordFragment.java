@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
 
     private TextInputEditText passwordEditText;
@@ -85,5 +87,13 @@ public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
         String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
         if (passwordError != null) { showError(passwordError); return; }
         viewModel.confirmNewPassword(email, code, password);
+    }
+
+    @Override
+    public void onDestroyView() {
+        passwordEditText = null;
+        savePasswordButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

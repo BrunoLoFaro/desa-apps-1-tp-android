@@ -1,5 +1,6 @@
 package com.example.myapplication.data.usecase;
 
+import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.User;
@@ -24,10 +25,14 @@ public class RegisterUseCase {
         this.sessionRepository = sessionRepository;
     }
 
+    public void cancel() {
+        authRepository.cancelAll();
+    }
+
     public void execute(String email, String password, String firstName, String lastName,
-                        String dni, AuthRepository.Callback<LoginResponse> callback) {
+                        String dni, RepositoryCallback<LoginResponse> callback) {
         authRepository.register(email, password, firstName, lastName, dni,
-                new AuthRepository.Callback<LoginResponse>() {
+                new RepositoryCallback<LoginResponse>() {
                     @Override
                     public void onSuccess(LoginResponse data) {
                         if (data.token != null && !data.token.trim().isEmpty()) {

@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class ForgotPasswordRequestFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -55,7 +57,7 @@ public class ForgotPasswordRequestFragment extends BaseAuthFragment {
         sendCodeButton.setOnClickListener(v -> requestCode());
 
         viewModel.getRequestState().observe(getViewLifecycleOwner(), state -> {
-            sendCodeButton.setEnabled(!state.isLoading && state.configValid);
+            sendCodeButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
@@ -81,5 +83,13 @@ public class ForgotPasswordRequestFragment extends BaseAuthFragment {
         String emailError = AuthInputValidator.validateEmail(requireContext(), email);
         if (emailError != null) { showError(emailError); return; }
         viewModel.requestReset(email);
+    }
+
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        sendCodeButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

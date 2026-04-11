@@ -35,10 +35,13 @@ public abstract class BaseAuthFragment extends Fragment {
     }
 
     protected void navigateToHome() {
-        try {
-            navController.navigate(R.id.homeFragment);
-        } catch (Exception ignored) {
-        }
+        // Subclasses override with their specific nav action + popUpTo
+    }
+
+    @Override
+    public void onDestroyView() {
+        navController = null;
+        super.onDestroyView();
     }
 
     protected void showError(String message) {

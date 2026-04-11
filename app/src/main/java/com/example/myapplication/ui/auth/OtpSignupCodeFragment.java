@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     private TextInputEditText codeEditText;
@@ -95,5 +97,14 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     private void resendCode() {
         viewModel.resendSignupOtp(email);
+    }
+
+    @Override
+    public void onDestroyView() {
+        codeEditText = null;
+        verifyButton = null;
+        resendButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

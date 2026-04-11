@@ -14,7 +14,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class OtpSignupCompleteFragment extends BaseAuthFragment {
 
     private TextInputEditText passwordEditText;
@@ -108,5 +110,16 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         err = AuthInputValidator.validateLastName(requireContext(), lastName);
         if (err != null) return err;
         return AuthInputValidator.validateDni(requireContext(), dni);
+    }
+
+    @Override
+    public void onDestroyView() {
+        passwordEditText = null;
+        firstNameEditText = null;
+        lastNameEditText = null;
+        dniEditText = null;
+        completeButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }
