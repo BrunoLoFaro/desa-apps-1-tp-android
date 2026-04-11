@@ -4,11 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import okio.BufferedSource;
 import okio.Okio;
 
+@Singleton
 public class ConfigLoader {
     private static final String CONFIG_FILE = "config.json";
     private static final String PREFS_NAME = "app_config";
@@ -28,37 +32,44 @@ public class ConfigLoader {
     private final Context context;
     private final Moshi moshi;
 
-    public ConfigLoader(Context context) {
+    @Inject
+    public ConfigLoader(@ApplicationContext Context context) {
         this.context = context.getApplicationContext();
         this.moshi = new Moshi.Builder().build();
     }
 
     public AppConfig loadConfig() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        AppConfig defaultConfig = loadDefaultConfig();
         if (prefs.contains(KEY_BASE_URL)) {
             AppConfig config = new AppConfig();
-            config.baseUrl = prefs.getString(KEY_BASE_URL, "");
-            config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, "api/v1/auth/login");
-            config.registerEndpoint = prefs.getString(KEY_REGISTER_ENDPOINT, "api/v1/auth/register");
-            config.signupOtpRequestEndpoint = prefs.getString(KEY_SIGNUP_OTP_REQUEST_ENDPOINT, "api/v1/auth/signup/otp/request");
-            config.signupOtpResendEndpoint = prefs.getString(KEY_SIGNUP_OTP_RESEND_ENDPOINT, "api/v1/auth/signup/otp/resend");
-            config.signupOtpVerifyEndpoint = prefs.getString(KEY_SIGNUP_OTP_VERIFY_ENDPOINT, "api/v1/auth/signup/otp/verify");
-            config.signupOtpCompleteEndpoint = prefs.getString(KEY_SIGNUP_OTP_COMPLETE_ENDPOINT, "api/v1/auth/signup/otp/complete");
-            config.passwordResetRequestEndpoint = prefs.getString(KEY_PASSWORD_RESET_REQUEST_ENDPOINT, "api/v1/auth/password-reset/request");
-            config.passwordResetResendEndpoint = prefs.getString(KEY_PASSWORD_RESET_RESEND_ENDPOINT, "api/v1/auth/password-reset/resend");
-            config.passwordResetVerifyEndpoint = prefs.getString(KEY_PASSWORD_RESET_VERIFY_ENDPOINT, "api/v1/auth/password-reset/verify");
-            config.passwordResetConfirmEndpoint = prefs.getString(KEY_PASSWORD_RESET_CONFIRM_ENDPOINT, "api/v1/auth/password-reset/confirm");
+            config.baseUrl = prefs.getString(KEY_BASE_URL, defaultConfig != null ? defaultConfig.baseUrl : "");
+            config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, defaultConfig != null ? defaultConfig.loginEndpoint : null);
+            config.registerEndpoint = prefs.getString(KEY_REGISTER_ENDPOINT, defaultConfig != null ? defaultConfig.registerEndpoint : null);
+            config.signupOtpRequestEndpoint = prefs.getString(KEY_SIGNUP_OTP_REQUEST_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpRequestEndpoint : null);
+            config.signupOtpResendEndpoint = prefs.getString(KEY_SIGNUP_OTP_RESEND_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpResendEndpoint : null);
+            config.signupOtpVerifyEndpoint = prefs.getString(KEY_SIGNUP_OTP_VERIFY_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpVerifyEndpoint : null);
+            config.signupOtpCompleteEndpoint = prefs.getString(KEY_SIGNUP_OTP_COMPLETE_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpCompleteEndpoint : null);
+            config.passwordResetRequestEndpoint = prefs.getString(KEY_PASSWORD_RESET_REQUEST_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetRequestEndpoint : null);
+            config.passwordResetResendEndpoint = prefs.getString(KEY_PASSWORD_RESET_RESEND_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetResendEndpoint : null);
+            config.passwordResetVerifyEndpoint = prefs.getString(KEY_PASSWORD_RESET_VERIFY_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetVerifyEndpoint : null);
+            config.passwordResetConfirmEndpoint = prefs.getString(KEY_PASSWORD_RESET_CONFIRM_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetConfirmEndpoint : null);
             return config;
         }
 
+        return defaultConfig;
+    }
+
+    private AppConfig loadDefaultConfig() {
         try {
             InputStream is = context.getAssets().open(CONFIG_FILE);
             BufferedSource source = Okio.buffer(Okio.source(is));
             JsonAdapter<AppConfig> adapter = moshi.adapter(AppConfig.class);
-            return adapter.fromJson(source);
+            AppConfig config = adapter.fromJson(source);
+            return config != null ? config : new AppConfig();
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return new AppConfig();
         }
     }
 

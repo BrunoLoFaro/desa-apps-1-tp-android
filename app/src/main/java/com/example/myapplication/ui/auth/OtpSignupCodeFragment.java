@@ -6,21 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.OtpCodeVerificationRequest;
-import com.example.myapplication.data.model.OtpRequest;
-import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.util.AuthEndpoints;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.NetworkErrorParser;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class OtpSignupCodeFragment extends BaseAuthFragment {
 
@@ -28,11 +21,14 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     private MaterialButton verifyButton;
     private MaterialButton resendButton;
     private CircularProgressIndicator progressIndicator;
+
     private String email;
+    private SignupViewModel viewModel;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_otp_signup_code, container, false);
     }
 
@@ -47,85 +43,57 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         resendButton = view.findViewById(R.id.otp_signup_resend_button);
         progressIndicator = view.findViewById(R.id.otp_signup_code_progress_indicator);
 
+        super.onViewCreated(view, savedInstanceState);
+
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
+        // Same Activity-scoped instance as SignupFragment
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
+
         verifyButton.setOnClickListener(v -> verifyCode());
         resendButton.setOnClickListener(v -> resendCode());
 
-        super.onViewCreated(view, savedInstanceState);
+        viewModel.getOtpCodeState().observe(getViewLifecycleOwner(), state -> {
+            verifyButton.setEnabled(!state.isLoading);
+            resendButton.setEnabled(!state.isLoading);
+            codeEditText.setEnabled(!state.isLoading);
+            progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
+
+            if (state.error != null) {
+                showError(state.error.resolve(requireContext()));
+                viewModel.otpCodeErrorConsumed();
+            }
+            if (state.otpResent) {
+                showInfo(getString(R.string.signup_otp_resent_message));
+                viewModel.otpResentConsumed();
+            }
+            if (state.navigateToComplete) {
+                String code = codeEditText.getText() != null
+                        ? codeEditText.getText().toString().trim() : "";
+                Bundle args = new Bundle();
+                args.putString("email", email);
+                args.putString("code", code);
+                navController.navigate(R.id.action_otpSignupCodeFragment_to_otpSignupCompleteFragment, args);
+                viewModel.otpCodeNavigationConsumed();
+            }
+        });
 
         if (email == null || email.isEmpty()) {
             navController.navigateUp();
         }
     }
 
-    @Override
-    protected void onConfigReady() {
-        if (verifyButton != null) verifyButton.setEnabled(true);
-        if (resendButton != null) resendButton.setEnabled(true);
-    }
-
     private void verifyCode() {
-        String code = codeEditText.getText() != null ? codeEditText.getText().toString().trim() : "";
+        String code = codeEditText.getText() != null
+                ? codeEditText.getText().toString().trim() : "";
         String codeError = AuthInputValidator.validateOtp(requireContext(), code);
         if (codeError != null) { showError(codeError); return; }
-
-        setLoading(true);
-        authService.verifySignupOtp(
-                AuthEndpoints.signupOtpVerify(appConfig),
-                new OtpCodeVerificationRequest(email, code))
-                .enqueue(new Callback<OtpResponse>() {
-                    @Override
-                    public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful()) {
-                            Bundle args = new Bundle();
-                            args.putString("email", email);
-                            args.putString("code", code);
-                            navController.navigate(R.id.action_otpSignupCodeFragment_to_otpSignupCompleteFragment, args);
-                        } else {
-                            showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_verify_default)));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<OtpResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_signup_otp_verify_default)));
-                    }
-                });
+        viewModel.verifySignupOtp(email, code);
     }
 
     private void resendCode() {
-        setLoading(true);
-        authService.resendSignupOtp(AuthEndpoints.signupOtpResend(appConfig), new OtpRequest(email))
-                .enqueue(new Callback<OtpResponse>() {
-                    @Override
-                    public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful()) {
-                            showInfo(getString(R.string.signup_otp_resent_message));
-                        } else {
-                            showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_resend_default)));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<OtpResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_signup_otp_resend_default)));
-                    }
-                });
-    }
-
-    private void setLoading(boolean isLoading) {
-        verifyButton.setEnabled(!isLoading);
-        resendButton.setEnabled(!isLoading);
-        codeEditText.setEnabled(!isLoading);
-        progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        viewModel.resendSignupOtp(email);
     }
 }

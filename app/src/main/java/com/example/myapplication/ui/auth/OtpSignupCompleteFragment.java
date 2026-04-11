@@ -4,25 +4,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.LoginResponse;
-import com.example.myapplication.data.model.OtpRegistrationCompleteRequest;
-import com.example.myapplication.util.AuthEndpoints;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.NetworkErrorParser;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class OtpSignupCompleteFragment extends BaseAuthFragment {
 
@@ -35,10 +26,12 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
 
     private String email;
     private String code;
+    private SignupViewModel viewModel;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_otp_signup_complete, container, false);
     }
 
@@ -56,13 +49,34 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         completeButton = view.findViewById(R.id.otp_signup_complete_button);
         progressIndicator = view.findViewById(R.id.otp_signup_complete_progress_indicator);
 
+        super.onViewCreated(view, savedInstanceState);
+
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
+        // Same Activity-scoped instance as SignupFragment and OtpSignupCodeFragment
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
+
         completeButton.setOnClickListener(v -> completeRegistration());
 
-        super.onViewCreated(view, savedInstanceState);
+        viewModel.getOtpCompleteState().observe(getViewLifecycleOwner(), state -> {
+            completeButton.setEnabled(!state.isLoading);
+            passwordEditText.setEnabled(!state.isLoading);
+            firstNameEditText.setEnabled(!state.isLoading);
+            lastNameEditText.setEnabled(!state.isLoading);
+            dniEditText.setEnabled(!state.isLoading);
+            progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
+
+            if (state.error != null) {
+                showError(state.error.resolve(requireContext()));
+                viewModel.otpCompleteErrorConsumed();
+            }
+            if (state.navigateToHome) {
+                navigateToHome();
+                viewModel.otpCompleteNavigationConsumed();
+            }
+        });
 
         if (email == null || code == null) {
             navController.navigateUp();
@@ -70,8 +84,8 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
     }
 
     @Override
-    protected void onConfigReady() {
-        if (completeButton != null) completeButton.setEnabled(true);
+    protected void navigateToHome() {
+        navController.navigate(R.id.action_otpSignupCompleteFragment_to_homeFragment);
     }
 
     private void completeRegistration() {
@@ -81,38 +95,9 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         String dni = dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
 
         String error = validateFields(password, firstName, lastName, dni);
-        if (error != null) {
-            showError(error);
-            return;
-        }
+        if (error != null) { showError(error); return; }
 
-        if (authService == null || appConfig == null) {
-            showError(getString(R.string.error_service_not_initialized));
-            return;
-        }
-
-        setLoading(true);
-        OtpRegistrationCompleteRequest request =
-                new OtpRegistrationCompleteRequest(email, code, password, firstName, lastName, dni);
-        authService.completeSignupWithOtp(AuthEndpoints.signupOtpComplete(appConfig), request)
-                .enqueue(new Callback<LoginResponse>() {
-                    @Override
-                    public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful() && response.body() != null) {
-                            handleLoginSuccess(response.body());
-                        } else {
-                            showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_complete_default)));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<LoginResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
-                    }
-                });
+        viewModel.completeSignupWithOtp(email, code, password, firstName, lastName, dni);
     }
 
     private String validateFields(String password, String firstName, String lastName, String dni) {
@@ -123,19 +108,5 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         err = AuthInputValidator.validateLastName(requireContext(), lastName);
         if (err != null) return err;
         return AuthInputValidator.validateDni(requireContext(), dni);
-    }
-
-    @Override
-    protected void navigateToHome() {
-        navController.navigate(R.id.action_otpSignupCompleteFragment_to_homeFragment);
-    }
-
-    private void setLoading(boolean isLoading) {
-        completeButton.setEnabled(!isLoading);
-        passwordEditText.setEnabled(!isLoading);
-        firstNameEditText.setEnabled(!isLoading);
-        lastNameEditText.setEnabled(!isLoading);
-        dniEditText.setEnabled(!isLoading);
-        progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
     }
 }

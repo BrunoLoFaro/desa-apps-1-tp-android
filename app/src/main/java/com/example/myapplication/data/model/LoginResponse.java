@@ -20,4 +20,12 @@ public class LoginResponse {
 
     @Json(name = "token")
     public String token;
+
+    // setters
+    public void setUserId(Long userId) { this.userId = userId; }
+    public void setEmail(String email) { this.email = email; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setDni(String dni) { this.dni = dni; }
+    public void setToken(String token) { this.token = token; }
 }

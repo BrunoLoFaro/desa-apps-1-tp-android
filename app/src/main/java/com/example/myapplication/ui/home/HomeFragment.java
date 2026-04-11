@@ -5,32 +5,31 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.myapplication.R;
 import com.example.myapplication.TourAdapter;
 import com.example.myapplication.data.model.TourActivity;
-import com.example.myapplication.data.session.SessionManager;
 import com.google.android.material.appbar.MaterialToolbar;
-
+import dagger.hilt.android.AndroidEntryPoint;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment {
+@AndroidEntryPoint
+public class HomeFragment extends androidx.fragment.app.Fragment {
 
-    private SessionManager sessionManager;
+    private HomeViewModel homeViewModel;
     private NavController navController;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
@@ -38,11 +37,10 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        sessionManager = new SessionManager(requireContext());
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         navController = Navigation.findNavController(view);
 
-        // Verificación de sesión
-        if (!sessionManager.hasValidSession()) {
+        if (!homeViewModel.hasValidSession()) {
             navController.navigate(R.id.action_homeFragment_to_loginFragment);
             return;
         }
@@ -63,7 +61,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void logout() {
-        sessionManager.clearSession();
+        homeViewModel.logout();
         navController.navigate(R.id.action_homeFragment_to_loginFragment);
     }
 
@@ -72,9 +70,9 @@ public class HomeFragment extends Fragment {
         List<TourActivity> featured = new ArrayList<>();
         featured.add(new TourActivity("Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5, ""));
         featured.add(new TourActivity("Excursión a Tigre", "Delta del Tigre", "Excursión", "6 horas", "$80.00", 2, ""));
-        
         TourAdapter adapter = new TourAdapter(featured, true);
-        featuredRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        featuredRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         featuredRecycler.setAdapter(adapter);
     }
 
@@ -85,7 +83,6 @@ public class HomeFragment extends Fragment {
         all.add(new TourActivity("Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8, ""));
         all.add(new TourActivity("Show de Tango", "San Telmo", "Experiencia", "4 horas", "$120.00", 15, ""));
         all.add(new TourActivity("Clase de Cocina Criolla", "Palermo", "Gastronomía", "3 horas", "$60.00", 4, ""));
-
         TourAdapter adapter = new TourAdapter(all, false);
         activitiesRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         activitiesRecycler.setAdapter(adapter);
