@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.auth;
+package com.example.myapplication.ui.auth.viewmodel;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -9,7 +9,8 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.LoginResponse;
-import com.example.myapplication.data.usecase.RegisterUseCase;
+import com.example.myapplication.data.repository.SessionRepository;
+import com.example.myapplication.data.usecase.LoginUseCase;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,25 +19,28 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class ClassicRegisterViewModelTest {
+public class LoginViewModelTest {
 
     @Rule
     public InstantTaskExecutorRule instantTaskExecutorRule = new InstantTaskExecutorRule();
 
     @Mock
-    private RegisterUseCase registerUseCase;
+    private LoginUseCase loginUseCase;
 
-    private ClassicRegisterViewModel viewModel;
+    @Mock
+    private SessionRepository sessionRepository;
+
+    private LoginViewModel viewModel;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        viewModel = new ClassicRegisterViewModel(registerUseCase);
+        viewModel = new LoginViewModel(loginUseCase, sessionRepository);
     }
 
     @Test
     public void initialState_isIdle() {
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
         assertNull(state.error);
@@ -44,30 +48,30 @@ public class ClassicRegisterViewModelTest {
     }
 
     @Test
-    public void register_setsLoadingState() {
-        viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
+    public void login_setsLoadingState() {
+        viewModel.login("test@mail.com", "123456");
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        // Capture the callback but don't invoke it yet — state should be loading
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertTrue(state.isLoading);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void register_onSuccess_setsNavigateToHome() {
+    public void login_onSuccess_setsNavigateToHome() {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
-        verify(registerUseCase).execute(
-                eq("a@b.com"), eq("123456"), eq("Ana"), eq("Lopez"), eq("12345678"),
-                captor.capture());
+        viewModel.login("test@mail.com", "123456");
+        verify(loginUseCase).execute(eq("test@mail.com"), eq("123456"), captor.capture());
 
         LoginResponse response = new LoginResponse();
         response.token = "jwt-token";
+        response.email = "test@mail.com";
         captor.getValue().onSuccess(response);
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
         assertTrue(state.navigateToHome);
@@ -75,17 +79,17 @@ public class ClassicRegisterViewModelTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void register_onError_setsError() {
+    public void login_onError_setsError() {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
-        verify(registerUseCase).execute(anyString(), anyString(), anyString(), anyString(),
-                anyString(), captor.capture());
+        viewModel.login("test@mail.com", "wrong");
+        verify(loginUseCase).execute(eq("test@mail.com"), eq("wrong"), captor.capture());
 
-        captor.getValue().onError(UiMessage.from("Email ya registrado"));
+        UiMessage errorMsg = UiMessage.from("Credenciales inválidas");
+        captor.getValue().onError(errorMsg);
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
         assertNotNull(state.error);
@@ -97,14 +101,13 @@ public class ClassicRegisterViewModelTest {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
-        verify(registerUseCase).execute(anyString(), anyString(), anyString(), anyString(),
-                anyString(), captor.capture());
+        viewModel.login("test@mail.com", "wrong");
+        verify(loginUseCase).execute(anyString(), anyString(), captor.capture());
         captor.getValue().onError(UiMessage.from("Error"));
 
         viewModel.errorConsumed();
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertNull(state.error);
     }
@@ -115,9 +118,8 @@ public class ClassicRegisterViewModelTest {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
-        verify(registerUseCase).execute(anyString(), anyString(), anyString(), anyString(),
-                anyString(), captor.capture());
+        viewModel.login("test@mail.com", "123456");
+        verify(loginUseCase).execute(anyString(), anyString(), captor.capture());
 
         LoginResponse response = new LoginResponse();
         response.token = "token";
@@ -125,8 +127,17 @@ public class ClassicRegisterViewModelTest {
 
         viewModel.navigationConsumed();
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        LoginViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.navigateToHome);
+    }
+
+    @Test
+    public void hasValidSession_delegatesToSessionRepository() {
+        when(sessionRepository.hasValidSession()).thenReturn(true);
+        assertTrue(viewModel.hasValidSession());
+
+        when(sessionRepository.hasValidSession()).thenReturn(false);
+        assertFalse(viewModel.hasValidSession());
     }
 }

@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.auth;
+package com.example.myapplication.ui.auth.viewmodel;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;

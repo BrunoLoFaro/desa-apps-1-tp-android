@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
+import com.example.myapplication.ui.auth.viewmodel.ClassicRegisterViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
