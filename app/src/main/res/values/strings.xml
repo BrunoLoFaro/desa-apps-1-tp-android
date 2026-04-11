@@ -12,9 +12,16 @@
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
 
 
+    <string name="home_search_hint">¿A dónde quieres ir?</string>
     <string name="home_featured_title">Recomendados para ti</string>
     <string name="home_all_activities_title">Explora actividades</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_explore">Explorar</string>
+    <string name="nav_bookings">Mis Reservas</string>
+    <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+    <string name="price_from">desde</string>
+    <string name="favorite_desc">Marcar como favorito</string>
 
     <string name="signup_title">Registrarse</string>
     <string name="signup_with_email_button">Registrarse con correo electrónico</string>
@@ -68,4 +75,6 @@
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
     <string name="free_label">Gratis</string>
+    <string name="home_menu_logout">Cerrar sesión</string>
+    <string name="action_theme_toggle">Cambiar tema</string>
 </resources>

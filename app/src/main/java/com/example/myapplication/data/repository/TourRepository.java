@@ -118,3 +118,4 @@ public class TourRepository {
         return config;
     }
 }
+}

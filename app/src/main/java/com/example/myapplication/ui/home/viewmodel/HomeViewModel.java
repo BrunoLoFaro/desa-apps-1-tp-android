@@ -89,4 +89,9 @@ public class HomeViewModel extends ViewModel {
         tourRepository.cancelAll();
         super.onCleared();
     }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+    }
 }
