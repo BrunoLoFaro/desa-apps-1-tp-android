@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.ui.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.example.myapplication.R;
 import com.example.myapplication.data.model.TourActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
@@ -17,11 +18,16 @@ import java.util.List;
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
 
     private List<TourActivity> tourActivities;
-    private boolean isHorizontal;
+    private final boolean isHorizontal;
 
-    public TourAdapter(List<TourActivity> tourActivities, boolean isHorizontal) {
-        this.tourActivities = tourActivities;
+    public TourAdapter(boolean isHorizontal) {
+        this.tourActivities = java.util.Collections.emptyList();
         this.isHorizontal = isHorizontal;
+    }
+
+    public void updateData(List<TourActivity> newData) {
+        this.tourActivities = newData;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -46,33 +52,29 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.duration.setText(activity.getDuration());
         holder.price.setText(activity.getPrice());
         holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
-        
-        // PUNTUACIÓN: Siempre visible (Feedback 1)
+
         if (holder.rating != null) {
             holder.rating.setText(String.valueOf(activity.getRating()));
         }
 
-        // Configuración para el modo compacto (Home)
         if (isHorizontal) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
         } else {
-            // Modo detalle
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
             if (holder.description != null) holder.description.setText(activity.getDescription());
             if (holder.language != null) holder.language.setText("Idioma: " + activity.getLanguage());
             if (holder.guide != null) holder.guide.setText("Guía: " + activity.getGuideName());
             if (holder.meetingPoint != null) holder.meetingPoint.setText("Encuentro: " + activity.getMeetingPoint());
-            
-            // QUÉ INCLUYE: Formateado como lista (Feedback 2)
             if (holder.includes != null) {
                 holder.includes.setText(formatList(activity.getWhatIncluded()));
             }
-            
             if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
         }
 
+        String imageUrl = activity.getImageUrl();
+
         Glide.with(holder.itemView.getContext())
-                .load(activity.getImageUrl())
+                .load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .centerCrop()
                 .into(holder.image);
@@ -123,10 +125,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             duration = itemView.findViewById(R.id.activity_duration);
             price = itemView.findViewById(R.id.activity_price);
             slots = itemView.findViewById(R.id.activity_slots);
-            
+
             detailedContainer = itemView.findViewById(R.id.detailed_info_container);
-            
-            // Campos de detalle
             description = itemView.findViewById(R.id.activity_description);
             rating = itemView.findViewById(R.id.activity_rating);
             language = itemView.findViewById(R.id.activity_language);
@@ -134,7 +134,6 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             meetingPoint = itemView.findViewById(R.id.activity_meeting_point);
             includes = itemView.findViewById(R.id.activity_includes);
             cancellation = itemView.findViewById(R.id.activity_cancellation);
-
             favoriteBtn = itemView.findViewById(R.id.favorite_button);
         }
     }

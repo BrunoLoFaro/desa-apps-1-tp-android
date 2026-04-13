@@ -14,6 +14,6 @@ public final class ToolbarHelper {
         if (activity instanceof AppCompatActivity) {
             ((AppCompatActivity) activity).setSupportActionBar(toolbar);
         }
-        toolbar.setNavigationOnClickListener(v -> activity.finish());
+        // El listener de navegación lo configura cada Fragment con navController.navigateUp()
     }
 }

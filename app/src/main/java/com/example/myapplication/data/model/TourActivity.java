@@ -23,6 +23,12 @@ public class TourActivity implements Serializable {
     private String cancellationPolicy;
     private List<String> galleryUrls;
 
+    public TourActivity(String name, String destination, String category, String duration,
+                        String price, int availableSlots, String imageUrl) {
+        this(name, destination, category, duration, price, availableSlots, imageUrl,
+             null, 0f, 0, null, null, null, null, null, null);
+    }
+
     public TourActivity(String name, String destination, String category, String duration, String price, 
                         int availableSlots, String imageUrl, String description, float rating, 
                         int reviewsCount, String whatIncluded, String meetingPoint, 

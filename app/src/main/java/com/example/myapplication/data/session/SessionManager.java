@@ -3,10 +3,16 @@ package com.example.myapplication.data.session;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class SessionManager {
     private static final String PREFS_NAME = "auth_session";
     private static final String KEY_ACCESS_TOKEN = "access_token";
@@ -17,9 +23,23 @@ public class SessionManager {
 
     private final SharedPreferences preferences;
 
-    public SessionManager(Context context) {
-        this.preferences = context.getApplicationContext()
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    @Inject
+    public SessionManager(@ApplicationContext Context context) {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            this.preferences = EncryptedSharedPreferences.create(
+                    context,
+                    PREFS_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize encrypted SharedPreferences", e);
+        }
     }
 
     /**

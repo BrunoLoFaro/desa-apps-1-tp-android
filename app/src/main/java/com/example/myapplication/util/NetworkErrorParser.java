@@ -1,68 +1,80 @@
 package com.example.myapplication.util;
 
+import android.util.Log;
+import com.example.myapplication.R;
+import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.ApiErrorResponse;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
-
-import java.io.IOException;
-
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-public final class NetworkErrorParser {
+@Singleton
+public class NetworkErrorParser {
 
-    private static final JsonAdapter<ApiErrorResponse> ADAPTER = new Moshi.Builder()
-            .build()
-            .adapter(ApiErrorResponse.class);
+    private final JsonAdapter<ApiErrorResponse> adapter;
 
-    private NetworkErrorParser() {
+    @Inject
+    public NetworkErrorParser(Moshi moshi) {
+        this.adapter = moshi.adapter(ApiErrorResponse.class);
     }
 
-    public static String getErrorMessage(Response<?> response, String fallbackMessage) {
+    /**
+     * Parses an HTTP error response into a UiMessage.
+     * Returns a StringMessage with the server's error text when available,
+     * or a ResMessage with the fallback resource ID otherwise.
+     * No Context required — localization happens in the UI layer.
+     */
+    public UiMessage getErrorMessage(Response<?> response, int fallbackResId) {
         if (response == null) {
-            return fallbackMessage;
+            return UiMessage.from(fallbackResId);
         }
 
         try (ResponseBody errorBody = response.errorBody()) {
             if (errorBody != null) {
                 String errorJson = errorBody.string();
-                
-                // LOG PARA DEBUG: Imprimimos el error real del backend en el Logcat
+
                 if (response.code() >= 400) {
-                    android.util.Log.e("API_ERROR", "Status: " + response.code() + " | Body: " + errorJson);
+                    Log.e("API_ERROR", "Status: " + response.code() + " | Body: " + errorJson);
                 }
 
                 if (errorJson != null && !errorJson.isEmpty()) {
-                    ApiErrorResponse apiError = ADAPTER.fromJson(errorJson);
+                    ApiErrorResponse apiError = adapter.fromJson(errorJson);
                     if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
-                        return apiError.message.trim();
+                        return UiMessage.from(apiError.message.trim());
                     }
                 }
             }
         } catch (Exception e) {
-            android.util.Log.e("NetworkErrorParser", "Error al parsear el cuerpo del error", e);
+            Log.e("NetworkErrorParser", "Error al parsear el cuerpo del error", e);
         }
 
         String message = response.message();
-        return message == null || message.trim().isEmpty() ? fallbackMessage : message.trim();
+        return (message == null || message.trim().isEmpty())
+                ? UiMessage.from(fallbackResId)
+                : UiMessage.from(message.trim());
     }
 
     /**
-     * MEJORA: Maneja los errores de onFailure (cuando no hay Response).
-     * Útil para distinguir entre "Sin Internet", "Timeout" o "Servidor Caído".
+     * Converts a network failure throwable into a UiMessage.
+     * Returns resource-ID-based messages for known failure types (no connection, timeout),
+     * or a StringMessage with the exception's localized message as fallback.
+     * No Context required — localization happens in the UI layer.
      */
-    public static String getFailureMessage(Throwable t, String fallbackMessage) {
-        if (t == null) return fallbackMessage;
-        
-        android.util.Log.e("API_FAILURE", "Error de red/petición", t);
+    public UiMessage getFailureMessage(Throwable t, int fallbackResId) {
+        if (t == null) return UiMessage.from(fallbackResId);
+
+        Log.e("API_FAILURE", "Error de red/petición", t);
 
         if (t instanceof java.net.UnknownHostException || t instanceof java.net.ConnectException) {
-            return "No se pudo establecer conexión con el servidor. Verifica tu internet.";
+            return UiMessage.from(R.string.error_no_connection);
         } else if (t instanceof java.net.SocketTimeoutException) {
-            return "La conexión ha expirado. Reintenta en unos momentos.";
+            return UiMessage.from(R.string.error_timeout);
         }
-        
+
         String msg = t.getLocalizedMessage();
-        return (msg == null || msg.isEmpty()) ? fallbackMessage : msg;
+        return (msg == null || msg.isEmpty()) ? UiMessage.from(fallbackResId) : UiMessage.from(msg);
     }
 }

@@ -6,19 +6,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.LoginRequest;
-import com.example.myapplication.data.model.LoginResponse;
-import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.ui.auth.viewmodel.LoginViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.NetworkErrorParser;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class LoginFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -28,9 +25,12 @@ public class LoginFragment extends BaseAuthFragment {
     private MaterialButton signUpButton;
     private CircularProgressIndicator progressIndicator;
 
+    private LoginViewModel viewModel;
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
 
@@ -45,66 +45,35 @@ public class LoginFragment extends BaseAuthFragment {
 
         super.onViewCreated(view, savedInstanceState);
 
+        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
         loginButton.setOnClickListener(v -> attemptLogin());
-        signUpButton.setOnClickListener(v -> navController.navigate(R.id.action_loginFragment_to_signupFragment));
-        forgotPasswordButton.setOnClickListener(v -> navController.navigate(R.id.action_loginFragment_to_forgotPasswordRequestFragment));
-        
-        // Si ya hay sesión válida, ir a Home
-        if (sessionManager.hasValidSession()) {
+        signUpButton.setOnClickListener(v ->
+                navController.navigate(R.id.action_loginFragment_to_signupFragment));
+        forgotPasswordButton.setOnClickListener(v ->
+                navController.navigate(R.id.action_loginFragment_to_forgotPasswordRequestFragment));
+
+        viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
+            loginButton.setEnabled(!state.isLoading);
+            forgotPasswordButton.setEnabled(!state.isLoading);
+            signUpButton.setEnabled(!state.isLoading);
+            emailEditText.setEnabled(!state.isLoading);
+            passwordEditText.setEnabled(!state.isLoading);
+            progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
+
+            if (state.error != null) {
+                showError(state.error.resolve(requireContext()));
+                viewModel.errorConsumed();
+            }
+            if (state.navigateToHome) {
+                navigateToHome();
+                viewModel.navigationConsumed();
+            }
+        });
+
+        if (viewModel.hasValidSession()) {
             navigateToHome();
         }
-    }
-
-    @Override
-    protected void onConfigReady() {
-        if (loginButton != null) loginButton.setEnabled(true);
-        if (forgotPasswordButton != null) forgotPasswordButton.setEnabled(true);
-        if (signUpButton != null) signUpButton.setEnabled(true);
-    }
-
-    @Override
-    protected void onConfigError(String error) {
-        if (loginButton != null) loginButton.setEnabled(false);
-        if (forgotPasswordButton != null) forgotPasswordButton.setEnabled(false);
-        super.onConfigError(error);
-    }
-
-    private void attemptLogin() {
-        String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
-        String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
-
-        String emailError = AuthInputValidator.validateEmail(requireContext(), email);
-        if (emailError != null) { showError(emailError); return; }
-
-        String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
-        if (passwordError != null) { showError(passwordError); return; }
-
-        if (authService == null || appConfig == null) {
-            showError(getString(R.string.error_service_not_initialized));
-            return;
-        }
-
-        setLoading(true);
-        authService.login(AuthEndpoints.login(appConfig), new LoginRequest(email, password))
-                .enqueue(new Callback<LoginResponse>() {
-                    @Override
-                    public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful() && response.body() != null) {
-                            handleLoginSuccess(response.body());
-                        } else {
-                            String msg = NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_login_failed_default));
-                            showError(getString(R.string.login_failed, msg));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<LoginResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
-                    }
-                });
     }
 
     @Override
@@ -112,12 +81,29 @@ public class LoginFragment extends BaseAuthFragment {
         navController.navigate(R.id.action_loginFragment_to_homeFragment);
     }
 
-    private void setLoading(boolean isLoading) {
-        loginButton.setEnabled(!isLoading);
-        forgotPasswordButton.setEnabled(!isLoading);
-        signUpButton.setEnabled(!isLoading);
-        emailEditText.setEnabled(!isLoading);
-        passwordEditText.setEnabled(!isLoading);
-        progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    private void attemptLogin() {
+        String email = emailEditText.getText() != null
+                ? emailEditText.getText().toString().trim() : "";
+        String password = passwordEditText.getText() != null
+                ? passwordEditText.getText().toString() : "";
+
+        String emailError = AuthInputValidator.validateEmail(requireContext(), email);
+        if (emailError != null) { showError(emailError); return; }
+
+        String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
+        if (passwordError != null) { showError(passwordError); return; }
+
+        viewModel.login(email, password);
+    }
+
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        passwordEditText = null;
+        loginButton = null;
+        forgotPasswordButton = null;
+        signUpButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

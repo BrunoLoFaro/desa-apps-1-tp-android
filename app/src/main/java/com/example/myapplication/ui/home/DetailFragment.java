@@ -19,6 +19,8 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 public class DetailFragment extends Fragment {
 
+    private View rootView;
+
     private TourActivity tourActivity;
 
     @Override
@@ -38,6 +40,7 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        rootView = view;
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
@@ -103,5 +106,11 @@ public class DetailFragment extends Fragment {
                     .centerCrop()
                     .into(image);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        rootView = null;
+        super.onDestroyView();
     }
 }

@@ -6,21 +6,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.OtpRequest;
-import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.NetworkErrorParser;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import dagger.hilt.android.AndroidEntryPoint;
 
+@AndroidEntryPoint
 public class SignupFragment extends BaseAuthFragment {
 
     private TextInputEditText emailEditText;
@@ -28,9 +25,12 @@ public class SignupFragment extends BaseAuthFragment {
     private MaterialButton classicRegisterButton;
     private CircularProgressIndicator progressIndicator;
 
+    private SignupViewModel viewModel;
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_signup, container, false);
     }
 
@@ -47,63 +47,48 @@ public class SignupFragment extends BaseAuthFragment {
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
+        // Activity-scoped so the email state survives navigation to OtpSignupCodeFragment
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
+
         registerWithEmailButton.setOnClickListener(v -> startOtpSignup());
-        classicRegisterButton.setOnClickListener(v -> navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
-    }
+        classicRegisterButton.setOnClickListener(v ->
+                navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
 
-    @Override
-    protected void onConfigReady() {
-        registerWithEmailButton.setEnabled(true);
-        classicRegisterButton.setEnabled(true);
-    }
+        viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
+            registerWithEmailButton.setEnabled(!state.isLoading);
+            classicRegisterButton.setEnabled(!state.isLoading);
+            emailEditText.setEnabled(!state.isLoading);
+            progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
-    @Override
-    protected void onConfigError(String error) {
-        registerWithEmailButton.setEnabled(false);
-        classicRegisterButton.setEnabled(false);
-        super.onConfigError(error);
+            if (state.error != null) {
+                showError(state.error.resolve(requireContext()));
+                viewModel.requestOtpErrorConsumed();
+            }
+            if (state.navigateToOtpCode) {
+                String email = emailEditText.getText() != null
+                        ? emailEditText.getText().toString().trim() : "";
+                Bundle args = new Bundle();
+                args.putString("email", email);
+                navController.navigate(R.id.action_signupFragment_to_otpSignupCodeFragment, args);
+                viewModel.requestOtpNavigationConsumed();
+            }
+        });
     }
 
     private void startOtpSignup() {
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
-
         String emailError = AuthInputValidator.validateEmail(requireContext(), email);
         if (emailError != null) { showError(emailError); return; }
-
-        if (authService == null || appConfig == null) {
-            showError(getString(R.string.error_service_not_initialized));
-            return;
-        }
-
-        setLoading(true);
-        authService.requestSignupOtp(AuthEndpoints.signupOtpRequest(appConfig), new OtpRequest(email))
-                .enqueue(new Callback<OtpResponse>() {
-                    @Override
-                    public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful()) {
-                            Bundle args = new Bundle();
-                            args.putString("email", email);
-                            navController.navigate(R.id.action_signupFragment_to_otpSignupCodeFragment, args);
-                        } else {
-                            showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_request_default)));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<OtpResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
-                    }
-                });
+        viewModel.requestSignupOtp(email);
     }
 
-    private void setLoading(boolean isLoading) {
-        registerWithEmailButton.setEnabled(!isLoading);
-        classicRegisterButton.setEnabled(!isLoading);
-        emailEditText.setEnabled(!isLoading);
-        progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    @Override
+    public void onDestroyView() {
+        emailEditText = null;
+        registerWithEmailButton = null;
+        classicRegisterButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }
