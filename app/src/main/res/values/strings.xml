@@ -6,7 +6,7 @@
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="sign_up_button">Registrarse</string>
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
-    <string name="error_network_generic">Error de red</string>
+    <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
@@ -70,7 +70,7 @@
     <string name="forgot_password_new_hint">Ingresá tu nueva contraseña para acceder a tu cuenta.</string>
     <string name="forgot_password_save_button">Guardar contraseña</string>
     <string name="signup_button">Registrarse</string>
-    <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet.</string>
+    <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet o la dirección IP.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
