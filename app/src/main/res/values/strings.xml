@@ -72,6 +72,9 @@
     <string name="signup_button">Registrarse</string>
     <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
+    <string name="error_load_activities">No se pudieron cargar las actividades.</string>
+    <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
+    <string name="free_label">Gratis</string>
     <string name="home_menu_logout">Cerrar sesión</string>
     <string name="action_theme_toggle">Cambiar tema</string>
 </resources>

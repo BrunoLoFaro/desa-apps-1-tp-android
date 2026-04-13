@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
@@ -58,6 +60,19 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
 
         homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
         homeViewModel.getAllTours().observe(getViewLifecycleOwner(), activitiesAdapter::updateData);
+
+        View scrollView = view.findViewById(R.id.scroll_view);
+        ProgressBar loadingSpinner = view.findViewById(R.id.loading_spinner);
+        homeViewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
+            loadingSpinner.setVisibility(loading ? View.VISIBLE : View.GONE);
+            scrollView.setVisibility(loading ? View.GONE : View.VISIBLE);
+        });
+
+        homeViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null) {
+                Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private boolean onMenuItemClick(MenuItem item) {

@@ -1,70 +1,121 @@
 package com.example.myapplication.data.repository;
 
+import com.example.myapplication.R;
+import com.example.myapplication.data.common.RepositoryCallback;
+import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.config.AppConfig;
+import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.model.ActivitiesPageResponse;
+import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
+import com.example.myapplication.data.network.ActivityService;
+import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import retrofit2.Call;
+import retrofit2.Response;
 
-/**
- * Single source of truth for tour/activity data.
- * Currently returns static data; ready to be wired to an API endpoint.
- */
 @Singleton
 public class TourRepository {
 
-    @Inject
-    public TourRepository() {}
+    private final ActivityService activityService;
+    private final ConfigLoader configLoader;
+    private final SessionManager sessionManager;
+    private final NetworkErrorParser errorParser;
+    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
-    public List<TourActivity> getFeaturedTours() {
-        List<TourActivity> featured = new ArrayList<>();
-        featured.add(new TourActivity(
-                "Navegación por el Delta", "Tigre, Buenos Aires", "Aventura", "6 horas", "$85.00", 2,
-                "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800",
-                "Disfrutá de un día inolvidable navegando por los canales del Delta. Conocé la flora y fauna local mientras te relajás con el sonido del agua.",
-                4.9f, 124, "Equipos de seguridad, Almuerzo criollo y Traslados.", "Estación Fluvial de Tigre, Muelle 4",
-                "Juan Pérez", "Español e Inglés", "Cancelación gratuita 24hs antes", null
-        ));
-        featured.add(new TourActivity(
-                "Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5,
-                "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500",
-                "Disfrutá de los mejores sabores porteños en un recorrido por bodegones históricos.",
-                4.8f, 85, "Degustación de 3 platos, bebida y postre.", "Plaza de Mayo",
-                "Carlos Gómez", "Español", "Cancelación gratuita 24hs antes", null
-        ));
-        return featured;
+    @Inject
+    public TourRepository(ActivityService activityService, ConfigLoader configLoader,
+                          SessionManager sessionManager, NetworkErrorParser errorParser) {
+        this.activityService = activityService;
+        this.configLoader = configLoader;
+        this.sessionManager = sessionManager;
+        this.errorParser = errorParser;
     }
 
-    public List<TourActivity> getAllTours() {
-        List<TourActivity> all = new ArrayList<>();
-        all.add(new TourActivity(
-                "Free Tour Recoleta", "Buenos Aires", "Free Tour", "2 horas", "Gratis", 10,
-                "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500",
-                "Conocé la historia del barrio más elegante de Buenos Aires.",
-                4.7f, 250, "Recorrido guiado.", "Cementerio de la Recoleta",
-                "Ana Torres", "Español", "Cancelación libre", null
-        ));
-        all.add(new TourActivity(
-                "Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8,
-                "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500",
-                "Recorré uno de los teatros de ópera más importantes del mundo.",
-                5.0f, 500, "Entrada al teatro y guía oficial.", "Entrada principal Teatro Colón",
-                "Personal del Teatro", "Multilingüe", "Sujeto a disponibilidad", null
-        ));
-        all.add(new TourActivity(
-                "Show de Tango", "San Telmo", "Experiencia", "4 horas", "$120.00", 15,
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=500",
-                "Viví una noche de tango auténtico en el corazón de San Telmo.",
-                4.6f, 310, "Cena show, bebida incluida.", "Esquina de San Telmo",
-                "Pareja Rodríguez", "Español", "Cancelación gratuita 48hs antes", null
-        ));
-        all.add(new TourActivity(
-                "Clase de Cocina Criolla", "Palermo", "Gastronomía", "3 horas", "$60.00", 4,
-                "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500",
-                "Aprendé a preparar platos típicos argentinos con un chef profesional.",
-                4.5f, 78, "Ingredientes, delantal y recetario.", "Mercado de Palermo",
-                "Chef Martínez", "Español e Inglés", "Cancelación gratuita 24hs antes", null
-        ));
-        return all;
+    public void getFeaturedTours(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(activityService.listFeatured(config.activitiesFeaturedEndpoint), callback, R.string.error_load_featured);
+    }
+
+    public void getAllTours(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(activityService.listActivities(config.activitiesEndpoint), callback, R.string.error_load_activities);
+    }
+
+    public void cancelAll() {
+        for (Call<?> call : activeCalls) {
+            if (!call.isCanceled()) call.cancel();
+        }
+        activeCalls.clear();
+    }
+
+    private void enqueue(Call<ActivitiesPageResponse> call, RepositoryCallback<List<TourActivity>> callback,
+                         int fallbackErrorResId) {
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<ActivitiesPageResponse>() {
+            @Override
+            public void onResponse(Call<ActivitiesPageResponse> c, Response<ActivitiesPageResponse> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null && response.body().items != null) {
+                    callback.onSuccess(mapToTourActivities(response.body().items));
+                } else {
+                    if (response.code() == 401) {
+                        sessionManager.clearSession();
+                    }
+                    callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ActivitiesPageResponse> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
+    }
+
+    private List<TourActivity> mapToTourActivities(List<ActivitySummaryResponse> items) {
+        List<TourActivity> result = new ArrayList<>(items.size());
+        for (ActivitySummaryResponse item : items) {
+            String destination = item.destination != null ? item.destination.name : "";
+            String category = item.category != null ? item.category.replace("_", " ") : "";
+            String duration = formatDuration(item.durationMinutes);
+            String price = formatPrice(item.price, item.currency);
+            result.add(new TourActivity(item.name, destination, category, duration, price,
+                    item.availableSpots, null));
+        }
+        return result;
+    }
+
+    private static String formatDuration(int minutes) {
+        if (minutes < 60) return minutes + " min";
+        int hours = minutes / 60;
+        int remaining = minutes % 60;
+        if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
+        return hours + " h " + remaining + " min";
+    }
+
+    private static String formatPrice(double price, String currency) {
+        if (price <= 0) return "Gratis";
+        String symbol = "ARS".equals(currency) ? "$" : currency + " ";
+        return symbol + String.format(Locale.US, "%.2f", price);
+    }
+
+    private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
+        AppConfig config = configLoader.loadConfig();
+        if (config == null || !config.hasValidBaseUrl()) {
+            callback.onError(UiMessage.from(R.string.error_invalid_config));
+            return null;
+        }
+        return config;
     }
 }
+

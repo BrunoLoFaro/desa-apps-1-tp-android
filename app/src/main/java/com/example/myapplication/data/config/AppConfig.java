@@ -39,4 +39,10 @@ public class AppConfig {
 
     @Json(name = "password_reset_confirm_endpoint")
     public String passwordResetConfirmEndpoint;
+
+    @Json(name = "activities_endpoint")
+    public String activitiesEndpoint;
+
+    @Json(name = "activities_featured_endpoint")
+    public String activitiesFeaturedEndpoint;
 }
