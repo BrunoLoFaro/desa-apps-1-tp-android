@@ -1,6 +1,8 @@
 package com.example.myapplication.ui.auth;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +17,21 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ClassicRegisterFragment extends BaseAuthFragment {
 
+    private TextInputLayout emailInputLayout;
     private TextInputEditText emailEditText;
+    private TextInputLayout passwordInputLayout;
     private TextInputEditText passwordEditText;
+    private TextInputLayout firstNameInputLayout;
     private TextInputEditText firstNameEditText;
+    private TextInputLayout lastNameInputLayout;
     private TextInputEditText lastNameEditText;
+    private TextInputLayout dniInputLayout;
     private TextInputEditText dniEditText;
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
@@ -39,10 +47,15 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailInputLayout = view.findViewById(R.id.email_input_layout);
         emailEditText = view.findViewById(R.id.email_edit_text);
+        passwordInputLayout = view.findViewById(R.id.password_input_layout);
         passwordEditText = view.findViewById(R.id.password_edit_text);
+        firstNameInputLayout = view.findViewById(R.id.first_name_input_layout);
         firstNameEditText = view.findViewById(R.id.first_name_edit_text);
+        lastNameInputLayout = view.findViewById(R.id.last_name_input_layout);
         lastNameEditText = view.findViewById(R.id.last_name_edit_text);
+        dniInputLayout = view.findViewById(R.id.dni_input_layout);
         dniEditText = view.findViewById(R.id.dni_edit_text);
         registerButton = view.findViewById(R.id.register_button);
         progressIndicator = view.findViewById(R.id.register_progress_indicator);
@@ -56,6 +69,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         viewModel = new ViewModelProvider(this).get(ClassicRegisterViewModel.class);
 
         registerButton.setOnClickListener(v -> attemptClassicRegister());
+
+        setupTextWatchers();
 
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
             registerButton.setEnabled(!state.isLoading);
@@ -77,6 +92,29 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         });
     }
 
+    private void setupTextWatchers() {
+        TextWatcher watcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                clearAllErrors();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        };
+        emailEditText.addTextChangedListener(watcher);
+        passwordEditText.addTextChangedListener(watcher);
+        firstNameEditText.addTextChangedListener(watcher);
+        lastNameEditText.addTextChangedListener(watcher);
+        dniEditText.addTextChangedListener(watcher);
+    }
+
+    private void clearAllErrors() {
+        emailInputLayout.setError(null);
+        passwordInputLayout.setError(null);
+        firstNameInputLayout.setError(null);
+        lastNameInputLayout.setError(null);
+        dniInputLayout.setError(null);
+    }
+
     @Override
     protected void navigateToHome() {
         navController.navigate(R.id.action_classicRegisterFragment_to_homeFragment);
@@ -89,31 +127,43 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         String lastName = lastNameEditText.getText() != null ? lastNameEditText.getText().toString().trim() : "";
         String dni = dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
 
-        String error = validateFields(email, password, firstName, lastName, dni);
-        if (error != null) { showError(error); return; }
-
-        viewModel.register(email, password, firstName, lastName, dni);
+        clearAllErrors();
+        if (validateFields(email, password, firstName, lastName, dni)) {
+            viewModel.register(email, password, firstName, lastName, dni);
+        }
     }
 
-    private String validateFields(String email, String password, String firstName,
+    private boolean validateFields(String email, String password, String firstName,
                                   String lastName, String dni) {
-        String err = AuthInputValidator.validateEmail(requireContext(), email);
-        if (err != null) return err;
-        err = AuthInputValidator.validatePassword(requireContext(), password);
-        if (err != null) return err;
-        err = AuthInputValidator.validateFirstName(requireContext(), firstName);
-        if (err != null) return err;
-        err = AuthInputValidator.validateLastName(requireContext(), lastName);
-        if (err != null) return err;
-        return AuthInputValidator.validateDni(requireContext(), dni);
+        String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
+        if (errEmail != null) { emailInputLayout.setError(errEmail); return false; }
+
+        String errPass = AuthInputValidator.validatePassword(requireContext(), password);
+        if (errPass != null) { passwordInputLayout.setError(errPass); return false; }
+
+        String errFirst = AuthInputValidator.validateFirstName(requireContext(), firstName);
+        if (errFirst != null) { firstNameInputLayout.setError(errFirst); return false; }
+
+        String errLast = AuthInputValidator.validateLastName(requireContext(), lastName);
+        if (errLast != null) { lastNameInputLayout.setError(errLast); return false; }
+
+        String errDni = AuthInputValidator.validateDni(requireContext(), dni);
+        if (errDni != null) { dniInputLayout.setError(errDni); return false; }
+
+        return true;
     }
 
     @Override
     public void onDestroyView() {
+        emailInputLayout = null;
         emailEditText = null;
+        passwordInputLayout = null;
         passwordEditText = null;
+        firstNameInputLayout = null;
         firstNameEditText = null;
+        lastNameInputLayout = null;
         lastNameEditText = null;
+        dniInputLayout = null;
         dniEditText = null;
         registerButton = null;
         progressIndicator = null;

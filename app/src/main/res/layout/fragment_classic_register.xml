@@ -32,11 +32,15 @@
             android:padding="24dp">
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/email_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/email_hint">
+                android:hint="@string/email_hint"
+                app:errorEnabled="true"
+                app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/email_edit_text"
@@ -46,12 +50,16 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:hint="@string/password_hint"
-                app:endIconMode="password_toggle">
+                app:endIconMode="password_toggle"
+                app:errorEnabled="true"
+                app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/password_edit_text"
@@ -61,11 +69,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/first_name_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/first_name_hint">
+                android:hint="@string/first_name_hint"
+                app:errorEnabled="true"
+                app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/first_name_edit_text"
@@ -75,11 +87,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/last_name_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/last_name_hint">
+                android:hint="@string/last_name_hint"
+                app:errorEnabled="true"
+                app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/last_name_edit_text"
@@ -89,11 +105,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/dni_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:hint="@string/dni_hint">
+                android:hint="@string/dni_hint"
+                app:errorEnabled="true"
+                app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/dni_edit_text"

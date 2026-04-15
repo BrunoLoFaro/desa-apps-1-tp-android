@@ -5,7 +5,14 @@ import android.util.Patterns;
 
 import com.example.myapplication.R;
 
+import java.util.regex.Pattern;
+
 public final class AuthInputValidator {
+
+    // Strong password: at least 8 characters, one uppercase, one lowercase, one number, and one special character.
+    private static final String PASSWORD_PATTERN =
+            "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+    private static final Pattern PATTERN = Pattern.compile(PASSWORD_PATTERN);
 
     private AuthInputValidator() {
     }
@@ -18,7 +25,7 @@ public final class AuthInputValidator {
     }
 
     public static String validatePassword(Context context, String password) {
-        if (password == null || password.length() < 6 || password.length() > 72) {
+        if (password == null || !PATTERN.matcher(password).matches()) {
             return context.getString(R.string.error_invalid_password);
         }
         return null;
