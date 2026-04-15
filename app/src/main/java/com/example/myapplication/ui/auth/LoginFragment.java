@@ -87,11 +87,10 @@ public class LoginFragment extends BaseAuthFragment {
         String password = passwordEditText.getText() != null
                 ? passwordEditText.getText().toString() : "";
 
-        String emailError = AuthInputValidator.validateEmail(requireContext(), email);
-        if (emailError != null) { showError(emailError); return; }
-
-        String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
-        if (passwordError != null) { showError(passwordError); return; }
+        if (email.isEmpty() || password.isEmpty()) {
+            showError(getString(R.string.error_empty_fields));
+            return;
+        }
 
         viewModel.login(email, password);
     }
