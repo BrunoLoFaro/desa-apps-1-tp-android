@@ -9,9 +9,10 @@ import java.util.regex.Pattern;
 
 public final class AuthInputValidator {
 
-    // Strong password: at least 8 characters, one uppercase, one lowercase, one number, and one special character.
+    // Strong password: at least 8 characters, one uppercase, one lowercase, one number, 
+    // and one special character (@#$%^&+=!._-*)
     private static final String PASSWORD_PATTERN =
-            "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+            "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!._\\-*])(?=\\S+$).{8,}$";
     private static final Pattern PATTERN = Pattern.compile(PASSWORD_PATTERN);
 
     private AuthInputValidator() {
