@@ -39,23 +39,29 @@ public class ProfileRepository {
         this.errorParser = errorParser;
     }
 
+
     public void getProfile(RepositoryCallback<UserProfileData> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        Call<UserProfileResponse> call = profileService.getProfile(config.profileEndpoint);
+        long userId = sessionManager.getUserId();
+        String endpoint = config.profileEndpoint.replace("{userId}", String.valueOf(userId));
+        Call<UserProfileResponse> call = profileService.getProfile(endpoint);
         enqueueProfile(call, callback);
     }
 
-    public void updateProfile(String firstName, String lastName, String phone,
-                              String profilePhotoUrl,
-                              RepositoryCallback<UserProfileData> callback) {
+
+        public void updateProfile(String firstName, String lastName, String phone,
+                      String profilePhotoUrl,
+                      RepositoryCallback<UserProfileData> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
+        long userId = sessionManager.getUserId();
+        String endpoint = config.profileEndpoint.replace("{userId}", String.valueOf(userId));
         ProfileService.ProfileUpdateBody body =
-                new ProfileService.ProfileUpdateBody(firstName, lastName, phone, profilePhotoUrl);
-        Call<UserProfileResponse> call = profileService.updateProfile(config.profileEndpoint, body);
+            new ProfileService.ProfileUpdateBody(firstName, lastName, phone, profilePhotoUrl);
+        Call<UserProfileResponse> call = profileService.updateProfile(endpoint, body);
         enqueueProfile(call, callback);
-    }
+        }
 
     public void getPreferences(RepositoryCallback<List<String>> callback) {
         AppConfig config = getConfig(callback);
