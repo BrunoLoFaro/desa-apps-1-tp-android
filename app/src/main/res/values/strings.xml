@@ -88,4 +88,18 @@
     <string name="bookings_filter_cancelled">Canceladas</string>
 
     <string name="no_reviews">Sin reseñas</string>
+
+    <string name="explore_filter_destination">Destino</string>
+    <string name="explore_filter_category">Categoría</string>
+    <string name="explore_filter_date">Fecha</string>
+    <string name="explore_filter_min_price">Min</string>
+    <string name="explore_filter_max_price">Max</string>
+    <string name="explore_filters_apply">Aplicar</string>
+    <string name="explore_filters_clear">Limpiar</string>
+    <string name="explore_empty_state">Sin resultados</string>
+    <string name="explore_date_picker_title">Seleccioná una fecha</string>
+    <string name="explore_invalid_price">Precio inválido</string>
+    <string name="explore_invalid_price_range">Rango inválido</string>
+    <string name="explore_all_destinations">Todos</string>
+    <string name="explore_all_categories">Todas</string>
 </resources>
