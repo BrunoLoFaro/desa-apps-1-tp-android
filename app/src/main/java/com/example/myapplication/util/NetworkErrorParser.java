@@ -25,11 +25,15 @@ public class NetworkErrorParser {
      * Parses an HTTP error response into a UiMessage.
      * Returns a StringMessage with the server's error text when available,
      * or a ResMessage with the fallback resource ID otherwise.
-     * No Context required — localization happens in the UI layer.
      */
     public UiMessage getErrorMessage(Response<?> response, int fallbackResId) {
         if (response == null) {
             return UiMessage.from(fallbackResId);
+        }
+
+        // Si es un error 500 (Internal Server Error), usamos un mensaje amigable
+        if (response.code() == 500) {
+            return UiMessage.from(R.string.error_internal_server);
         }
 
         try (ResponseBody errorBody = response.errorBody()) {
@@ -59,9 +63,6 @@ public class NetworkErrorParser {
 
     /**
      * Converts a network failure throwable into a UiMessage.
-     * Returns resource-ID-based messages for known failure types (no connection, timeout),
-     * or a StringMessage with the exception's localized message as fallback.
-     * No Context required — localization happens in the UI layer.
      */
     public UiMessage getFailureMessage(Throwable t, int fallbackResId) {
         if (t == null) return UiMessage.from(fallbackResId);

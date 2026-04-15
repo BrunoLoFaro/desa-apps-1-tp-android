@@ -19,10 +19,16 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
     private List<TourActivity> tourActivities;
     private final boolean isHorizontal;
+    private final boolean isCompact;
 
     public TourAdapter(boolean isHorizontal) {
+        this(isHorizontal, isHorizontal);
+    }
+
+    public TourAdapter(boolean isHorizontal, boolean isCompact) {
         this.tourActivities = java.util.Collections.emptyList();
         this.isHorizontal = isHorizontal;
+        this.isCompact = isCompact;
     }
 
     public void updateData(List<TourActivity> newData) {
@@ -57,7 +63,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             holder.rating.setText(String.valueOf(activity.getRating()));
         }
 
-        if (isHorizontal) {
+        if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
         } else {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
