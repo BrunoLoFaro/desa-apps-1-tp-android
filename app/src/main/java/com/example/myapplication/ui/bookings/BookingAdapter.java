@@ -16,7 +16,7 @@ import java.util.Locale;
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
     public interface OnCancelClickListener {
-        void onCancel(Long bookingId);
+        void onCancel(BookingResponse booking);
     }
 
     private List<BookingResponse> bookings = Collections.emptyList();
@@ -52,7 +52,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
         holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
         holder.cancelButton.setOnClickListener(v -> {
-            if (cancelClickListener != null) cancelClickListener.onCancel(booking.id);
+            if (cancelClickListener != null) cancelClickListener.onCancel(booking);
         });
     }
 

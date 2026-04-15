@@ -14,9 +14,11 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
+import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -45,7 +47,7 @@ public class BookingsFragment extends Fragment {
         RecyclerView recycler = view.findViewById(R.id.bookings_recycler_view);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking);
+        BookingAdapter adapter = new BookingAdapter(this::confirmCancel);
         recycler.setAdapter(adapter);
 
         ChipGroup filters = view.findViewById(R.id.bookings_filter_group);
@@ -79,5 +81,24 @@ public class BookingsFragment extends Fragment {
 
         // initial load: "Todas"
         viewModel.loadMyBookings(null);
+    }
+
+    private void confirmCancel(BookingResponse booking) {
+        if (booking == null || booking.id == null) return;
+
+        String policy = booking.cancellationPolicy;
+        if (policy == null || policy.trim().isEmpty()) {
+            policy = getString(R.string.cancel_booking_policy_unknown);
+        }
+
+        String activityName = booking.activityName != null ? booking.activityName : "";
+        String message = getString(R.string.cancel_booking_message, activityName, policy);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.cancel_booking_title)
+                .setMessage(message)
+                .setNegativeButton(R.string.cancel_booking_back, (d, which) -> d.dismiss())
+                .setPositiveButton(R.string.cancel_booking_confirm, (d, which) -> viewModel.cancelBooking(booking.id))
+                .show();
     }
 }

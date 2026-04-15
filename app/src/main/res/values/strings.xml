@@ -105,4 +105,10 @@
     <string name="explore_all_destinations">Todos</string>
     <string name="explore_all_categories">Todas</string>
     <string name="explore_price_helper">Ej: 1000 o 1.000,50</string>
+
+    <string name="cancel_booking_title">Cancelar reserva</string>
+    <string name="cancel_booking_confirm">Confirmar</string>
+    <string name="cancel_booking_back">Volver</string>
+    <string name="cancel_booking_policy_unknown">Política no disponible</string>
+    <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
 </resources>
