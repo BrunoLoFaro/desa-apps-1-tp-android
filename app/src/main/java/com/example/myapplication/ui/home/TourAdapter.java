@@ -60,7 +60,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
 
         if (holder.rating != null) {
-            holder.rating.setText(String.valueOf(activity.getRating()));
+            if (activity.getReviewsCount() <= 0) {
+                holder.rating.setText(holder.itemView.getContext().getString(R.string.no_reviews));
+            } else {
+                holder.rating.setText(String.valueOf(activity.getRating()));
+            }
         }
 
         if (isCompact) {

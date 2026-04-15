@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class TourActivity implements Serializable {
+    private Long id;
     private String name;
     private String destination;
     private String category;
@@ -52,6 +53,8 @@ public class TourActivity implements Serializable {
         this.galleryUrls = galleryUrls;
     }
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public String getDestination() { return destination; }
     public String getCategory() { return category; }
@@ -62,6 +65,8 @@ public class TourActivity implements Serializable {
     public String getDescription() { return description; }
     public float getRating() { return rating; }
     public int getReviewsCount() { return reviewsCount; }
+    public void setRating(float rating) { this.rating = rating; }
+    public void setReviewsCount(int reviewsCount) { this.reviewsCount = reviewsCount; }
     public String getWhatIncluded() { return whatIncluded; }
     public String getMeetingPoint() { return meetingPoint; }
     public String getGuideName() { return guideName; }
