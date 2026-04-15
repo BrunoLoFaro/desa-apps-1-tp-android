@@ -3,6 +3,8 @@ package com.example.myapplication.data.session;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 import dagger.hilt.android.qualifiers.ApplicationContext;
@@ -18,10 +20,12 @@ public class SessionManager {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_USER_ID      = "user_id";
     private static final String KEY_USER_EMAIL   = "user_email";
-    private static final String KEY_FIRST_NAME   = "user_first_name";
-    private static final String KEY_LAST_NAME    = "user_last_name";
+    private static final String KEY_FIRST_NAME        = "user_first_name";
+    private static final String KEY_LAST_NAME         = "user_last_name";
+    private static final String KEY_PROFILE_PHOTO_URI = "profile_photo_uri";
 
     private final SharedPreferences preferences;
+    private final MutableLiveData<Boolean> _forceLogout = new MutableLiveData<>(false);
 
     @Inject
     public SessionManager(@ApplicationContext Context context) {
@@ -87,6 +91,14 @@ public class SessionManager {
         return !isTokenExpired(token);
     }
 
+    public void saveProfilePhotoUri(String uri) {
+        preferences.edit().putString(KEY_PROFILE_PHOTO_URI, uri).apply();
+    }
+
+    public String getProfilePhotoUri() {
+        return preferences.getString(KEY_PROFILE_PHOTO_URI, null);
+    }
+
     public void clearSession() {
         preferences.edit()
                 .remove(KEY_ACCESS_TOKEN)
@@ -94,8 +106,23 @@ public class SessionManager {
                 .remove(KEY_USER_EMAIL)
                 .remove(KEY_FIRST_NAME)
                 .remove(KEY_LAST_NAME)
+                .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
     }
+
+    /**
+     * Limpia la sesión y emite un evento para que la UI redirija al login.
+     * Llamar solo desde el Authenticator OkHttp (401 no autorizado del servidor),
+     * no desde el logout explícito del usuario.
+     */
+    public void triggerForceLogout() {
+        clearSession();
+        _forceLogout.postValue(true);
+    }
+
+    public LiveData<Boolean> getForceLogoutEvent() { return _forceLogout; }
+
+    public void consumeForceLogout() { _forceLogout.postValue(false); }
 
     private boolean isTokenExpired(String token) {
         try {

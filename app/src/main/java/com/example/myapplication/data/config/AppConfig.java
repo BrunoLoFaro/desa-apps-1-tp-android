@@ -45,4 +45,16 @@ public class AppConfig {
 
     @Json(name = "activities_featured_endpoint")
     public String activitiesFeaturedEndpoint;
+
+    @Json(name = "activities_recommended_endpoint")
+    public String activitiesRecommendedEndpoint;
+
+    @Json(name = "profile_endpoint")
+    public String profileEndpoint;
+
+    @Json(name = "preferences_endpoint")
+    public String preferencesEndpoint;
+
+    @Json(name = "activity_summary_endpoint")
+    public String activitySummaryEndpoint;
 }

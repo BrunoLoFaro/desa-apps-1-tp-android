@@ -10,11 +10,10 @@ import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
-import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -26,16 +25,14 @@ public class TourRepository {
 
     private final ActivityService activityService;
     private final ConfigLoader configLoader;
-    private final SessionManager sessionManager;
     private final NetworkErrorParser errorParser;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public TourRepository(ActivityService activityService, ConfigLoader configLoader,
-                          SessionManager sessionManager, NetworkErrorParser errorParser) {
+                          NetworkErrorParser errorParser) {
         this.activityService = activityService;
         this.configLoader = configLoader;
-        this.sessionManager = sessionManager;
         this.errorParser = errorParser;
     }
 
@@ -43,6 +40,12 @@ public class TourRepository {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         enqueuePage(activityService.listFeatured(config.activitiesFeaturedEndpoint), callback, R.string.error_load_featured);
+    }
+
+    public void getRecommendedTours(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueuePage(activityService.listActivities(config.activitiesRecommendedEndpoint), callback, R.string.error_load_recommended);
     }
 
     public void getAllTours(RepositoryCallback<List<TourActivity>> callback) {
@@ -65,7 +68,8 @@ public class TourRepository {
         activeCalls.clear();
     }
 
-    private void enqueuePage(Call<ActivitiesPageResponse> call, RepositoryCallback<List<TourActivity>> callback,
+    private void enqueuePage(Call<ActivitiesPageResponse> call,
+                             RepositoryCallback<List<TourActivity>> callback,
                              int fallbackErrorResId) {
         activeCalls.add(call);
         call.enqueue(new retrofit2.Callback<ActivitiesPageResponse>() {
@@ -75,9 +79,6 @@ public class TourRepository {
                 if (response.isSuccessful() && response.body() != null && response.body().items != null) {
                     callback.onSuccess(mapToTourActivities(response.body().items));
                 } else {
-                    if (response.code() == 401) {
-                        sessionManager.clearSession();
-                    }
                     callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
                 }
             }
@@ -90,7 +91,8 @@ public class TourRepository {
         });
     }
 
-    private void enqueueDetail(Call<ActivityDetailResponse> call, RepositoryCallback<ActivityDetailResponse> callback,
+    private void enqueueDetail(Call<ActivityDetailResponse> call,
+                               RepositoryCallback<ActivityDetailResponse> callback,
                                int fallbackErrorResId) {
         activeCalls.add(call);
         call.enqueue(new retrofit2.Callback<ActivityDetailResponse>() {
@@ -100,9 +102,6 @@ public class TourRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    if (response.code() == 401) {
-                        sessionManager.clearSession();
-                    }
                     callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
                 }
             }
@@ -120,34 +119,16 @@ public class TourRepository {
         for (ActivitySummaryResponse item : items) {
             String destination = item.destination != null ? item.destination.name : "";
             String category = item.category != null ? item.category.replace("_", " ") : "";
-            String duration = formatDuration(item.durationMinutes);
-            String price = formatPrice(item.price, item.currency);
+            String duration = FormatUtils.formatDuration(item.durationMinutes);
+            String price = FormatUtils.formatPrice(item.price, item.currency);
             TourActivity activity = new TourActivity(item.name, destination, category, duration, price,
                     item.availableSpots, null);
             activity.setId(item.id);
-            if (item.avgRating != null) {
-                activity.setRating(item.avgRating.floatValue());
-            }
-            if (item.reviewCount != null) {
-                activity.setReviewsCount(item.reviewCount.intValue());
-            }
+            if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
+            if (item.reviewCount != null) activity.setReviewsCount(item.reviewCount.intValue());
             result.add(activity);
         }
         return result;
-    }
-
-    private static String formatDuration(int minutes) {
-        if (minutes < 60) return minutes + " min";
-        int hours = minutes / 60;
-        int remaining = minutes % 60;
-        if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
-        return hours + " h " + remaining + " min";
-    }
-
-    private static String formatPrice(double price, String currency) {
-        if (price <= 0) return "Gratis";
-        String symbol = "ARS".equals(currency) ? "$" : currency + " ";
-        return symbol + String.format(Locale.US, "%.2f", price);
     }
 
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
@@ -159,4 +140,3 @@ public class TourRepository {
         return config;
     }
 }
-

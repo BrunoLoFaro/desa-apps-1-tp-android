@@ -48,7 +48,7 @@ public class HomeViewModel extends ViewModel {
         pendingCalls = 2;
         _loading.setValue(true);
 
-        tourRepository.getFeaturedTours(new RepositoryCallback<List<TourActivity>>() {
+        tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
                 _featuredTours.setValue(data);

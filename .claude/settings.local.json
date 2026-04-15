@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(docker image:*)",
+      "Bash(docker-compose --env-file .env.local up --build -d)"
+    ]
+  }
+}

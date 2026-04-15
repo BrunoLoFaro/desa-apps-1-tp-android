@@ -23,4 +23,6 @@
         <item name="cornerRadius">12dp</item>
         <item name="android:paddingVertical">12dp</item>
     </style>
+
+    <style name="ShapeAppearance.CircleProfile" parent="ShapeAppearance.Material3.Corner.Full" />
 </resources>

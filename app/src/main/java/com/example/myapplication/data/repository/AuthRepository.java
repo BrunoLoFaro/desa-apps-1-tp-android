@@ -14,7 +14,6 @@ import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.data.model.PasswordResetConfirmRequest;
 import com.example.myapplication.data.model.RegisterRequest;
 import com.example.myapplication.data.network.AuthService;
-import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -33,16 +32,14 @@ public class AuthRepository {
 
     private final AuthService authService;
     private final ConfigLoader configLoader;
-    private final SessionManager sessionManager;
     private final NetworkErrorParser errorParser;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public AuthRepository(AuthService authService, ConfigLoader configLoader,
-                          SessionManager sessionManager, NetworkErrorParser errorParser) {
+                          NetworkErrorParser errorParser) {
         this.authService = authService;
         this.configLoader = configLoader;
-        this.sessionManager = sessionManager;
         this.errorParser = errorParser;
     }
 
@@ -162,9 +159,6 @@ public class AuthRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    if (response.code() == 401) {
-                        sessionManager.clearSession();
-                    }
                     callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
                 }
             }

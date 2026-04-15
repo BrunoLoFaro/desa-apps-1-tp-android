@@ -76,9 +76,6 @@ public class BookingRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else {
-                    if (response.code() == 401) {
-                        sessionRepository.clearSession();
-                    }
                     callback.onError(errorParser.getErrorMessage(response, fallbackResId));
                 }
             }

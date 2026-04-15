@@ -136,6 +136,9 @@
         <action
             android:id="@+id/action_homeFragment_to_bookingsFragment"
             app:destination="@id/bookingsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
     </fragment>
 
     <fragment
@@ -143,6 +146,12 @@
         android:name="com.example.myapplication.ui.bookings.BookingsFragment"
         android:label="Bookings"
         tools:layout="@layout/fragment_bookings" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.myapplication.ui.profile.ProfileFragment"
+        android:label="Perfil"
+        tools:layout="@layout/fragment_profile" />
 
     <fragment
         android:id="@+id/detailFragment"

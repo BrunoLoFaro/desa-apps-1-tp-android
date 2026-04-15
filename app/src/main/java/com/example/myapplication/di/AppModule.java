@@ -7,6 +7,7 @@ import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
+import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.session.SessionManager;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
@@ -63,7 +64,16 @@ public class AppModule {
             return chain.proceed(original);
         });
 
-        // 3. Request/Response timing inspector (debug only)
+        // 3. Authenticator — maneja 401: sin refresh token, fuerza cierre de sesión
+        builder.authenticator((route, response) -> {
+            if (response.request().header("Authorization") != null) {
+                Log.d(TAG, "401 recibido en request autenticado — forzando cierre de sesión.");
+                sessionManager.triggerForceLogout();
+            }
+            return null; // null = no reintentar la request
+        });
+
+        // 4. Request/Response timing inspector (debug only)
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(chain -> {
                 long start = System.currentTimeMillis();
@@ -116,5 +126,11 @@ public class AppModule {
     @Singleton
     static BookingService provideBookingService(Retrofit retrofit) {
         return retrofit.create(BookingService.class);
+    }
+
+    @Provides
+    @Singleton
+    static ProfileService provideProfileService(Retrofit retrofit) {
+        return retrofit.create(ProfileService.class);
     }
 }

@@ -8,10 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingResponse;
+import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
@@ -45,9 +45,9 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         String destination = booking.destination != null ? booking.destination.name : "";
         holder.subtitle.setText(destination);
         holder.dateTime.setText(formatStartTime(booking.sessionStartTime));
-        holder.status.setText(booking.status != null ? booking.status : "");
+        holder.status.setText(localizedStatus(holder.itemView, booking.status));
         holder.participants.setText("Participantes: " + booking.participants);
-        holder.price.setText(formatPrice(booking.totalPrice, booking.currency));
+        holder.price.setText(FormatUtils.formatPrice(booking.totalPrice, booking.currency));
 
         boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
         holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
@@ -68,10 +68,14 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         return value;
     }
 
-    private static String formatPrice(double price, String currency) {
-        if (price <= 0) return "Gratis";
-        String symbol = "ARS".equals(currency) ? "$" : (currency == null ? "" : currency + " ");
-        return symbol + String.format(Locale.US, "%.2f", price);
+    private static String localizedStatus(View view, String status) {
+        if (status == null) return "";
+        switch (status) {
+            case "CONFIRMED":  return view.getContext().getString(R.string.booking_status_confirmed);
+            case "COMPLETED":  return view.getContext().getString(R.string.booking_status_completed);
+            case "CANCELLED":  return view.getContext().getString(R.string.booking_status_cancelled);
+            default:           return status;
+        }
     }
 
     static class BookingViewHolder extends RecyclerView.ViewHolder {
