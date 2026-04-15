@@ -6,6 +6,7 @@ import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
+import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.data.session.SessionManager;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
@@ -109,5 +110,11 @@ public class AppModule {
     @Singleton
     static ActivityService provideActivityService(Retrofit retrofit) {
         return retrofit.create(ActivityService.class);
+    }
+
+    @Provides
+    @Singleton
+    static BookingService provideBookingService(Retrofit retrofit) {
+        return retrofit.create(BookingService.class);
     }
 }

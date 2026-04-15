@@ -78,4 +78,7 @@
     <string name="home_menu_logout">Cerrar sesión</string>
     <string name="action_theme_toggle">Cambiar tema</string>
     <string name="error_internal_server">Ocurrió un error en el servidor. Por favor, reintentá más tarde.</string>
+
+    <string name="book_now">Reservar</string>
+    <string name="participants_hint">Participantes</string>
 </resources>

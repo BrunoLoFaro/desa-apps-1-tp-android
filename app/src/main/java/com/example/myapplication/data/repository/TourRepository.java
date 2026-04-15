@@ -6,6 +6,7 @@ import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
+import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
@@ -41,13 +42,20 @@ public class TourRepository {
     public void getFeaturedTours(RepositoryCallback<List<TourActivity>> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        enqueue(activityService.listFeatured(config.activitiesFeaturedEndpoint), callback, R.string.error_load_featured);
+        enqueuePage(activityService.listFeatured(config.activitiesFeaturedEndpoint), callback, R.string.error_load_featured);
     }
 
     public void getAllTours(RepositoryCallback<List<TourActivity>> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        enqueue(activityService.listActivities(config.activitiesEndpoint), callback, R.string.error_load_activities);
+        enqueuePage(activityService.listActivities(config.activitiesEndpoint), callback, R.string.error_load_activities);
+    }
+
+    public void getActivityDetail(long activityId, RepositoryCallback<ActivityDetailResponse> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        String endpoint = config.activitiesEndpoint + "/" + activityId;
+        enqueueDetail(activityService.getActivityDetail(endpoint), callback, R.string.error_load_activities);
     }
 
     public void cancelAll() {
@@ -57,8 +65,8 @@ public class TourRepository {
         activeCalls.clear();
     }
 
-    private void enqueue(Call<ActivitiesPageResponse> call, RepositoryCallback<List<TourActivity>> callback,
-                         int fallbackErrorResId) {
+    private void enqueuePage(Call<ActivitiesPageResponse> call, RepositoryCallback<List<TourActivity>> callback,
+                             int fallbackErrorResId) {
         activeCalls.add(call);
         call.enqueue(new retrofit2.Callback<ActivitiesPageResponse>() {
             @Override
@@ -82,6 +90,31 @@ public class TourRepository {
         });
     }
 
+    private void enqueueDetail(Call<ActivityDetailResponse> call, RepositoryCallback<ActivityDetailResponse> callback,
+                               int fallbackErrorResId) {
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<ActivityDetailResponse>() {
+            @Override
+            public void onResponse(Call<ActivityDetailResponse> c, Response<ActivityDetailResponse> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    if (response.code() == 401) {
+                        sessionManager.clearSession();
+                    }
+                    callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ActivityDetailResponse> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
+    }
+
     private List<TourActivity> mapToTourActivities(List<ActivitySummaryResponse> items) {
         List<TourActivity> result = new ArrayList<>(items.size());
         for (ActivitySummaryResponse item : items) {
@@ -89,8 +122,10 @@ public class TourRepository {
             String category = item.category != null ? item.category.replace("_", " ") : "";
             String duration = formatDuration(item.durationMinutes);
             String price = formatPrice(item.price, item.currency);
-            result.add(new TourActivity(item.name, destination, category, duration, price,
-                    item.availableSpots, null));
+            TourActivity activity = new TourActivity(item.name, destination, category, duration, price,
+                    item.availableSpots, null);
+            activity.setId(item.id);
+            result.add(activity);
         }
         return result;
     }

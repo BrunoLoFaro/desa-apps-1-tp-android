@@ -133,7 +133,16 @@
         <action
             android:id="@+id/action_homeFragment_to_detailFragment"
             app:destination="@id/detailFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_bookingsFragment"
+            app:destination="@id/bookingsFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/bookingsFragment"
+        android:name="com.example.myapplication.ui.bookings.BookingsFragment"
+        android:label="Bookings"
+        tools:layout="@layout/fragment_bookings" />
 
     <fragment
         android:id="@+id/detailFragment"

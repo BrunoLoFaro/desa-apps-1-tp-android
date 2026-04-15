@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class TourActivity implements Serializable {
+    private Long id;
     private String name;
     private String destination;
     private String category;
@@ -52,6 +53,8 @@ public class TourActivity implements Serializable {
         this.galleryUrls = galleryUrls;
     }
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public String getDestination() { return destination; }
     public String getCategory() { return category; }
