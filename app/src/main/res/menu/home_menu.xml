@@ -2,10 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_my_bookings"
-        android:title="@string/nav_bookings"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_theme_toggle"
         android:icon="@android:drawable/ic_menu_day"
         android:title="@string/action_theme_toggle"

@@ -65,6 +65,8 @@ public class TourActivity implements Serializable {
     public String getDescription() { return description; }
     public float getRating() { return rating; }
     public int getReviewsCount() { return reviewsCount; }
+    public void setRating(float rating) { this.rating = rating; }
+    public void setReviewsCount(int reviewsCount) { this.reviewsCount = reviewsCount; }
     public String getWhatIncluded() { return whatIncluded; }
     public String getMeetingPoint() { return meetingPoint; }
     public String getGuideName() { return guideName; }

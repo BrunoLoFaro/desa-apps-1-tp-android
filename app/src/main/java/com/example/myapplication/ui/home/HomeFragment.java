@@ -82,9 +82,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         if (id == R.id.action_logout) {
             logout();
             return true;
-        } else if (id == R.id.action_my_bookings) {
-            navController.navigate(R.id.action_homeFragment_to_bookingsFragment);
-            return true;
         } else if (id == R.id.action_theme_toggle) {
             toggleTheme();
             return true;

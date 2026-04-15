@@ -81,4 +81,11 @@
 
     <string name="book_now">Reservar</string>
     <string name="participants_hint">Participantes</string>
+
+    <string name="bookings_filter_all">Todas</string>
+    <string name="bookings_filter_active">Activas</string>
+    <string name="bookings_filter_completed">Completadas</string>
+    <string name="bookings_filter_cancelled">Canceladas</string>
+
+    <string name="no_reviews">Sin reseñas</string>
 </resources>

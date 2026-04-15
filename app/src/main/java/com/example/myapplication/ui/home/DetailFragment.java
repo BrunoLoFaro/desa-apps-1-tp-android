@@ -220,7 +220,13 @@ public class DetailFragment extends Fragment {
         slots.setText(getString(R.string.slots_available, tourActivity.getAvailableSlots()));
         
         if (description != null) description.setText(tourActivity.getDescription());
-        if (rating != null) rating.setText(String.valueOf(tourActivity.getRating()));
+        if (rating != null) {
+            if (tourActivity.getReviewsCount() <= 0) {
+                rating.setText(getString(R.string.no_reviews));
+            } else {
+                rating.setText(String.valueOf(tourActivity.getRating()));
+            }
+        }
         if (language != null) language.setText("Idioma: " + tourActivity.getLanguage());
         if (guide != null) guide.setText("Guía: " + tourActivity.getGuideName());
         if (meetingPoint != null) meetingPoint.setText("Encuentro: " + tourActivity.getMeetingPoint());

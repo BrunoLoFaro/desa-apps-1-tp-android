@@ -26,4 +26,10 @@ public class ActivitySummaryResponse {
 
     @Json(name = "availableSpots")
     public int availableSpots;
+
+    @Json(name = "avgRating")
+    public Double avgRating;
+
+    @Json(name = "reviewCount")
+    public Long reviewCount;
 }

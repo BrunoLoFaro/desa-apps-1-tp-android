@@ -67,9 +67,10 @@ public class DetailViewModel extends ViewModel {
         String duration = formatDuration(data.durationMinutes);
         String price = formatPrice(data.basePrice, data.currency);
         String guideName = data.guide != null ? safe(data.guide.fullName) : null;
+        float rating = data.avgRating != null ? data.avgRating.floatValue() : 0f;
+        int reviewCount = data.reviewCount != null ? data.reviewCount.intValue() : 0;
 
         // Fill "detail" fields the current UI already has.
-        // Keep rating as 0 because backend detail doesn't include review stats in current DTOs.
         TourActivity activity = new TourActivity(
                 safe(data.name),
                 destination,
@@ -79,8 +80,8 @@ public class DetailViewModel extends ViewModel {
                 data.availableSpots,
                 null,
                 safe(data.description),
-                0f,
-                0,
+                rating,
+                reviewCount,
                 safe(data.includesText),
                 safe(data.meetingPoint),
                 guideName,

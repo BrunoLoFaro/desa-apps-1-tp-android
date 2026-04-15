@@ -20,6 +20,7 @@ public class BookingsViewModel extends ViewModel {
             new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
+    private String currentFilter = null;
 
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository) {
@@ -31,6 +32,7 @@ public class BookingsViewModel extends ViewModel {
     public LiveData<Boolean> isLoading() { return _loading; }
 
     public void loadMyBookings(String statusFilter) {
+        currentFilter = statusFilter;
         _loading.setValue(true);
         bookingRepository.listMyBookings(statusFilter, new RepositoryCallback<List<BookingResponse>>() {
             @Override
@@ -54,7 +56,7 @@ public class BookingsViewModel extends ViewModel {
             @Override
             public void onSuccess(BookingResponse data) {
                 _loading.setValue(false);
-                loadMyBookings(null);
+                loadMyBookings(currentFilter);
             }
 
             @Override
@@ -71,4 +73,3 @@ public class BookingsViewModel extends ViewModel {
         super.onCleared();
     }
 }
-

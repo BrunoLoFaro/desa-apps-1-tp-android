@@ -125,6 +125,12 @@ public class TourRepository {
             TourActivity activity = new TourActivity(item.name, destination, category, duration, price,
                     item.availableSpots, null);
             activity.setId(item.id);
+            if (item.avgRating != null) {
+                activity.setRating(item.avgRating.floatValue());
+            }
+            if (item.reviewCount != null) {
+                activity.setReviewsCount(item.reviewCount.intValue());
+            }
             result.add(activity);
         }
         return result;

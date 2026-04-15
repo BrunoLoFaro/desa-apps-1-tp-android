@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.chip.ChipGroup;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -47,6 +48,21 @@ public class BookingsFragment extends Fragment {
         BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking);
         recycler.setAdapter(adapter);
 
+        ChipGroup filters = view.findViewById(R.id.bookings_filter_group);
+        if (filters != null) {
+            filters.setOnCheckedChangeListener((group, checkedId) -> {
+                String status = null;
+                if (checkedId == R.id.chip_filter_active) {
+                    status = "CONFIRMED";
+                } else if (checkedId == R.id.chip_filter_completed) {
+                    status = "COMPLETED";
+                } else if (checkedId == R.id.chip_filter_cancelled) {
+                    status = "CANCELLED";
+                }
+                viewModel.loadMyBookings(status);
+            });
+        }
+
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             boolean show = Boolean.TRUE.equals(isLoading);
             loading.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -61,7 +77,7 @@ public class BookingsFragment extends Fragment {
 
         viewModel.getBookings().observe(getViewLifecycleOwner(), adapter::updateData);
 
+        // initial load: "Todas"
         viewModel.loadMyBookings(null);
     }
 }
-

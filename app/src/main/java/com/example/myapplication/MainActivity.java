@@ -2,10 +2,10 @@ package com.example.myapplication;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -24,13 +24,43 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-            NavigationUI.setupWithNavController(bottomNav, navController);
+            bottomNav.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
+                int current = navController.getCurrentDestination() != null
+                        ? navController.getCurrentDestination().getId()
+                        : 0;
+
+                if (id == R.id.nav_home) {
+                    if (current == R.id.homeFragment) return true;
+                    return navController.popBackStack(R.id.homeFragment, false);
+                }
+
+                if (id == R.id.nav_bookings) {
+                    if (current == R.id.bookingsFragment) return true;
+                    navController.navigate(R.id.bookingsFragment);
+                    return true;
+                }
+
+                // Explore/Profile are placeholders for now.
+                Toast.makeText(this, "Próximamente", Toast.LENGTH_SHORT).show();
+                return false;
+            });
+            bottomNav.setOnItemReselectedListener(item -> {
+                // no-op
+            });
 
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                if (destination.getId() == R.id.homeFragment) {
+                int destId = destination.getId();
+                if (destId == R.id.homeFragment || destId == R.id.bookingsFragment) {
                     bottomNav.setVisibility(View.VISIBLE);
                 } else {
                     bottomNav.setVisibility(View.GONE);
+                }
+
+                if (destId == R.id.homeFragment) {
+                    bottomNav.getMenu().findItem(R.id.nav_home).setChecked(true);
+                } else if (destId == R.id.bookingsFragment) {
+                    bottomNav.getMenu().findItem(R.id.nav_bookings).setChecked(true);
                 }
             });
         }
