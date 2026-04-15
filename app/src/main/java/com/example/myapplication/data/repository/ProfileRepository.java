@@ -30,13 +30,16 @@ public class ProfileRepository {
     private final ConfigLoader configLoader;
     private final NetworkErrorParser errorParser;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
+    private final com.example.myapplication.data.session.SessionManager sessionManager;
 
     @Inject
     public ProfileRepository(ProfileService profileService, ConfigLoader configLoader,
-                             NetworkErrorParser errorParser) {
+                             NetworkErrorParser errorParser,
+                             com.example.myapplication.data.session.SessionManager sessionManager) {
         this.profileService = profileService;
         this.configLoader = configLoader;
         this.errorParser = errorParser;
+        this.sessionManager = sessionManager;
     }
 
 
