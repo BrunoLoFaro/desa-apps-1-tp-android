@@ -64,7 +64,7 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
         }
         holder.itemView.setOnClickListener(v -> {
             int old = selectedPosition;
-            selectedPosition = holder.getBindingAdapterPosition();
+            selectedPosition = holder.getAdapterPosition();
             if (old != RecyclerView.NO_POSITION) notifyItemChanged(old);
             if (selectedPosition != RecyclerView.NO_POSITION) notifyItemChanged(selectedPosition);
             if (clickListener != null && selectedPosition != RecyclerView.NO_POSITION) {
