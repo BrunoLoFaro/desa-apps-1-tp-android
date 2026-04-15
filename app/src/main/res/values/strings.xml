@@ -6,7 +6,7 @@
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="sign_up_button">Registrarse</string>
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
-    <string name="error_network_generic">Error de red</string>
+    <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
@@ -40,7 +40,7 @@
     <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
     <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
     <string name="error_register_failed_default">No se pudo completar el registro.</string>
-    <string name="error_signup_otp_request_default">No se pudo enviar el código de registro.</string>
+    <string name="error_signup_otp_request_default">En este momento no puede realizarse el envío del mail. Por favor, reintentá más tarde.</string>
     <string name="error_signup_otp_resend_default">No se pudo reenviar el código de registro.</string>
     <string name="error_signup_otp_verify_default">No se pudo verificar el código de registro.</string>
     <string name="error_signup_complete_default">No se pudo completar el registro con OTP.</string>
@@ -70,11 +70,12 @@
     <string name="forgot_password_new_hint">Ingresá tu nueva contraseña para acceder a tu cuenta.</string>
     <string name="forgot_password_save_button">Guardar contraseña</string>
     <string name="signup_button">Registrarse</string>
-    <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet.</string>
+    <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet o la dirección IP.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
     <string name="free_label">Gratis</string>
     <string name="home_menu_logout">Cerrar sesión</string>
     <string name="action_theme_toggle">Cambiar tema</string>
+    <string name="error_internal_server">Ocurrió un error en el servidor. Por favor, reintentá más tarde.</string>
 </resources>

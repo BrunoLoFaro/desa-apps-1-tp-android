@@ -25,10 +25,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Run Unit Tests
+        # This ensures all unit tests pass before building the APK
+        run: ./gradlew :app:testDebugUnitTest
+
       - name: Build with Gradle
         # Running 'assembleDebug' ensures the app compiles.
-        # You can also use './gradlew check' to run tests and lint.
-        run: ./gradlew assembleDebug
+        run: ./gradlew :app:assembleDebug
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4

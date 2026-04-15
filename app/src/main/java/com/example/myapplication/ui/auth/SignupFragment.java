@@ -1,6 +1,8 @@
 package com.example.myapplication.ui.auth;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +17,13 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class SignupFragment extends BaseAuthFragment {
 
+    private TextInputLayout emailInputLayout;
     private TextInputEditText emailEditText;
     private MaterialButton registerWithEmailButton;
     private MaterialButton classicRegisterButton;
@@ -36,6 +40,7 @@ public class SignupFragment extends BaseAuthFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailInputLayout = view.findViewById(R.id.signup_email_layout);
         emailEditText = view.findViewById(R.id.signup_email_edit_text);
         registerWithEmailButton = view.findViewById(R.id.signup_with_email_button);
         classicRegisterButton = view.findViewById(R.id.signup_classic_button);
@@ -54,16 +59,25 @@ public class SignupFragment extends BaseAuthFragment {
         classicRegisterButton.setOnClickListener(v ->
                 navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
 
+        setupTextWatchers();
+
         viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
             registerWithEmailButton.setEnabled(!state.isLoading);
             classicRegisterButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
+            // Limpiamos el error visual al empezar una nueva carga
+            if (state.isLoading) {
+                emailInputLayout.setError(null);
+            }
+
             if (state.error != null) {
-                showError(state.error.resolve(requireContext()));
+                String errorMsg = state.error.resolve(requireContext());
+                emailInputLayout.setError(errorMsg);
                 viewModel.requestOtpErrorConsumed();
             }
+
             if (state.navigateToOtpCode) {
                 String email = emailEditText.getText() != null
                         ? emailEditText.getText().toString().trim() : "";
@@ -75,16 +89,34 @@ public class SignupFragment extends BaseAuthFragment {
         });
     }
 
+    private void setupTextWatchers() {
+        emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                emailInputLayout.setError(null);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
     private void startOtpSignup() {
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
         String emailError = AuthInputValidator.validateEmail(requireContext(), email);
-        if (emailError != null) { showError(emailError); return; }
+        if (emailError != null) { 
+            emailInputLayout.setError(emailError);
+            return; 
+        }
+        emailInputLayout.setError(null);
         viewModel.requestSignupOtp(email);
     }
 
     @Override
     public void onDestroyView() {
+        emailInputLayout = null;
         emailEditText = null;
         registerWithEmailButton = null;
         classicRegisterButton = null;
