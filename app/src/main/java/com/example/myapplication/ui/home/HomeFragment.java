@@ -50,12 +50,14 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        TourAdapter featuredAdapter = new TourAdapter(true);
+        // Recomendados para ti (featured) -> Horizontal and Compact
+        TourAdapter featuredAdapter = new TourAdapter(true, true);
         featuredRecycler.setAdapter(featuredAdapter);
 
         RecyclerView activitiesRecycler = view.findViewById(R.id.activities_recycler_view);
         activitiesRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-        TourAdapter activitiesAdapter = new TourAdapter(false);
+        // Explora actividades -> Vertical and Compact (Requirement 3)
+        TourAdapter activitiesAdapter = new TourAdapter(false, true);
         activitiesRecycler.setAdapter(activitiesAdapter);
 
         homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
