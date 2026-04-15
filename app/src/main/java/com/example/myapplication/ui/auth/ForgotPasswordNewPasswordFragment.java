@@ -15,11 +15,13 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
 
+    private TextInputLayout passwordInputLayout;
     private TextInputEditText passwordEditText;
     private MaterialButton savePasswordButton;
     private CircularProgressIndicator progressIndicator;
@@ -42,6 +44,7 @@ public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
             code = getArguments().getString("code");
         }
 
+        passwordInputLayout = view.findViewById(R.id.forgot_new_password_input_layout);
         passwordEditText = view.findViewById(R.id.forgot_new_password_edit_text);
         savePasswordButton = view.findViewById(R.id.forgot_save_password_button);
         progressIndicator = view.findViewById(R.id.forgot_new_password_progress_indicator);
@@ -83,15 +86,20 @@ public class ForgotPasswordNewPasswordFragment extends BaseAuthFragment {
     }
 
     private void confirmNewPassword() {
+        passwordInputLayout.setError(null);
         String password = passwordEditText.getText() != null
                 ? passwordEditText.getText().toString() : "";
         String passwordError = AuthInputValidator.validatePassword(requireContext(), password);
-        if (passwordError != null) { showError(passwordError); return; }
+        if (passwordError != null) {
+            passwordInputLayout.setError(passwordError);
+            return;
+        }
         viewModel.confirmNewPassword(email, code, password);
     }
 
     @Override
     public void onDestroyView() {
+        passwordInputLayout = null;
         passwordEditText = null;
         savePasswordButton = null;
         progressIndicator = null;
