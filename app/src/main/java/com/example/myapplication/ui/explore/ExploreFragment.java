@@ -22,6 +22,7 @@ import com.example.myapplication.ui.home.TourAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -64,11 +65,15 @@ public class ExploreFragment extends Fragment {
         TextInputEditText dateInput = view.findViewById(R.id.date_input);
         TextInputEditText minPriceInput = view.findViewById(R.id.min_price_input);
         TextInputEditText maxPriceInput = view.findViewById(R.id.max_price_input);
+        TextInputLayout minPriceLayout = view.findViewById(R.id.min_price_layout);
+        TextInputLayout maxPriceLayout = view.findViewById(R.id.max_price_layout);
         MaterialButton applyButton = view.findViewById(R.id.apply_filters_button);
         MaterialButton clearButton = view.findViewById(R.id.clear_filters_button);
 
         ProgressBar loading = view.findViewById(R.id.loading_spinner);
-        TextView empty = view.findViewById(R.id.empty_state);
+        ProgressBar pagingLoading = view.findViewById(R.id.paging_loading_spinner);
+        View emptyContainer = view.findViewById(R.id.empty_state_container);
+        MaterialButton emptyClearButton = view.findViewById(R.id.empty_clear_filters_button);
         RecyclerView recycler = view.findViewById(R.id.activities_recycler_view);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         TourAdapter adapter = new TourAdapter(false, true);
@@ -154,10 +159,10 @@ public class ExploreFragment extends Fragment {
             adapter.updateData(activities);
             boolean isEmpty = activities == null || activities.isEmpty();
             if (isLoading) {
-                empty.setVisibility(View.GONE);
+                if (emptyContainer != null) emptyContainer.setVisibility(View.GONE);
                 recycler.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
             } else {
-                empty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                if (emptyContainer != null) emptyContainer.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 recycler.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
             }
         });
@@ -165,10 +170,12 @@ public class ExploreFragment extends Fragment {
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             boolean show = Boolean.TRUE.equals(isLoading);
             this.isLoading = show;
-            loading.setVisibility(show ? View.VISIBLE : View.GONE);
-            if (show) {
-                empty.setVisibility(View.GONE);
+            boolean listHasItems = adapter.getItemCount() > 0;
+            loading.setVisibility(show && !listHasItems ? View.VISIBLE : View.GONE);
+            if (pagingLoading != null) {
+                pagingLoading.setVisibility(show && listHasItems ? View.VISIBLE : View.GONE);
             }
+            if (show && emptyContainer != null) emptyContainer.setVisibility(View.GONE);
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
@@ -178,6 +185,9 @@ public class ExploreFragment extends Fragment {
         });
 
         applyButton.setOnClickListener(v -> {
+            if (minPriceLayout != null) minPriceLayout.setError(null);
+            if (maxPriceLayout != null) maxPriceLayout.setError(null);
+
             Long destinationId = null;
             String destinationLabel = destinationDropdown != null ? destinationDropdown.getText().toString() : null;
             if (!TextUtils.isEmpty(destinationLabel) && !"Todos".equalsIgnoreCase(destinationLabel)) {
@@ -205,8 +215,12 @@ public class ExploreFragment extends Fragment {
 
             // basic validation: only send valid decimals (backend expects decimal with "." separator)
             if ((!TextUtils.isEmpty(minRaw) && minPrice == null) || (!TextUtils.isEmpty(maxRaw) && maxPrice == null)) {
-                Toast.makeText(requireContext(), getString(R.string.explore_invalid_price),
-                        Toast.LENGTH_SHORT).show();
+                if (!TextUtils.isEmpty(minRaw) && minPrice == null && minPriceLayout != null) {
+                    minPriceLayout.setError(getString(R.string.explore_invalid_price));
+                }
+                if (!TextUtils.isEmpty(maxRaw) && maxPrice == null && maxPriceLayout != null) {
+                    maxPriceLayout.setError(getString(R.string.explore_invalid_price));
+                }
                 return;
             }
             if (minPrice != null && maxPrice != null) {
@@ -214,13 +228,13 @@ public class ExploreFragment extends Fragment {
                     double min = Double.parseDouble(minPrice);
                     double max = Double.parseDouble(maxPrice);
                     if (min > max) {
-                        Toast.makeText(requireContext(), getString(R.string.explore_invalid_price_range),
-                                Toast.LENGTH_SHORT).show();
+                        if (minPriceLayout != null) minPriceLayout.setError(getString(R.string.explore_invalid_price_range));
+                        if (maxPriceLayout != null) maxPriceLayout.setError(getString(R.string.explore_invalid_price_range));
                         return;
                     }
                 } catch (NumberFormatException ignored) {
-                    Toast.makeText(requireContext(), getString(R.string.explore_invalid_price),
-                            Toast.LENGTH_SHORT).show();
+                    if (minPriceLayout != null) minPriceLayout.setError(getString(R.string.explore_invalid_price));
+                    if (maxPriceLayout != null) maxPriceLayout.setError(getString(R.string.explore_invalid_price));
                     return;
                 }
             }
@@ -228,7 +242,7 @@ public class ExploreFragment extends Fragment {
             viewModel.applyFilters(destinationId, categoryValue, dateIso, minPrice, maxPrice);
         });
 
-        clearButton.setOnClickListener(v -> {
+        View.OnClickListener clearAction = v -> {
             if (destinationDropdown != null) {
                 destinationDropdown.setText(getString(R.string.explore_all_destinations), false);
             }
@@ -238,8 +252,13 @@ public class ExploreFragment extends Fragment {
             if (dateInput != null) dateInput.setText("");
             if (minPriceInput != null) minPriceInput.setText("");
             if (maxPriceInput != null) maxPriceInput.setText("");
+            if (minPriceLayout != null) minPriceLayout.setError(null);
+            if (maxPriceLayout != null) maxPriceLayout.setError(null);
             viewModel.applyFilters(null, null, null, null, null);
-        });
+        };
+
+        clearButton.setOnClickListener(clearAction);
+        if (emptyClearButton != null) emptyClearButton.setOnClickListener(clearAction);
 
         // initial load
         viewModel.loadMeta();

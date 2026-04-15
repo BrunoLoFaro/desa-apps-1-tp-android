@@ -97,9 +97,12 @@
     <string name="explore_filters_apply">Aplicar</string>
     <string name="explore_filters_clear">Limpiar</string>
     <string name="explore_empty_state">Sin resultados</string>
+    <string name="explore_empty_state_subtitle">Probá ajustar filtros o limpiar.</string>
+    <string name="explore_empty_clear_filters">Limpiar filtros</string>
     <string name="explore_date_picker_title">Seleccioná una fecha</string>
     <string name="explore_invalid_price">Precio inválido</string>
     <string name="explore_invalid_price_range">Rango inválido</string>
     <string name="explore_all_destinations">Todos</string>
     <string name="explore_all_categories">Todas</string>
+    <string name="explore_price_helper">Ej: 1000 o 1.000,50</string>
 </resources>

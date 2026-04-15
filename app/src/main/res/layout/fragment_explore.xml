@@ -32,6 +32,7 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/destination_layout"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -51,6 +52,7 @@
                     android:layout_height="1dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/category_layout"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -73,6 +75,7 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/date_layout"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -93,11 +96,13 @@
                     android:layout_height="1dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/min_price_layout"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="@string/explore_filter_min_price">
+                    android:hint="@string/explore_filter_min_price"
+                    app:helperText="@string/explore_price_helper">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/min_price_input"
@@ -112,11 +117,13 @@
                     android:layout_height="1dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/max_price_layout"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="@string/explore_filter_max_price">
+                    android:hint="@string/explore_filter_max_price"
+                    app:helperText="@string/explore_price_helper">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/max_price_input"
@@ -167,22 +174,56 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/empty_state"
+    <LinearLayout
+        android:id="@+id/empty_state_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
+        android:orientation="vertical"
         android:padding="24dp"
-        android:text="@string/explore_empty_state"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/empty_state_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/explore_empty_state"
+            android:textAppearance="@style/TextAppearance.XploreNow.H2"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/empty_state_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/explore_empty_state_subtitle"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/empty_clear_filters_button"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/explore_empty_clear_filters" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/loading_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/paging_loading_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
         android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
