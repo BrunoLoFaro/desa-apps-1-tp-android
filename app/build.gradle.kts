@@ -77,6 +77,7 @@ dependencies {
     // Image Loading
     implementation(libs.glide)
     kapt(libs.glide.compiler)
+    implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
 
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
