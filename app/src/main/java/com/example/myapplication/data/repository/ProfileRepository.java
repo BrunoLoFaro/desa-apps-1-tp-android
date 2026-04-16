@@ -1,7 +1,5 @@
 package com.example.myapplication.data.repository;
 
-import android.content.Context;
-import android.net.Uri;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
@@ -16,8 +14,6 @@ import com.example.myapplication.data.model.UserProfileResponse;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
-import dagger.hilt.android.qualifiers.ApplicationContext;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -38,18 +33,15 @@ public class ProfileRepository {
     private final NetworkErrorParser errorParser;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
     private final com.example.myapplication.data.session.SessionManager sessionManager;
-    private final Context context;
 
     @Inject
     public ProfileRepository(ProfileService profileService, ConfigLoader configLoader,
                              NetworkErrorParser errorParser,
-                             com.example.myapplication.data.session.SessionManager sessionManager,
-                             @ApplicationContext Context context) {
+                             com.example.myapplication.data.session.SessionManager sessionManager) {
         this.profileService = profileService;
         this.configLoader = configLoader;
         this.errorParser = errorParser;
         this.sessionManager = sessionManager;
-        this.context = context;
     }
 
 
@@ -63,27 +55,18 @@ public class ProfileRepository {
     }
 
 
-    /**
-     * Actualiza el perfil enviando multipart/form-data al backend.
-     * Si selectedPhotoUri no es null, incluye la imagen en el request.
-     */
+    /** Actualiza datos de perfil (solo texto). La imagen se gestiona localmente en Android. */
     public void updateProfile(String firstName, String lastName, String phone,
-                              Uri selectedPhotoUri,
                               RepositoryCallback<UserProfileData> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         long userId = sessionManager.getUserId();
         String endpoint = config.profileEndpoint.replace("{userId}", String.valueOf(userId));
 
-        // Parte JSON con los datos del perfil
         String json = buildProfileJson(firstName, lastName, phone);
-        RequestBody dataPart = RequestBody.create(json.getBytes(),
-                MediaType.parse("application/json"));
+        RequestBody body = RequestBody.create(json.getBytes(), MediaType.parse("application/json"));
 
-        // Parte de imagen (opcional)
-        MultipartBody.Part photoPart = buildPhotoPart(selectedPhotoUri);
-
-        Call<UserProfileResponse> call = profileService.updateProfile(endpoint, dataPart, photoPart);
+        Call<UserProfileResponse> call = profileService.updateProfile(endpoint, body);
         enqueueProfile(call, callback);
     }
 
@@ -96,18 +79,6 @@ public class ProfileRepository {
             return obj.toString();
         } catch (org.json.JSONException e) {
             return "{}";
-        }
-    }
-
-    private MultipartBody.Part buildPhotoPart(Uri photoUri) {
-        if (photoUri == null) return null;
-        try (InputStream is = context.getContentResolver().openInputStream(photoUri)) {
-            if (is == null) return null;
-            byte[] bytes = is.readAllBytes();
-            RequestBody body = RequestBody.create(bytes, MediaType.parse("image/jpeg"));
-            return MultipartBody.Part.createFormData("profilePhoto", "profile.jpg", body);
-        } catch (Exception e) {
-            return null;
         }
     }
 
@@ -229,26 +200,13 @@ public class ProfileRepository {
             r.firstName != null ? r.firstName : "",
             r.lastName != null ? r.lastName : "",
             r.phone != null ? r.phone : "",
-            resolvePhotoUrl(r.profilePhotoUrl),
-            r.profilePhotoBase64,
+            null,   // imagen gestionada localmente — backend siempre retorna null
+            null,
             r.preferredCategories != null ? r.preferredCategories : Collections.emptyList(),
             r.confirmedBookings,
             r.completedBookings,
             r.cancelledBookings
         );
-    }
-
-    /** Converts a relative server path (e.g. /uploads/profile/x.jpg) to a full URL. */
-    private String resolvePhotoUrl(String rawUrl) {
-        if (rawUrl == null || !rawUrl.startsWith("/")) return rawUrl;
-        AppConfig config = configLoader.loadConfig();
-        if (config == null || config.baseUrl == null) return rawUrl;
-        try {
-            java.net.URL url = new java.net.URL(config.baseUrl);
-            return url.getProtocol() + "://" + url.getAuthority() + rawUrl;
-        } catch (java.net.MalformedURLException e) {
-            return rawUrl;
-        }
     }
 
     private List<BookingSummaryItem> mapToSummaryItems(List<BookingSummaryItemResponse> items) {

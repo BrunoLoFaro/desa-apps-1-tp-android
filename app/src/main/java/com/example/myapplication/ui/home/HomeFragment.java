@@ -85,9 +85,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         } else if (id == R.id.action_theme_toggle) {
             toggleTheme();
             return true;
-        } else if (id == R.id.action_profile) {
-            navController.navigate(R.id.action_homeFragment_to_profileFragment);
-            return true;
         }
         return false;
     }

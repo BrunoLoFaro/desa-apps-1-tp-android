@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import java.io.File;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -182,35 +183,19 @@ public class ProfileFragment extends Fragment {
             editPhone.setText(profile.getPhone());
         }
 
-        // Mostrar imagen de perfil desde base64, o Uri local, o URL, o placeholder
-        Uri localUri = viewModel.getSelectedPhotoUri().getValue();
-        String base64 = profile.getProfilePhotoBase64();
-        String photoUrl = profile.getProfilePhotoUrl();
+        // Si el usuario acaba de seleccionar una imagen esta sesión, el observer de
+        // _selectedPhotoUri ya la muestra — no la pisamos aquí.
+        Uri selectedUri = viewModel.getSelectedPhotoUri().getValue();
+        if (selectedUri != null && "content".equals(selectedUri.getScheme())) return;
 
-        if (base64 != null && !base64.isEmpty()) {
-            try {
-                byte[] imageBytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
-                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                Glide.with(this)
-                        .load(bitmap)
-                        .placeholder(android.R.drawable.ic_menu_camera)
-                        .circleCrop()
-                        .into(profilePhoto);
-            } catch (Exception e) {
-                profilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
-            }
-        } else if (localUri != null && "content".equals(localUri.getScheme())) {
+        // Imagen offline-first: archivo local o placeholder
+        File localFile = viewModel.getLocalProfileImage();
+        if (localFile.exists() && localFile.length() > 0) {
             Glide.with(this)
-                .load(localUri)
-                .placeholder(android.R.drawable.ic_menu_camera)
-                .circleCrop()
-                .into(profilePhoto);
-        } else if (photoUrl != null && !photoUrl.isEmpty()) {
-            Glide.with(this)
-                .load(photoUrl)
-                .placeholder(android.R.drawable.ic_menu_camera)
-                .circleCrop()
-                .into(profilePhoto);
+                    .load(localFile)
+                    .placeholder(android.R.drawable.ic_menu_camera)
+                    .circleCrop()
+                    .into(profilePhoto);
         } else {
             profilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
         }

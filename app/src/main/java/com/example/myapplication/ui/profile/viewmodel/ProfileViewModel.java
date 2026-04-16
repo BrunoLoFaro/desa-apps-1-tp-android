@@ -9,14 +9,18 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.session.SessionManager;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 
 @HiltViewModel
@@ -24,7 +28,9 @@ public class ProfileViewModel extends ViewModel {
 
     private final ProfileRepository profileRepository;
     private final SessionManager sessionManager;
+    private final ProfileImageManager profileImageManager;
     private final Context context;
+    private final Executor ioExecutor = Executors.newSingleThreadExecutor();
 
     private final MutableLiveData<UserProfileData> _profile = new MutableLiveData<>();
     private final MutableLiveData<List<String>> _preferences = new MutableLiveData<>();
@@ -32,16 +38,17 @@ public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _saveSuccess = new MutableLiveData<>(false);
+    // URI válida solo durante la sesión actual (content://). No se persiste entre reinicios.
     private final MutableLiveData<Uri> _selectedPhotoUri = new MutableLiveData<>();
 
     @Inject
     public ProfileViewModel(ProfileRepository profileRepository, SessionManager sessionManager,
+                            ProfileImageManager profileImageManager,
                             @ApplicationContext Context context) {
         this.profileRepository = profileRepository;
         this.sessionManager = sessionManager;
+        this.profileImageManager = profileImageManager;
         this.context = context;
-        String savedUri = sessionManager.getProfilePhotoUri();
-        if (savedUri != null) _selectedPhotoUri.setValue(Uri.parse(savedUri));
         trySyncPendingProfile();
         loadAll();
     }
@@ -54,9 +61,27 @@ public class ProfileViewModel extends ViewModel {
     public LiveData<Boolean> isSaveSuccess() { return _saveSuccess; }
     public LiveData<Uri> getSelectedPhotoUri() { return _selectedPhotoUri; }
 
+    /**
+     * Devuelve el archivo local de la imagen de perfil.
+     * Puede no existir — verificar con File.exists() antes de cargar.
+     */
+    public File getLocalProfileImage() {
+        return profileImageManager.getLocalFile(sessionManager.getUserId());
+    }
+
+    /**
+     * Llamar cuando el usuario selecciona una nueva imagen desde la galería.
+     * Actualiza la UI inmediatamente (via LiveData) y persiste en almacenamiento interno.
+     */
     public void setSelectedPhotoUri(Uri uri) {
         _selectedPhotoUri.setValue(uri);
-        sessionManager.saveProfilePhotoUri(uri.toString());
+        // Persist to internal storage off the main thread
+        ioExecutor.execute(() -> {
+            try {
+                profileImageManager.saveFromUri(
+                        sessionManager.getUserId(), uri, context.getContentResolver());
+            } catch (Exception ignored) { }
+        });
     }
 
     public void loadAll() {
@@ -91,7 +116,7 @@ public class ProfileViewModel extends ViewModel {
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
             @Override public void onError(UiMessage error) {
-                // Summary es best-effort: falla silenciosamente con lista vacía
+                // Summary es best-effort: falla silenciosamente
                 _activitySummary.setValue(Collections.emptyList());
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
@@ -105,9 +130,7 @@ public class ProfileViewModel extends ViewModel {
 
         if (!isOnline()) {
             // Sin conexión: guardar localmente y marcar como pendiente
-            Uri photoUri = _selectedPhotoUri.getValue();
-            String photoUriStr = photoUri != null ? photoUri.toString() : null;
-            sessionManager.savePendingProfile(firstName, lastName, phone, photoUriStr, selectedCategories);
+            sessionManager.savePendingProfile(firstName, lastName, phone, null, selectedCategories);
             _loading.setValue(false);
             _saveSuccess.setValue(true);
             return;
@@ -118,23 +141,13 @@ public class ProfileViewModel extends ViewModel {
 
     private void uploadProfileOnline(String firstName, String lastName, String phone,
                                      List<String> selectedCategories) {
-        Uri photoUri = _selectedPhotoUri.getValue();
-        // Solo enviar la Uri si es una URI local (content://) — significa que el usuario seleccionó
-        // una foto nueva. Si ya tiene URL de servidor, no volvemos a subirla.
-        Uri uriToUpload = (photoUri != null && "content".equals(photoUri.getScheme())) ? photoUri : null;
-
         final int[] pending = {2};
         final boolean[] hasError = {false};
 
-        profileRepository.updateProfile(firstName, lastName, phone, uriToUpload,
+        profileRepository.updateProfile(firstName, lastName, phone,
                 new RepositoryCallback<UserProfileData>() {
                     @Override public void onSuccess(UserProfileData data) {
                         _profile.setValue(data);
-                        // Si la imagen fue subida, ahora la URL viene del servidor
-                        if (uriToUpload != null && data.getProfilePhotoUrl() != null) {
-                            sessionManager.saveProfilePhotoUri(data.getProfilePhotoUrl());
-                            _selectedPhotoUri.setValue(Uri.parse(data.getProfilePhotoUrl()));
-                        }
                         if (--pending[0] <= 0) onSaveDone(hasError[0]);
                     }
                     @Override public void onError(UiMessage error) {
@@ -158,32 +171,21 @@ public class ProfileViewModel extends ViewModel {
                 });
     }
 
-    /** Intenta sincronizar el perfil pendiente si hay conexión y datos guardados offline. */
+    /** Sincroniza el perfil pendiente si hay conexión y datos guardados offline. */
     private void trySyncPendingProfile() {
         if (!sessionManager.hasPendingProfile() || !isOnline()) return;
 
-        String firstName  = sessionManager.getPendingFirstName();
-        String lastName   = sessionManager.getPendingLastName();
-        String phone      = sessionManager.getPendingPhone();
-        String photoUriStr = sessionManager.getPendingPhotoUri();
+        String firstName   = sessionManager.getPendingFirstName();
+        String lastName    = sessionManager.getPendingLastName();
+        String phone       = sessionManager.getPendingPhone();
         List<String> categories = sessionManager.getPendingCategories();
 
-        if (photoUriStr != null && !photoUriStr.isEmpty()) {
-            _selectedPhotoUri.setValue(Uri.parse(photoUriStr));
-        }
-
-        Uri uriToUpload = (photoUriStr != null && photoUriStr.startsWith("content://"))
-                ? Uri.parse(photoUriStr) : null;
-
         final int[] pending = {2};
-        profileRepository.updateProfile(firstName, lastName, phone, uriToUpload,
+
+        profileRepository.updateProfile(firstName, lastName, phone,
                 new RepositoryCallback<UserProfileData>() {
                     @Override public void onSuccess(UserProfileData data) {
                         _profile.setValue(data);
-                        if (uriToUpload != null && data.getProfilePhotoUrl() != null) {
-                            sessionManager.saveProfilePhotoUri(data.getProfilePhotoUrl());
-                            _selectedPhotoUri.postValue(Uri.parse(data.getProfilePhotoUrl()));
-                        }
                         if (--pending[0] <= 0) sessionManager.clearPendingProfile();
                     }
                     @Override public void onError(UiMessage ignored) {
@@ -204,7 +206,8 @@ public class ProfileViewModel extends ViewModel {
     }
 
     private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return false;
         NetworkCapabilities caps = cm.getNetworkCapabilities(cm.getActiveNetwork());
         return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
