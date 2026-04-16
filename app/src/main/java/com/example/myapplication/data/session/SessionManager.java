@@ -24,6 +24,14 @@ public class SessionManager {
     private static final String KEY_LAST_NAME         = "user_last_name";
     private static final String KEY_PROFILE_PHOTO_URI = "profile_photo_uri";
 
+    // Perfil pendiente de sincronización (guardado offline)
+    private static final String KEY_PENDING_PROFILE     = "pending_profile";
+    private static final String KEY_PENDING_FIRST_NAME  = "pending_first_name";
+    private static final String KEY_PENDING_LAST_NAME   = "pending_last_name";
+    private static final String KEY_PENDING_PHONE       = "pending_phone";
+    private static final String KEY_PENDING_PHOTO_URI   = "pending_photo_uri";
+    private static final String KEY_PENDING_CATEGORIES  = "pending_categories";
+
     private final SharedPreferences preferences;
     private final MutableLiveData<Boolean> _forceLogout = new MutableLiveData<>(false);
 
@@ -99,6 +107,47 @@ public class SessionManager {
         return preferences.getString(KEY_PROFILE_PHOTO_URI, null);
     }
 
+    // ── Perfil pendiente de sincronización ──────────────────────────────────────
+
+    public void savePendingProfile(String firstName, String lastName, String phone,
+                                   String photoUri, java.util.List<String> categories) {
+        String categoriesStr = categories != null ? android.text.TextUtils.join(",", categories) : "";
+        preferences.edit()
+                .putBoolean(KEY_PENDING_PROFILE, true)
+                .putString(KEY_PENDING_FIRST_NAME, firstName)
+                .putString(KEY_PENDING_LAST_NAME, lastName)
+                .putString(KEY_PENDING_PHONE, phone != null ? phone : "")
+                .putString(KEY_PENDING_PHOTO_URI, photoUri != null ? photoUri : "")
+                .putString(KEY_PENDING_CATEGORIES, categoriesStr)
+                .apply();
+    }
+
+    public boolean hasPendingProfile() {
+        return preferences.getBoolean(KEY_PENDING_PROFILE, false);
+    }
+
+    public String getPendingFirstName()  { return preferences.getString(KEY_PENDING_FIRST_NAME, ""); }
+    public String getPendingLastName()   { return preferences.getString(KEY_PENDING_LAST_NAME, ""); }
+    public String getPendingPhone()      { return preferences.getString(KEY_PENDING_PHONE, ""); }
+    public String getPendingPhotoUri()   { return preferences.getString(KEY_PENDING_PHOTO_URI, null); }
+
+    public java.util.List<String> getPendingCategories() {
+        String raw = preferences.getString(KEY_PENDING_CATEGORIES, "");
+        if (raw == null || raw.isEmpty()) return java.util.Collections.emptyList();
+        return java.util.Arrays.asList(raw.split(","));
+    }
+
+    public void clearPendingProfile() {
+        preferences.edit()
+                .remove(KEY_PENDING_PROFILE)
+                .remove(KEY_PENDING_FIRST_NAME)
+                .remove(KEY_PENDING_LAST_NAME)
+                .remove(KEY_PENDING_PHONE)
+                .remove(KEY_PENDING_PHOTO_URI)
+                .remove(KEY_PENDING_CATEGORIES)
+                .apply();
+    }
+
     public void clearSession() {
         preferences.edit()
                 .remove(KEY_ACCESS_TOKEN)
@@ -108,6 +157,7 @@ public class SessionManager {
                 .remove(KEY_LAST_NAME)
                 .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
+        clearPendingProfile();
     }
 
     /**

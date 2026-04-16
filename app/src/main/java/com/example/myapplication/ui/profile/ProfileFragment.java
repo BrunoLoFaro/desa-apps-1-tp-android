@@ -224,9 +224,6 @@ public class ProfileFragment extends Fragment {
         }
         if (!valid) return;
 
-        UserProfileData current = viewModel.getProfile().getValue();
-        String photoUrl = current != null ? current.getProfilePhotoUrl() : null;
-
         List<String> selectedCategories = new ArrayList<>();
         if (isChipChecked(R.id.chip_aventura))      selectedCategories.add("AVENTURA");
         if (isChipChecked(R.id.chip_gastronomia))   selectedCategories.add("GASTRONOMIA");
@@ -235,7 +232,7 @@ public class ProfileFragment extends Fragment {
         if (isChipChecked(R.id.chip_free_tour))     selectedCategories.add("FREE_TOUR");
         if (isChipChecked(R.id.chip_otra))          selectedCategories.add("OTRA");
 
-        viewModel.saveAll(firstName, lastName, phone, photoUrl, selectedCategories);
+        viewModel.saveAll(firstName, lastName, phone, selectedCategories);
     }
 
     private String getText(TextInputEditText field) {
