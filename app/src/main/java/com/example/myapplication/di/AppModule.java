@@ -40,7 +40,7 @@ public class AppModule {
      */
     @Provides
     @Singleton
-    static OkHttpClient provideOkHttpClient(SessionManager sessionManager, ConfigLoader configLoader) {
+    public static OkHttpClient provideOkHttpClient(SessionManager sessionManager, ConfigLoader configLoader) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
