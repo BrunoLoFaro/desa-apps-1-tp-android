@@ -182,12 +182,25 @@ public class ProfileFragment extends Fragment {
             editPhone.setText(profile.getPhone());
         }
 
+        // --- FIX: Prioridad de imagen ---
+        Uri localUri = viewModel.getSelectedPhotoUri().getValue();
         String photoUrl = profile.getProfilePhotoUrl();
-        Glide.with(this)
-                .load(photoUrl != null && !photoUrl.isEmpty() ? photoUrl : null)
+
+        if (localUri != null && "content".equals(localUri.getScheme())) {
+            Glide.with(this)
+                .load(localUri)
                 .placeholder(android.R.drawable.ic_menu_camera)
                 .circleCrop()
                 .into(profilePhoto);
+        } else if (photoUrl != null && !photoUrl.isEmpty()) {
+            Glide.with(this)
+                .load(photoUrl)
+                .placeholder(android.R.drawable.ic_menu_camera)
+                .circleCrop()
+                .into(profilePhoto);
+        } else {
+            profilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
+        }
     }
 
     private void applyPreferenceChips(List<String> savedCategories) {
