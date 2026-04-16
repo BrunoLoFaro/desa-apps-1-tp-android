@@ -182,11 +182,24 @@ public class ProfileFragment extends Fragment {
             editPhone.setText(profile.getPhone());
         }
 
-        // --- FIX: Prioridad de imagen ---
+        // Mostrar imagen de perfil desde base64, o Uri local, o URL, o placeholder
         Uri localUri = viewModel.getSelectedPhotoUri().getValue();
+        String base64 = profile.getProfilePhotoBase64();
         String photoUrl = profile.getProfilePhotoUrl();
 
-        if (localUri != null && "content".equals(localUri.getScheme())) {
+        if (base64 != null && !base64.isEmpty()) {
+            try {
+                byte[] imageBytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                Glide.with(this)
+                        .load(bitmap)
+                        .placeholder(android.R.drawable.ic_menu_camera)
+                        .circleCrop()
+                        .into(profilePhoto);
+            } catch (Exception e) {
+                profilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
+            }
+        } else if (localUri != null && "content".equals(localUri.getScheme())) {
             Glide.with(this)
                 .load(localUri)
                 .placeholder(android.R.drawable.ic_menu_camera)

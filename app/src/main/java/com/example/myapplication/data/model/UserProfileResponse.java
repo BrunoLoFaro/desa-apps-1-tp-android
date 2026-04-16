@@ -22,6 +22,9 @@ public class UserProfileResponse {
     @Json(name = "profilePhotoUrl")
     public String profilePhotoUrl;
 
+    @Json(name = "profilePhotoBase64")
+    public String profilePhotoBase64;
+
     @Json(name = "preferredCategories")
     public List<String> preferredCategories;
 
