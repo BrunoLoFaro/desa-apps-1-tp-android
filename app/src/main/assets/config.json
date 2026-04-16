@@ -1,6 +1,7 @@
 {
   "base_url": "http://10.0.2.2:8080/api/v1/",
   "login_endpoint": "auth/login",
+  "refresh_endpoint": "auth/refresh",
   "register_endpoint": "auth/register",
   "signup_otp_request_endpoint": "auth/signup/otp/request",
   "signup_otp_resend_endpoint": "auth/signup/otp/resend",

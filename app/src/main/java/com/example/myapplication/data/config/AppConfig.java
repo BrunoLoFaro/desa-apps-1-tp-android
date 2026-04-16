@@ -9,6 +9,9 @@ public class AppConfig {
     @Json(name = "login_endpoint")
     public String loginEndpoint;
 
+    @Json(name = "refresh_endpoint")
+    public String refreshEndpoint;
+
     public boolean hasValidBaseUrl() {
         return baseUrl != null && !baseUrl.trim().isEmpty();
     }

@@ -20,4 +20,7 @@ public class LoginResponse {
 
     @Json(name = "token")
     public String token;
+
+    @Json(name = "refreshToken")
+    public String refreshToken;
 }
