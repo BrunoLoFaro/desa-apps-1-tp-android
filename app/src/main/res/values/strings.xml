@@ -88,5 +88,15 @@
     <string name="bookings_filter_completed">Completadas</string>
     <string name="bookings_filter_cancelled">Canceladas</string>
 
+    <string name="review_button">Calificar</string>
+    <string name="review_title">Calificar</string>
+    <string name="review_send">Enviar</string>
+    <string name="review_cancel">Cancelar</string>
+    <string name="review_activity_label">Actividad</string>
+    <string name="review_guide_label">Guía</string>
+    <string name="review_comment_hint">Comentario (opcional)</string>
+    <string name="review_error_activity_required">Seleccioná una calificación para la actividad.</string>
+    <string name="review_thanks">¡Gracias por tu reseña!</string>
+
     <string name="no_reviews">Sin reseñas</string>
 </resources>

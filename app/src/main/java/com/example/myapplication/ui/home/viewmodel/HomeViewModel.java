@@ -28,7 +28,7 @@ public class HomeViewModel extends ViewModel {
     public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository) {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
-        loadTours();
+        refreshTours();
     }
 
     public LiveData<List<TourActivity>> getFeaturedTours() { return _featuredTours; }
@@ -44,7 +44,7 @@ public class HomeViewModel extends ViewModel {
         sessionRepository.clearSession();
     }
 
-    private void loadTours() {
+    public void refreshTours() {
         pendingCalls = 2;
         _loading.setValue(true);
 

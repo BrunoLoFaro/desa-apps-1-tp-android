@@ -9,21 +9,33 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingResponse;
 import com.google.android.material.button.MaterialButton;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
+    private static final int REVIEW_WINDOW_HOURS = 48;
+
     public interface OnCancelClickListener {
         void onCancel(Long bookingId);
     }
 
+    public interface OnReviewClickListener {
+        void onReview(BookingResponse booking);
+    }
+
     private List<BookingResponse> bookings = Collections.emptyList();
     private final OnCancelClickListener cancelClickListener;
+    private final OnReviewClickListener reviewClickListener;
 
-    public BookingAdapter(OnCancelClickListener cancelClickListener) {
+    public BookingAdapter(OnCancelClickListener cancelClickListener, OnReviewClickListener reviewClickListener) {
         this.cancelClickListener = cancelClickListener;
+        this.reviewClickListener = reviewClickListener;
     }
 
     public void updateData(List<BookingResponse> newData) {
@@ -54,6 +66,14 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         holder.cancelButton.setOnClickListener(v -> {
             if (cancelClickListener != null) cancelClickListener.onCancel(booking.id);
         });
+
+        boolean canReview = booking.canReview
+                && "COMPLETED".equalsIgnoreCase(booking.status)
+                && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
+        holder.reviewButton.setVisibility(canReview ? View.VISIBLE : View.GONE);
+        holder.reviewButton.setOnClickListener(v -> {
+            if (reviewClickListener != null) reviewClickListener.onReview(booking);
+        });
     }
 
     @Override
@@ -66,6 +86,40 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         String value = iso.replace("T", " ");
         if (value.length() >= 16) return value.substring(0, 16);
         return value;
+    }
+
+    private static boolean isWithinReviewWindow(String sessionStartIso, int durationMinutes) {
+        LocalDateTime start = tryParseLocalDateTime(sessionStartIso);
+        if (start == null) {
+            return true;
+        }
+        LocalDateTime end = start.plusMinutes(Math.max(0, durationMinutes));
+        return !LocalDateTime.now().isAfter(end.plusHours(REVIEW_WINDOW_HOURS));
+    }
+
+    private static LocalDateTime tryParseLocalDateTime(String raw) {
+        if (raw == null) return null;
+        String value = raw.trim();
+        if (value.isEmpty()) return null;
+
+        try {
+            return OffsetDateTime.parse(value).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        // Accept "yyyy-MM-dd HH:mm" or "yyyy-MM-ddTHH:mm"
+        String normalized = value.replace(" ", "T");
+        try {
+            return LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        return null;
     }
 
     private static String formatPrice(double price, String currency) {
@@ -82,6 +136,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         final TextView participants;
         final TextView price;
         final MaterialButton cancelButton;
+        final MaterialButton reviewButton;
 
         BookingViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -92,6 +147,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             participants = itemView.findViewById(R.id.booking_participants);
             price = itemView.findViewById(R.id.booking_price);
             cancelButton = itemView.findViewById(R.id.booking_cancel_button);
+            reviewButton = itemView.findViewById(R.id.booking_review_button);
         }
     }
 }

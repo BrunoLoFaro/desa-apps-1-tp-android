@@ -106,6 +106,14 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (homeViewModel != null && homeViewModel.hasValidSession()) {
+            homeViewModel.refreshTours();
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         navController = null;
         homeViewModel = null;

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,9 +15,12 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
+import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -45,7 +49,7 @@ public class BookingsFragment extends Fragment {
         RecyclerView recycler = view.findViewById(R.id.bookings_recycler_view);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking);
+        BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking, this::showReviewDialog);
         recycler.setAdapter(adapter);
 
         ChipGroup filters = view.findViewById(R.id.bookings_filter_group);
@@ -75,9 +79,58 @@ public class BookingsFragment extends Fragment {
             }
         });
 
+        viewModel.getMessage().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null) {
+                Toast.makeText(requireContext(), msg.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+                viewModel.clearMessage();
+            }
+        });
+
         viewModel.getBookings().observe(getViewLifecycleOwner(), adapter::updateData);
 
         // initial load: "Todas"
         viewModel.loadMyBookings(null);
+    }
+
+    private void showReviewDialog(BookingResponse booking) {
+        if (booking == null || booking.id == null) return;
+
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_review, null);
+        RatingBar activityRating = dialogView.findViewById(R.id.review_activity_rating);
+        RatingBar guideRating = dialogView.findViewById(R.id.review_guide_rating);
+        TextInputEditText commentInput = dialogView.findViewById(R.id.review_comment_input);
+
+        String title = getString(R.string.review_title);
+        String activityName = booking.activityName != null ? booking.activityName.trim() : "";
+        if (!activityName.isEmpty()) {
+            title = activityName;
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(title)
+                .setView(dialogView)
+                .setNegativeButton(R.string.review_cancel, (d, which) -> d.dismiss())
+                .setPositiveButton(R.string.review_send, null)
+                .show();
+
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            int a = Math.round(activityRating.getRating());
+            if (a < 1) {
+                Toast.makeText(requireContext(), getString(R.string.review_error_activity_required),
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            int g = Math.round(guideRating.getRating());
+            Integer guide = g >= 1 ? g : null;
+
+            String comment = null;
+            if (commentInput.getText() != null) {
+                String raw = commentInput.getText().toString().trim();
+                if (!raw.isEmpty()) comment = raw;
+            }
+
+            viewModel.submitReview(booking.id, a, guide, comment);
+            dialog.dismiss();
+        });
     }
 }
