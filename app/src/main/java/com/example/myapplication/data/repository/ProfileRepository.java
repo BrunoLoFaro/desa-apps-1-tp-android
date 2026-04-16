@@ -225,15 +225,16 @@ public class ProfileRepository {
 
     private UserProfileData mapToProfileData(UserProfileResponse r) {
         return new UserProfileData(
-                r.email,
-                r.firstName != null ? r.firstName : "",
-                r.lastName != null ? r.lastName : "",
-                r.phone != null ? r.phone : "",
-                resolvePhotoUrl(r.profilePhotoUrl),
-                r.preferredCategories != null ? r.preferredCategories : Collections.emptyList(),
-                r.confirmedBookings,
-                r.completedBookings,
-                r.cancelledBookings
+            r.email,
+            r.firstName != null ? r.firstName : "",
+            r.lastName != null ? r.lastName : "",
+            r.phone != null ? r.phone : "",
+            resolvePhotoUrl(r.profilePhotoUrl),
+            r.profilePhotoBase64,
+            r.preferredCategories != null ? r.preferredCategories : Collections.emptyList(),
+            r.confirmedBookings,
+            r.completedBookings,
+            r.cancelledBookings
         );
     }
 
