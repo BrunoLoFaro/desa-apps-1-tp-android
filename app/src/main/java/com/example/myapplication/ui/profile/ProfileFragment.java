@@ -4,8 +4,8 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import java.io.File;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
+import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -35,6 +36,7 @@ import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +63,9 @@ public class ProfileFragment extends Fragment {
     private ProgressBar loadingSpinner;
     private View scrollView;
     private ActivitySummaryAdapter summaryAdapter;
+
+    // Guardamos las preferencias recibidas para aplicarlas una vez que los chips estén construidos
+    private List<String> pendingPreferences = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -99,6 +104,17 @@ public class ProfileFragment extends Fragment {
         summaryAdapter = new ActivitySummaryAdapter();
         activitySummaryRecycler.setAdapter(summaryAdapter);
 
+        summaryAdapter.setOnItemClickListener(item -> {
+            if (item.getActivityId() == null) return;
+            TourActivity activity = new TourActivity(
+                    item.getActivityName(), "", "", "", "", 0, null);
+            activity.setId(item.getActivityId());
+            Bundle args = new Bundle();
+            args.putSerializable("activity_data", activity);
+            args.putBoolean("from_history", true);
+            navController.navigate(R.id.action_profileFragment_to_detailFragment, args);
+        });
+
         profilePhoto.setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
 
@@ -130,7 +146,14 @@ public class ProfileFragment extends Fragment {
 
         viewModel.getProfile().observe(getViewLifecycleOwner(), this::populateProfileFields);
 
-        viewModel.getPreferences().observe(getViewLifecycleOwner(), this::applyPreferenceChips);
+        // Las categorías llegan del backend y se usan para construir los chips
+        viewModel.getCategories().observe(getViewLifecycleOwner(), this::buildCategoryChips);
+
+        // Las preferencias guardadas se aplican sobre los chips ya construidos
+        viewModel.getPreferences().observe(getViewLifecycleOwner(), prefs -> {
+            pendingPreferences = prefs;
+            applyPreferenceChips(prefs);
+        });
 
         viewModel.getActivitySummary().observe(getViewLifecycleOwner(), items -> {
             if (items == null || items.isEmpty()) {
@@ -201,19 +224,51 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private void applyPreferenceChips(List<String> savedCategories) {
-        if (savedCategories == null) return;
-        setChipChecked(R.id.chip_aventura, savedCategories.contains("AVENTURA"));
-        setChipChecked(R.id.chip_gastronomia, savedCategories.contains("GASTRONOMIA"));
-        setChipChecked(R.id.chip_excursion, savedCategories.contains("EXCURSION"));
-        setChipChecked(R.id.chip_visita_guiada, savedCategories.contains("VISITA_GUIADA"));
-        setChipChecked(R.id.chip_free_tour, savedCategories.contains("FREE_TOUR"));
-        setChipChecked(R.id.chip_otra, savedCategories.contains("OTRA"));
+    /** Crea chips dinámicamente a partir de las categorías recibidas del backend. */
+    private void buildCategoryChips(List<String> categories) {
+        if (categories == null || chipGroupPreferences == null) return;
+        chipGroupPreferences.removeAllViews();
+        for (String cat : categories) {
+            Chip chip = new Chip(new ContextThemeWrapper(
+                    requireContext(),
+                    com.google.android.material.R.style.Widget_Material3_Chip_Filter));
+            chip.setTag(cat);
+            chip.setText(formatCategoryLabel(cat));
+            chip.setCheckable(true);
+            chipGroupPreferences.addView(chip);
+        }
+        // Si las preferencias llegaron antes que las categorías, aplicarlas ahora
+        if (pendingPreferences != null) {
+            applyPreferenceChips(pendingPreferences);
+        }
     }
 
-    private void setChipChecked(int chipId, boolean checked) {
-        View chip = chipGroupPreferences.findViewById(chipId);
-        if (chip instanceof Chip) ((Chip) chip).setChecked(checked);
+    /** Marca como seleccionados los chips cuyo tag coincide con las preferencias guardadas. */
+    private void applyPreferenceChips(List<String> savedCategories) {
+        if (savedCategories == null || chipGroupPreferences == null) return;
+        for (int i = 0; i < chipGroupPreferences.getChildCount(); i++) {
+            View child = chipGroupPreferences.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                Object tag = chip.getTag();
+                chip.setChecked(tag != null && savedCategories.contains(tag.toString()));
+            }
+        }
+    }
+
+    /** "VISITA_GUIADA" → "Visita Guiada" */
+    private static String formatCategoryLabel(String category) {
+        if (category == null || category.isEmpty()) return "";
+        String[] words = category.replace("_", " ").toLowerCase().split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                sb.append(Character.toUpperCase(word.charAt(0)));
+                sb.append(word.substring(1));
+                sb.append(' ');
+            }
+        }
+        return sb.toString().trim();
     }
 
     private void onSaveClicked() {
@@ -236,23 +291,19 @@ public class ProfileFragment extends Fragment {
         if (!valid) return;
 
         List<String> selectedCategories = new ArrayList<>();
-        if (isChipChecked(R.id.chip_aventura))      selectedCategories.add("AVENTURA");
-        if (isChipChecked(R.id.chip_gastronomia))   selectedCategories.add("GASTRONOMIA");
-        if (isChipChecked(R.id.chip_excursion))     selectedCategories.add("EXCURSION");
-        if (isChipChecked(R.id.chip_visita_guiada)) selectedCategories.add("VISITA_GUIADA");
-        if (isChipChecked(R.id.chip_free_tour))     selectedCategories.add("FREE_TOUR");
-        if (isChipChecked(R.id.chip_otra))          selectedCategories.add("OTRA");
+        for (int i = 0; i < chipGroupPreferences.getChildCount(); i++) {
+            View child = chipGroupPreferences.getChildAt(i);
+            if (child instanceof Chip && ((Chip) child).isChecked()) {
+                Object tag = child.getTag();
+                if (tag != null) selectedCategories.add(tag.toString());
+            }
+        }
 
         viewModel.saveAll(firstName, lastName, phone, selectedCategories);
     }
 
     private String getText(TextInputEditText field) {
         return field.getText() != null ? field.getText().toString().trim() : "";
-    }
-
-    private boolean isChipChecked(int chipId) {
-        View chip = chipGroupPreferences.findViewById(chipId);
-        return chip instanceof Chip && ((Chip) chip).isChecked();
     }
 
     private void checkPermissionAndOpenGallery() {

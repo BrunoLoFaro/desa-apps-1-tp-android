@@ -13,6 +13,7 @@ import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
@@ -59,6 +60,30 @@ public class TourRepository {
         if (config == null) return;
         String endpoint = config.activitiesEndpoint + "/" + activityId;
         enqueueDetail(activityService.getActivityDetail(endpoint), callback, R.string.error_load_activities);
+    }
+
+    public void getCategories(RepositoryCallback<List<String>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        Call<List<String>> call = activityService.getCategories(config.categoriesEndpoint);
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<List<String>>() {
+            @Override
+            public void onResponse(Call<List<String>> c, Response<List<String>> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError(errorParser.getErrorMessage(response, R.string.error_load_activities));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<String>> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
     }
 
     public void cancelAll() {

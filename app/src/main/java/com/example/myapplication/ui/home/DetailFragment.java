@@ -34,6 +34,7 @@ public class DetailFragment extends Fragment {
     private View rootView;
 
     private TourActivity tourActivity;
+    private boolean fromHistory;
     private DetailViewModel detailViewModel;
     private CreateBookingViewModel createBookingViewModel;
     private SessionAdapter sessionAdapter;
@@ -44,6 +45,7 @@ public class DetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             tourActivity = (TourActivity) getArguments().getSerializable("activity_data");
+            fromHistory = getArguments().getBoolean("from_history", false);
         }
     }
 
@@ -135,9 +137,17 @@ public class DetailFragment extends Fragment {
             }
         });
 
+        View experienceSection = view.findViewById(R.id.experience_section);
+
+        if (fromHistory) {
+            if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
+            sessionsRecycler.setVisibility(View.GONE);
+            if (experienceSection != null) experienceSection.setVisibility(View.VISIBLE);
+        }
+
         if (tourActivity != null) {
             toolbar.setTitle(tourActivity.getName());
-            
+
             // Buscamos la vista incluida
             View content = view.findViewById(R.id.detail_content);
             if (content != null) {
@@ -167,6 +177,7 @@ public class DetailFragment extends Fragment {
                     }
                 });
                 detailViewModel.getSessions().observe(getViewLifecycleOwner(), sessions -> {
+                    if (fromHistory) return;
                     populateSessions(sessions);
                     selectedSession = null;
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
@@ -218,6 +229,7 @@ public class DetailFragment extends Fragment {
         duration.setText(tourActivity.getDuration());
         price.setText(tourActivity.getPrice());
         slots.setText(getString(R.string.slots_available, tourActivity.getAvailableSlots()));
+        slots.setVisibility(fromHistory ? View.GONE : View.VISIBLE);
         
         if (description != null) description.setText(tourActivity.getDescription());
         if (rating != null) {

@@ -60,4 +60,7 @@ public class AppConfig {
 
     @Json(name = "activity_summary_endpoint")
     public String activitySummaryEndpoint;
+
+    @Json(name = "categories_endpoint")
+    public String categoriesEndpoint;
 }

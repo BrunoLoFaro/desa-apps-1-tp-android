@@ -16,5 +16,6 @@
   "activities_recommended_endpoint": "activities/recommended",
   "profile_endpoint": "users/{userId}/profile",
   "preferences_endpoint": "users/preferences",
-  "activity_summary_endpoint": "users/activities/summary"
+  "activity_summary_endpoint": "users/activities/summary",
+  "categories_endpoint": "categories"
 }

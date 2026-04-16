@@ -157,51 +157,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
-                app:singleSelection="false">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_aventura"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_aventura" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_gastronomia"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_gastronomia" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_excursion"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_excursion" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_visita_guiada"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_visita_guiada" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_free_tour"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_free_tour" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_otra"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_otra" />
-
-            </com.google.android.material.chip.ChipGroup>
+                app:singleSelection="false" />
+            <!-- Chips generados dinámicamente desde GET /categories -->
 
             <!-- ── Botón Guardar ──────────────────────────────────── -->
             <com.google.android.material.button.MaterialButton

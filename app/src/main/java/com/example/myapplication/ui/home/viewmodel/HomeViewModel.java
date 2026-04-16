@@ -44,6 +44,19 @@ public class HomeViewModel extends ViewModel {
         sessionRepository.clearSession();
     }
 
+    public void reloadRecommended() {
+        tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
+            @Override
+            public void onSuccess(List<TourActivity> data) {
+                _featuredTours.setValue(data);
+            }
+            @Override
+            public void onError(UiMessage error) {
+                // best-effort: silent on background refresh
+            }
+        });
+    }
+
     private void loadTours() {
         pendingCalls = 2;
         _loading.setValue(true);

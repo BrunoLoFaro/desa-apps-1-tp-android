@@ -13,6 +13,7 @@ import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.repository.ProfileRepository;
+import com.example.myapplication.data.repository.TourRepository;
 import com.example.myapplication.data.session.SessionManager;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
@@ -27,6 +28,7 @@ import javax.inject.Inject;
 public class ProfileViewModel extends ViewModel {
 
     private final ProfileRepository profileRepository;
+    private final TourRepository tourRepository;
     private final SessionManager sessionManager;
     private final ProfileImageManager profileImageManager;
     private final Context context;
@@ -34,6 +36,7 @@ public class ProfileViewModel extends ViewModel {
 
     private final MutableLiveData<UserProfileData> _profile = new MutableLiveData<>();
     private final MutableLiveData<List<String>> _preferences = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> _categories = new MutableLiveData<>();
     private final MutableLiveData<List<BookingSummaryItem>> _activitySummary = new MutableLiveData<>();
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
@@ -42,10 +45,12 @@ public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<Uri> _selectedPhotoUri = new MutableLiveData<>();
 
     @Inject
-    public ProfileViewModel(ProfileRepository profileRepository, SessionManager sessionManager,
+    public ProfileViewModel(ProfileRepository profileRepository, TourRepository tourRepository,
+                            SessionManager sessionManager,
                             ProfileImageManager profileImageManager,
                             @ApplicationContext Context context) {
         this.profileRepository = profileRepository;
+        this.tourRepository = tourRepository;
         this.sessionManager = sessionManager;
         this.profileImageManager = profileImageManager;
         this.context = context;
@@ -55,6 +60,7 @@ public class ProfileViewModel extends ViewModel {
 
     public LiveData<UserProfileData> getProfile() { return _profile; }
     public LiveData<List<String>> getPreferences() { return _preferences; }
+    public LiveData<List<String>> getCategories() { return _categories; }
     public LiveData<List<BookingSummaryItem>> getActivitySummary() { return _activitySummary; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<Boolean> isLoading() { return _loading; }
@@ -85,7 +91,7 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public void loadAll() {
-        final int[] pending = {3};
+        final int[] pending = {4};
         _loading.setValue(true);
 
         profileRepository.getProfile(new RepositoryCallback<UserProfileData>() {
@@ -118,6 +124,18 @@ public class ProfileViewModel extends ViewModel {
             @Override public void onError(UiMessage error) {
                 // Summary es best-effort: falla silenciosamente
                 _activitySummary.setValue(Collections.emptyList());
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+        });
+
+        tourRepository.getCategories(new RepositoryCallback<List<String>>() {
+            @Override public void onSuccess(List<String> data) {
+                _categories.setValue(data);
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+            @Override public void onError(UiMessage error) {
+                // Categorías best-effort: si falla, la UI queda sin chips pero no bloquea el perfil
+                _categories.setValue(Collections.emptyList());
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
         });

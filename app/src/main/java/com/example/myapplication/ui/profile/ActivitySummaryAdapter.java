@@ -13,7 +13,16 @@ import java.util.List;
 
 public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummaryAdapter.ViewHolder> {
 
+    public interface OnItemClickListener {
+        void onItemClick(BookingSummaryItem item);
+    }
+
     private List<BookingSummaryItem> items = Collections.emptyList();
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
 
     public void updateData(List<BookingSummaryItem> newItems) {
         this.items = newItems != null ? newItems : Collections.emptyList();
@@ -35,6 +44,7 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
         holder.status.setText(localizedStatus(holder.itemView, item.getStatus()));
         holder.date.setText(item.getDate());
         holder.price.setText(item.getPrice());
+        holder.itemView.setOnClickListener(listener != null ? v -> listener.onItemClick(item) : null);
     }
 
     @Override

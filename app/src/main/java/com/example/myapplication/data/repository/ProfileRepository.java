@@ -181,6 +181,9 @@ public class ProfileRepository {
                 activeCalls.remove(c);
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(mapToProfileData(response.body()));
+                } else if (response.code() == 404) {
+                    // Usuario no encontrado en backend → sesión inválida, forzar logout
+                    sessionManager.triggerForceLogout();
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
                 }
@@ -214,7 +217,7 @@ public class ProfileRepository {
         for (BookingSummaryItemResponse item : items) {
             String date = formatDate(item.sessionStartTime);
             String price = FormatUtils.formatPrice(item.totalPrice, item.currency);
-            result.add(new BookingSummaryItem(item.id, item.activityName, item.status, date, price));
+            result.add(new BookingSummaryItem(item.id, item.activityId, item.activityName, item.status, date, price));
         }
         return result;
     }

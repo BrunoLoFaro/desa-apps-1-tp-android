@@ -6,6 +6,9 @@ public class BookingSummaryItemResponse {
     @Json(name = "id")
     public Long id;
 
+    @Json(name = "activityId")
+    public Long activityId;
+
     @Json(name = "activityName")
     public String activityName;
 
