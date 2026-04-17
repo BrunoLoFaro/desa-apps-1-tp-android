@@ -145,7 +145,11 @@
         android:id="@+id/bookingsFragment"
         android:name="com.example.myapplication.ui.bookings.BookingsFragment"
         android:label="Bookings"
-        tools:layout="@layout/fragment_bookings" />
+        tools:layout="@layout/fragment_bookings">
+        <action
+            android:id="@+id/action_bookingsFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"

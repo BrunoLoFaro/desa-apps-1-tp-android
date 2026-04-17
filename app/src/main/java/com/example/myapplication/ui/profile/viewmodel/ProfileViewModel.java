@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.local.ProfileImageManager;
-import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.TourRepository;
@@ -37,11 +36,9 @@ public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<UserProfileData> _profile = new MutableLiveData<>();
     private final MutableLiveData<List<String>> _preferences = new MutableLiveData<>();
     private final MutableLiveData<List<String>> _categories = new MutableLiveData<>();
-    private final MutableLiveData<List<BookingSummaryItem>> _activitySummary = new MutableLiveData<>();
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _saveSuccess = new MutableLiveData<>(false);
-    // URI válida solo durante la sesión actual (content://). No se persiste entre reinicios.
     private final MutableLiveData<Uri> _selectedPhotoUri = new MutableLiveData<>();
 
     @Inject
@@ -61,27 +58,17 @@ public class ProfileViewModel extends ViewModel {
     public LiveData<UserProfileData> getProfile() { return _profile; }
     public LiveData<List<String>> getPreferences() { return _preferences; }
     public LiveData<List<String>> getCategories() { return _categories; }
-    public LiveData<List<BookingSummaryItem>> getActivitySummary() { return _activitySummary; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<Boolean> isLoading() { return _loading; }
     public LiveData<Boolean> isSaveSuccess() { return _saveSuccess; }
     public LiveData<Uri> getSelectedPhotoUri() { return _selectedPhotoUri; }
 
-    /**
-     * Devuelve el archivo local de la imagen de perfil.
-     * Puede no existir — verificar con File.exists() antes de cargar.
-     */
     public File getLocalProfileImage() {
         return profileImageManager.getLocalFile(sessionManager.getUserId());
     }
 
-    /**
-     * Llamar cuando el usuario selecciona una nueva imagen desde la galería.
-     * Actualiza la UI inmediatamente (via LiveData) y persiste en almacenamiento interno.
-     */
     public void setSelectedPhotoUri(Uri uri) {
         _selectedPhotoUri.setValue(uri);
-        // Persist to internal storage off the main thread
         ioExecutor.execute(() -> {
             try {
                 profileImageManager.saveFromUri(
@@ -91,7 +78,7 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public void loadAll() {
-        final int[] pending = {4};
+        final int[] pending = {3};
         _loading.setValue(true);
 
         profileRepository.getProfile(new RepositoryCallback<UserProfileData>() {
@@ -116,25 +103,12 @@ public class ProfileViewModel extends ViewModel {
             }
         });
 
-        profileRepository.getActivitySummary(new RepositoryCallback<List<BookingSummaryItem>>() {
-            @Override public void onSuccess(List<BookingSummaryItem> data) {
-                _activitySummary.setValue(data);
-                if (--pending[0] <= 0) _loading.setValue(false);
-            }
-            @Override public void onError(UiMessage error) {
-                // Summary es best-effort: falla silenciosamente
-                _activitySummary.setValue(Collections.emptyList());
-                if (--pending[0] <= 0) _loading.setValue(false);
-            }
-        });
-
         tourRepository.getCategories(new RepositoryCallback<List<String>>() {
             @Override public void onSuccess(List<String> data) {
                 _categories.setValue(data);
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
             @Override public void onError(UiMessage error) {
-                // Categorías best-effort: si falla, la UI queda sin chips pero no bloquea el perfil
                 _categories.setValue(Collections.emptyList());
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
@@ -147,7 +121,6 @@ public class ProfileViewModel extends ViewModel {
         _saveSuccess.setValue(false);
 
         if (!isOnline()) {
-            // Sin conexión: guardar localmente y marcar como pendiente
             sessionManager.savePendingProfile(firstName, lastName, phone, null, selectedCategories);
             _loading.setValue(false);
             _saveSuccess.setValue(true);
@@ -189,7 +162,6 @@ public class ProfileViewModel extends ViewModel {
                 });
     }
 
-    /** Sincroniza el perfil pendiente si hay conexión y datos guardados offline. */
     private void trySyncPendingProfile() {
         if (!sessionManager.hasPendingProfile() || !isOnline()) return;
 
@@ -207,7 +179,7 @@ public class ProfileViewModel extends ViewModel {
                         if (--pending[0] <= 0) sessionManager.clearPendingProfile();
                     }
                     @Override public void onError(UiMessage ignored) {
-                        if (--pending[0] <= 0) { /* mantener pendiente para próximo intento */ }
+                        if (--pending[0] <= 0) { /* mantener pendiente */ }
                     }
                 });
 
@@ -218,7 +190,7 @@ public class ProfileViewModel extends ViewModel {
                         if (--pending[0] <= 0) sessionManager.clearPendingProfile();
                     }
                     @Override public void onError(UiMessage ignored) {
-                        if (--pending[0] <= 0) { /* mantener pendiente para próximo intento */ }
+                        if (--pending[0] <= 0) { /* mantener pendiente */ }
                     }
                 });
     }

@@ -8,6 +8,7 @@ import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.BookingSummaryItemResponse;
 import com.example.myapplication.data.model.BookingSummaryPageResponse;
+import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.data.model.UserPreferencesResponse;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.model.UserProfileResponse;
@@ -163,6 +164,34 @@ public class ProfileRepository {
         });
     }
 
+    public void getReviewByBookingId(long bookingId, RepositoryCallback<ReviewResponse> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        long userId = sessionManager.getUserId();
+        String url = config.baseUrl + "users/" + userId + "/reviews/booking/" + bookingId;
+        Call<ReviewResponse> call = profileService.getReviewByBooking(url);
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<ReviewResponse>() {
+            @Override
+            public void onResponse(Call<ReviewResponse> c, retrofit2.Response<ReviewResponse> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else if (response.code() == 404) {
+                    callback.onSuccess(null); // sin reseña aún
+                } else {
+                    callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ReviewResponse> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
+    }
+
     public void cancelAll() {
         for (Call<?> call : activeCalls) {
             if (!call.isCanceled()) call.cancel();
@@ -217,7 +246,12 @@ public class ProfileRepository {
         for (BookingSummaryItemResponse item : items) {
             String date = formatDate(item.sessionStartTime);
             String price = FormatUtils.formatPrice(item.totalPrice, item.currency);
-            result.add(new BookingSummaryItem(item.id, item.activityId, item.activityName, item.status, date, price));
+            result.add(new BookingSummaryItem(
+                    item.id, item.activityId, item.activityName, item.status,
+                    date, price,
+                    item.destination != null ? item.destination : "",
+                    item.guideName != null ? item.guideName : "",
+                    item.durationMinutes));
         }
         return result;
     }

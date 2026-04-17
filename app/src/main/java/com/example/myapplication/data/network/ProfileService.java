@@ -1,6 +1,7 @@
 package com.example.myapplication.data.network;
 
 import com.example.myapplication.data.model.BookingSummaryPageResponse;
+import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.data.model.UserPreferencesResponse;
 import com.example.myapplication.data.model.UserProfileResponse;
 import okhttp3.RequestBody;
@@ -30,6 +31,10 @@ public interface ProfileService {
 
     @GET
     Call<BookingSummaryPageResponse> getActivitySummary(@Url String url);
+
+    /** GET /api/v1/users/{userId}/reviews/booking/{bookingId} */
+    @GET
+    Call<ReviewResponse> getReviewByBooking(@Url String url);
 
     // ── Request body POJOs ──────────────────────────────────────────────────────
 

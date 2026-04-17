@@ -23,4 +23,13 @@ public class BookingSummaryItemResponse {
 
     @Json(name = "currency")
     public String currency;
+
+    @Json(name = "destination")
+    public String destination;
+
+    @Json(name = "guideName")
+    public String guideName;
+
+    @Json(name = "durationMinutes")
+    public int durationMinutes;
 }

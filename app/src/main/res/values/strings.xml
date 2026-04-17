@@ -110,6 +110,27 @@
     <string name="booking_status_completed">Realizada</string>
     <string name="booking_status_cancelled">Cancelada</string>
 
+    <!-- History filters -->
+    <string name="history_filter_destination">Destino</string>
+    <string name="history_filter_from">Desde</string>
+    <string name="history_filter_to">Hasta</string>
+    <string name="history_filter_clear">Limpiar</string>
+    <string name="history_guide_prefix">Guía: %s</string>
+    <string name="profile_no_completed_activities">Sin actividades finalizadas.</string>
+
+    <!-- Experience section -->
+    <string name="experience_rating_format">Calificación: %d/5</string>
+    <string name="experience_no_rating">Sin calificación</string>
+
+    <string name="booking_detail_button">Ver detalle</string>
+    <string name="booking_cancel_button">Cancelar</string>
+
+    <!-- Bookings tabs -->
+    <string name="bookings_tab_activas">Activas</string>
+    <string name="bookings_tab_historial">Historial</string>
+    <string name="bookings_empty_activas">No tenés reservas activas.</string>
+    <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+
     <!-- Activity categories -->
     <string name="category_aventura">Aventura</string>
     <string name="category_gastronomia">Gastronomía</string>

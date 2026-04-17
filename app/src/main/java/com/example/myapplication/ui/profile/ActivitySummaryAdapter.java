@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
+import com.example.myapplication.util.FormatUtils;
+import com.google.android.material.button.MaterialButton;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,10 +43,19 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         BookingSummaryItem item = items.get(position);
         holder.name.setText(item.getActivityName());
-        holder.status.setText(localizedStatus(holder.itemView, item.getStatus()));
         holder.date.setText(item.getDate());
-        holder.price.setText(item.getPrice());
-        holder.itemView.setOnClickListener(listener != null ? v -> listener.onItemClick(item) : null);
+        holder.destination.setText(item.getDestination());
+        boolean hasGuide = item.getGuideName() != null && !item.getGuideName().isEmpty();
+        if (hasGuide) {
+            holder.guide.setText(holder.itemView.getContext()
+                    .getString(R.string.history_guide_prefix, item.getGuideName()));
+            holder.guide.setVisibility(android.view.View.VISIBLE);
+        } else {
+            holder.guide.setVisibility(android.view.View.GONE);
+        }
+        holder.duration.setText(FormatUtils.formatDuration(item.getDurationMinutes()));
+        holder.detailButton.setOnClickListener(
+                listener != null ? v -> listener.onItemClick(item) : null);
     }
 
     @Override
@@ -52,25 +63,18 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
         return items.size();
     }
 
-    private static String localizedStatus(View view, String status) {
-        if (status == null) return "";
-        switch (status) {
-            case "CONFIRMED":  return view.getContext().getString(R.string.booking_status_confirmed);
-            case "COMPLETED":  return view.getContext().getString(R.string.booking_status_completed);
-            case "CANCELLED":  return view.getContext().getString(R.string.booking_status_cancelled);
-            default:           return status;
-        }
-    }
-
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, status, date, price;
+        TextView name, date, destination, guide, duration;
+        MaterialButton detailButton;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            name   = itemView.findViewById(R.id.summary_activity_name);
-            status = itemView.findViewById(R.id.summary_status);
-            date   = itemView.findViewById(R.id.summary_date);
-            price  = itemView.findViewById(R.id.summary_price);
+            name         = itemView.findViewById(R.id.summary_activity_name);
+            date         = itemView.findViewById(R.id.summary_date);
+            destination  = itemView.findViewById(R.id.summary_destination);
+            guide        = itemView.findViewById(R.id.summary_guide);
+            duration     = itemView.findViewById(R.id.summary_duration);
+            detailButton = itemView.findViewById(R.id.summary_detail_button);
         }
     }
 }

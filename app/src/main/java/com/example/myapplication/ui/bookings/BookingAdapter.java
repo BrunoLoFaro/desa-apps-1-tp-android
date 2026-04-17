@@ -19,11 +19,20 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         void onCancel(Long bookingId);
     }
 
+    public interface OnDetailClickListener {
+        void onDetail(BookingResponse booking);
+    }
+
     private List<BookingResponse> bookings = Collections.emptyList();
     private final OnCancelClickListener cancelClickListener;
+    private OnDetailClickListener detailClickListener;
 
     public BookingAdapter(OnCancelClickListener cancelClickListener) {
         this.cancelClickListener = cancelClickListener;
+    }
+
+    public void setOnDetailClickListener(OnDetailClickListener listener) {
+        this.detailClickListener = listener;
     }
 
     public void updateData(List<BookingResponse> newData) {
@@ -41,18 +50,32 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     @Override
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
         BookingResponse booking = bookings.get(position);
+
         holder.title.setText(booking.activityName != null ? booking.activityName : "");
+
         String destination = booking.destination != null ? booking.destination.name : "";
         holder.subtitle.setText(destination);
+
         holder.dateTime.setText(formatStartTime(booking.sessionStartTime));
-        holder.status.setText(localizedStatus(holder.itemView, booking.status));
-        holder.participants.setText("Participantes: " + booking.participants);
-        holder.price.setText(FormatUtils.formatPrice(booking.totalPrice, booking.currency));
+
+        holder.duration.setText(FormatUtils.formatDuration(booking.durationMinutes));
+
+        if (booking.guideName != null && !booking.guideName.isEmpty()) {
+            holder.guide.setText(holder.itemView.getContext()
+                    .getString(R.string.history_guide_prefix, booking.guideName));
+            holder.guide.setVisibility(View.VISIBLE);
+        } else {
+            holder.guide.setVisibility(View.GONE);
+        }
 
         boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
         holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
         holder.cancelButton.setOnClickListener(v -> {
             if (cancelClickListener != null) cancelClickListener.onCancel(booking.id);
+        });
+
+        holder.detailButton.setOnClickListener(v -> {
+            if (detailClickListener != null) detailClickListener.onDetail(booking);
         });
     }
 
@@ -68,35 +91,24 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         return value;
     }
 
-    private static String localizedStatus(View view, String status) {
-        if (status == null) return "";
-        switch (status) {
-            case "CONFIRMED":  return view.getContext().getString(R.string.booking_status_confirmed);
-            case "COMPLETED":  return view.getContext().getString(R.string.booking_status_completed);
-            case "CANCELLED":  return view.getContext().getString(R.string.booking_status_cancelled);
-            default:           return status;
-        }
-    }
-
     static class BookingViewHolder extends RecyclerView.ViewHolder {
         final TextView title;
         final TextView subtitle;
         final TextView dateTime;
-        final TextView status;
-        final TextView participants;
-        final TextView price;
+        final TextView duration;
+        final TextView guide;
+        final MaterialButton detailButton;
         final MaterialButton cancelButton;
 
         BookingViewHolder(@NonNull View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.booking_title);
-            subtitle = itemView.findViewById(R.id.booking_subtitle);
-            dateTime = itemView.findViewById(R.id.booking_datetime);
-            status = itemView.findViewById(R.id.booking_status);
-            participants = itemView.findViewById(R.id.booking_participants);
-            price = itemView.findViewById(R.id.booking_price);
+            title        = itemView.findViewById(R.id.booking_title);
+            subtitle     = itemView.findViewById(R.id.booking_subtitle);
+            dateTime     = itemView.findViewById(R.id.booking_datetime);
+            duration     = itemView.findViewById(R.id.booking_duration);
+            guide        = itemView.findViewById(R.id.booking_guide);
+            detailButton = itemView.findViewById(R.id.booking_detail_button);
             cancelButton = itemView.findViewById(R.id.booking_cancel_button);
         }
     }
 }
-

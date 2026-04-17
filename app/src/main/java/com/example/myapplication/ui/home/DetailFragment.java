@@ -20,8 +20,10 @@ import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.ActivitySessionResponse;
 import com.example.myapplication.data.model.TourActivity;
+import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
+import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,8 +37,11 @@ public class DetailFragment extends Fragment {
 
     private TourActivity tourActivity;
     private boolean fromHistory;
+    private String bookingStatus;
+    private Long bookingId;
     private DetailViewModel detailViewModel;
     private CreateBookingViewModel createBookingViewModel;
+    private HistoryReviewViewModel historyReviewViewModel;
     private SessionAdapter sessionAdapter;
     private ActivitySessionResponse selectedSession;
 
@@ -46,6 +51,10 @@ public class DetailFragment extends Fragment {
         if (getArguments() != null) {
             tourActivity = (TourActivity) getArguments().getSerializable("activity_data");
             fromHistory = getArguments().getBoolean("from_history", false);
+            bookingStatus = getArguments().getString("booking_status");
+            if (getArguments().containsKey("booking_id")) {
+                bookingId = getArguments().getLong("booking_id");
+            }
         }
     }
 
@@ -80,6 +89,7 @@ public class DetailFragment extends Fragment {
 
         detailViewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         createBookingViewModel = new ViewModelProvider(this).get(CreateBookingViewModel.class);
+        historyReviewViewModel = new ViewModelProvider(this).get(HistoryReviewViewModel.class);
 
         if (bookButton != null) {
             bookButton.setOnClickListener(v -> {
@@ -142,7 +152,15 @@ public class DetailFragment extends Fragment {
         if (fromHistory) {
             if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
             sessionsRecycler.setVisibility(View.GONE);
-            if (experienceSection != null) experienceSection.setVisibility(View.VISIBLE);
+            boolean isCompleted = "COMPLETED".equals(bookingStatus);
+            if (experienceSection != null) {
+                experienceSection.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
+            }
+            if (isCompleted && bookingId != null) {
+                historyReviewViewModel.loadReview(bookingId);
+                historyReviewViewModel.getReview().observe(getViewLifecycleOwner(),
+                        review -> populateExperienceSection(experienceSection, review));
+            }
         }
 
         if (tourActivity != null) {
@@ -259,11 +277,34 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    private void populateExperienceSection(View section, ReviewResponse review) {
+        if (section == null) return;
+        TextView ratingView = section.findViewById(R.id.experience_rating);
+        TextView commentView = section.findViewById(R.id.experience_comment);
+        if (review == null || review.activityRating == null) {
+            if (ratingView != null) ratingView.setText(R.string.experience_no_rating);
+            if (commentView != null) commentView.setVisibility(View.GONE);
+        } else {
+            if (ratingView != null) {
+                ratingView.setText(getString(R.string.experience_rating_format, review.activityRating));
+            }
+            if (commentView != null) {
+                if (review.comment != null && !review.comment.isEmpty()) {
+                    commentView.setText(review.comment);
+                    commentView.setVisibility(View.VISIBLE);
+                } else {
+                    commentView.setVisibility(View.GONE);
+                }
+            }
+        }
+    }
+
     @Override
     public void onDestroyView() {
         rootView = null;
         sessionAdapter = null;
         detailViewModel = null;
+        historyReviewViewModel = null;
         super.onDestroyView();
     }
 }

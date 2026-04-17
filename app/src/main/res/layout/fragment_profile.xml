@@ -158,7 +158,6 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
                 app:singleSelection="false" />
-            <!-- Chips generados dinámicamente desde GET /categories -->
 
             <!-- ── Botón Guardar ──────────────────────────────────── -->
             <com.google.android.material.button.MaterialButton
@@ -168,35 +167,6 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/profile_save_button" />
-
-            <!-- ── Resumen de actividades ─────────────────────────── -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="24dp"
-                android:text="@string/profile_section_activities"
-                android:textAppearance="@style/TextAppearance.XploreNow.H2"
-                android:textColor="?attr/colorPrimary" />
-
-            <TextView
-                android:id="@+id/empty_activities_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
-                android:text="@string/profile_no_activities"
-                android:textAppearance="@style/TextAppearance.XploreNow.Body"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:visibility="gone" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/activity_summary_recycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         </LinearLayout>
 

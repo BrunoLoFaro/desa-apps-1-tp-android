@@ -21,11 +21,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.BookingSummaryItem;
-import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -58,13 +55,9 @@ public class ProfileFragment extends Fragment {
     private TextInputEditText editPhone;
     private ChipGroup chipGroupPreferences;
     private MaterialButton btnSave;
-    private RecyclerView activitySummaryRecycler;
-    private TextView emptyActivitiesText;
     private ProgressBar loadingSpinner;
     private View scrollView;
-    private ActivitySummaryAdapter summaryAdapter;
 
-    // Guardamos las preferencias recibidas para aplicarlas una vez que los chips estén construidos
     private List<String> pendingPreferences = null;
 
     @Override
@@ -101,20 +94,6 @@ public class ProfileFragment extends Fragment {
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        summaryAdapter = new ActivitySummaryAdapter();
-        activitySummaryRecycler.setAdapter(summaryAdapter);
-
-        summaryAdapter.setOnItemClickListener(item -> {
-            if (item.getActivityId() == null) return;
-            TourActivity activity = new TourActivity(
-                    item.getActivityName(), "", "", "", "", 0, null);
-            activity.setId(item.getActivityId());
-            Bundle args = new Bundle();
-            args.putSerializable("activity_data", activity);
-            args.putBoolean("from_history", true);
-            navController.navigate(R.id.action_profileFragment_to_detailFragment, args);
-        });
-
         profilePhoto.setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
 
@@ -122,19 +101,17 @@ public class ProfileFragment extends Fragment {
     }
 
     private void bindViews(@NonNull View view) {
-        profilePhoto = view.findViewById(R.id.profile_photo);
-        emailText = view.findViewById(R.id.profile_email);
-        layoutFirstName = view.findViewById(R.id.layout_first_name);
-        layoutLastName = view.findViewById(R.id.layout_last_name);
-        editFirstName = view.findViewById(R.id.edit_first_name);
-        editLastName = view.findViewById(R.id.edit_last_name);
-        editPhone = view.findViewById(R.id.edit_phone);
+        profilePhoto       = view.findViewById(R.id.profile_photo);
+        emailText          = view.findViewById(R.id.profile_email);
+        layoutFirstName    = view.findViewById(R.id.layout_first_name);
+        layoutLastName     = view.findViewById(R.id.layout_last_name);
+        editFirstName      = view.findViewById(R.id.edit_first_name);
+        editLastName       = view.findViewById(R.id.edit_last_name);
+        editPhone          = view.findViewById(R.id.edit_phone);
         chipGroupPreferences = view.findViewById(R.id.chip_group_preferences);
-        btnSave = view.findViewById(R.id.btn_save);
-        activitySummaryRecycler = view.findViewById(R.id.activity_summary_recycler);
-        emptyActivitiesText = view.findViewById(R.id.empty_activities_text);
-        loadingSpinner = view.findViewById(R.id.loading_spinner);
-        scrollView = view.findViewById(R.id.scroll_view);
+        btnSave            = view.findViewById(R.id.btn_save);
+        loadingSpinner     = view.findViewById(R.id.loading_spinner);
+        scrollView         = view.findViewById(R.id.scroll_view);
     }
 
     private void observeViewModel() {
@@ -146,24 +123,11 @@ public class ProfileFragment extends Fragment {
 
         viewModel.getProfile().observe(getViewLifecycleOwner(), this::populateProfileFields);
 
-        // Las categorías llegan del backend y se usan para construir los chips
         viewModel.getCategories().observe(getViewLifecycleOwner(), this::buildCategoryChips);
 
-        // Las preferencias guardadas se aplican sobre los chips ya construidos
         viewModel.getPreferences().observe(getViewLifecycleOwner(), prefs -> {
             pendingPreferences = prefs;
             applyPreferenceChips(prefs);
-        });
-
-        viewModel.getActivitySummary().observe(getViewLifecycleOwner(), items -> {
-            if (items == null || items.isEmpty()) {
-                emptyActivitiesText.setVisibility(View.VISIBLE);
-                activitySummaryRecycler.setVisibility(View.GONE);
-            } else {
-                emptyActivitiesText.setVisibility(View.GONE);
-                activitySummaryRecycler.setVisibility(View.VISIBLE);
-                summaryAdapter.updateData(items);
-            }
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
@@ -206,12 +170,9 @@ public class ProfileFragment extends Fragment {
             editPhone.setText(profile.getPhone());
         }
 
-        // Si el usuario acaba de seleccionar una imagen esta sesión, el observer de
-        // _selectedPhotoUri ya la muestra — no la pisamos aquí.
         Uri selectedUri = viewModel.getSelectedPhotoUri().getValue();
         if (selectedUri != null && "content".equals(selectedUri.getScheme())) return;
 
-        // Imagen offline-first: archivo local o placeholder
         File localFile = viewModel.getLocalProfileImage();
         if (localFile.exists() && localFile.length() > 0) {
             Glide.with(this)
@@ -224,7 +185,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    /** Crea chips dinámicamente a partir de las categorías recibidas del backend. */
     private void buildCategoryChips(List<String> categories) {
         if (categories == null || chipGroupPreferences == null) return;
         chipGroupPreferences.removeAllViews();
@@ -237,13 +197,11 @@ public class ProfileFragment extends Fragment {
             chip.setCheckable(true);
             chipGroupPreferences.addView(chip);
         }
-        // Si las preferencias llegaron antes que las categorías, aplicarlas ahora
         if (pendingPreferences != null) {
             applyPreferenceChips(pendingPreferences);
         }
     }
 
-    /** Marca como seleccionados los chips cuyo tag coincide con las preferencias guardadas. */
     private void applyPreferenceChips(List<String> savedCategories) {
         if (savedCategories == null || chipGroupPreferences == null) return;
         for (int i = 0; i < chipGroupPreferences.getChildCount(); i++) {
@@ -256,7 +214,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    /** "VISITA_GUIADA" → "Visita Guiada" */
     private static String formatCategoryLabel(String category) {
         if (category == null || category.isEmpty()) return "";
         String[] words = category.replace("_", " ").toLowerCase().split(" ");
@@ -273,8 +230,8 @@ public class ProfileFragment extends Fragment {
 
     private void onSaveClicked() {
         String firstName = getText(editFirstName);
-        String lastName = getText(editLastName);
-        String phone = getText(editPhone);
+        String lastName  = getText(editLastName);
+        String phone     = getText(editPhone);
 
         boolean valid = true;
         layoutFirstName.setError(null);
@@ -325,21 +282,18 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        navController = null;
-        profilePhoto = null;
-        emailText = null;
-        layoutFirstName = null;
-        layoutLastName = null;
-        editFirstName = null;
-        editLastName = null;
-        editPhone = null;
+        navController        = null;
+        profilePhoto         = null;
+        emailText            = null;
+        layoutFirstName      = null;
+        layoutLastName       = null;
+        editFirstName        = null;
+        editLastName         = null;
+        editPhone            = null;
         chipGroupPreferences = null;
-        btnSave = null;
-        activitySummaryRecycler = null;
-        emptyActivitiesText = null;
-        loadingSpinner = null;
-        scrollView = null;
-        summaryAdapter = null;
+        btnSave              = null;
+        loadingSpinner       = null;
+        scrollView           = null;
         super.onDestroyView();
     }
 }
