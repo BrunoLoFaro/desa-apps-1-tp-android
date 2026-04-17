@@ -10,13 +10,17 @@ import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.local.ProfileImageManager;
+import com.example.myapplication.data.model.BookingResponse;
+import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
+import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.TourRepository;
 import com.example.myapplication.data.session.SessionManager;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -28,6 +32,7 @@ public class ProfileViewModel extends ViewModel {
 
     private final ProfileRepository profileRepository;
     private final TourRepository tourRepository;
+    private final BookingRepository bookingRepository;
     private final SessionManager sessionManager;
     private final ProfileImageManager profileImageManager;
     private final Context context;
@@ -40,14 +45,19 @@ public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _saveSuccess = new MutableLiveData<>(false);
     private final MutableLiveData<Uri> _selectedPhotoUri = new MutableLiveData<>();
+    private final MutableLiveData<Integer> _historialCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> _pendingCount = new MutableLiveData<>(0);
+    private final MutableLiveData<List<BookingSummaryItem>> _recentActivities = new MutableLiveData<>();
 
     @Inject
     public ProfileViewModel(ProfileRepository profileRepository, TourRepository tourRepository,
+                            BookingRepository bookingRepository,
                             SessionManager sessionManager,
                             ProfileImageManager profileImageManager,
                             @ApplicationContext Context context) {
         this.profileRepository = profileRepository;
         this.tourRepository = tourRepository;
+        this.bookingRepository = bookingRepository;
         this.sessionManager = sessionManager;
         this.profileImageManager = profileImageManager;
         this.context = context;
@@ -62,6 +72,14 @@ public class ProfileViewModel extends ViewModel {
     public LiveData<Boolean> isLoading() { return _loading; }
     public LiveData<Boolean> isSaveSuccess() { return _saveSuccess; }
     public LiveData<Uri> getSelectedPhotoUri() { return _selectedPhotoUri; }
+    public LiveData<Integer> getHistorialCount() { return _historialCount; }
+    public LiveData<Integer> getPendingCount() { return _pendingCount; }
+    public LiveData<List<BookingSummaryItem>> getRecentActivities() { return _recentActivities; }
+
+    public List<String> getCurrentPreferences() {
+        List<String> prefs = _preferences.getValue();
+        return prefs != null ? prefs : Collections.emptyList();
+    }
 
     public File getLocalProfileImage() {
         return profileImageManager.getLocalFile(sessionManager.getUserId());
@@ -78,7 +96,7 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public void loadAll() {
-        final int[] pending = {3};
+        final int[] pending = {5};
         _loading.setValue(true);
 
         profileRepository.getProfile(new RepositoryCallback<UserProfileData>() {
@@ -98,7 +116,6 @@ public class ProfileViewModel extends ViewModel {
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
             @Override public void onError(UiMessage error) {
-                _error.setValue(error);
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
         });
@@ -110,6 +127,31 @@ public class ProfileViewModel extends ViewModel {
             }
             @Override public void onError(UiMessage error) {
                 _categories.setValue(Collections.emptyList());
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+        });
+
+        profileRepository.getActivitySummary(new RepositoryCallback<List<BookingSummaryItem>>() {
+            @Override public void onSuccess(List<BookingSummaryItem> data) {
+                List<BookingSummaryItem> list = data != null ? data : Collections.emptyList();
+                _historialCount.setValue(list.size());
+                _recentActivities.setValue(list.size() > 2 ? new ArrayList<>(list.subList(0, 2)) : new ArrayList<>(list));
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+            @Override public void onError(UiMessage error) {
+                _historialCount.setValue(0);
+                _recentActivities.setValue(Collections.emptyList());
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+        });
+
+        bookingRepository.listMyBookings("CONFIRMED", new RepositoryCallback<List<BookingResponse>>() {
+            @Override public void onSuccess(List<BookingResponse> data) {
+                _pendingCount.setValue(data != null ? data.size() : 0);
+                if (--pending[0] <= 0) _loading.setValue(false);
+            }
+            @Override public void onError(UiMessage error) {
+                _pendingCount.setValue(0);
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
         });

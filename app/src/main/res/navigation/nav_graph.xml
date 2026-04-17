@@ -159,6 +159,9 @@
         <action
             android:id="@+id/action_profileFragment_to_detailFragment"
             app:destination="@id/detailFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_bookingsFragment"
+            app:destination="@id/bookingsFragment" />
     </fragment>
 
     <fragment

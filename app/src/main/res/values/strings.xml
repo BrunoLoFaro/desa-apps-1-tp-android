@@ -131,6 +131,14 @@
     <string name="bookings_empty_activas">No tenés reservas activas.</string>
     <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
 
+    <!-- Profile activity summary -->
+    <string name="profile_section_summary">Resumen de actividades</string>
+    <string name="profile_stat_completed_label">finalizadas</string>
+    <string name="profile_stat_completed_sub">Actividades completadas</string>
+    <string name="profile_stat_pending_label">pendiente</string>
+    <string name="profile_stat_pending_sub">Actividad futura</string>
+    <string name="profile_view_all_activities">Ver todas mis actividades →</string>
+
     <!-- Activity categories -->
     <string name="category_aventura">Aventura</string>
     <string name="category_gastronomia">Gastronomía</string>

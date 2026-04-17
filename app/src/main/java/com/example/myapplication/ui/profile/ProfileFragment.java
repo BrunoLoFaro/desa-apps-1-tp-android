@@ -1,19 +1,16 @@
 package com.example.myapplication.ui.profile;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.widget.ImageView;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -23,19 +20,22 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
+import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
+import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 @AndroidEntryPoint
 public class ProfileFragment extends Fragment {
@@ -53,12 +53,23 @@ public class ProfileFragment extends Fragment {
     private TextInputEditText editFirstName;
     private TextInputEditText editLastName;
     private TextInputEditText editPhone;
-    private ChipGroup chipGroupPreferences;
     private MaterialButton btnSave;
     private ProgressBar loadingSpinner;
     private View scrollView;
 
-    private List<String> pendingPreferences = null;
+    // Summary views
+    private TextView statCompleted;
+    private TextView statPending;
+    private View recentItem1;
+    private View recentItem2;
+    private View recentDivider;
+    private ImageView recent1Icon;
+    private ImageView recent2Icon;
+    private TextView recent1Name;
+    private TextView recent1Meta;
+    private TextView recent2Name;
+    private TextView recent2Meta;
+    private TextView linkVerTodas;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,22 +107,36 @@ public class ProfileFragment extends Fragment {
 
         profilePhoto.setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
+        linkVerTodas.setOnClickListener(v ->
+                navController.navigate(R.id.action_profileFragment_to_bookingsFragment));
 
         observeViewModel();
     }
 
     private void bindViews(@NonNull View view) {
-        profilePhoto       = view.findViewById(R.id.profile_photo);
-        emailText          = view.findViewById(R.id.profile_email);
-        layoutFirstName    = view.findViewById(R.id.layout_first_name);
-        layoutLastName     = view.findViewById(R.id.layout_last_name);
-        editFirstName      = view.findViewById(R.id.edit_first_name);
-        editLastName       = view.findViewById(R.id.edit_last_name);
-        editPhone          = view.findViewById(R.id.edit_phone);
-        chipGroupPreferences = view.findViewById(R.id.chip_group_preferences);
-        btnSave            = view.findViewById(R.id.btn_save);
-        loadingSpinner     = view.findViewById(R.id.loading_spinner);
-        scrollView         = view.findViewById(R.id.scroll_view);
+        profilePhoto    = view.findViewById(R.id.profile_photo);
+        emailText       = view.findViewById(R.id.profile_email);
+        layoutFirstName = view.findViewById(R.id.layout_first_name);
+        layoutLastName  = view.findViewById(R.id.layout_last_name);
+        editFirstName   = view.findViewById(R.id.edit_first_name);
+        editLastName    = view.findViewById(R.id.edit_last_name);
+        editPhone       = view.findViewById(R.id.edit_phone);
+        btnSave         = view.findViewById(R.id.btn_save);
+        loadingSpinner  = view.findViewById(R.id.loading_spinner);
+        scrollView      = view.findViewById(R.id.scroll_view);
+
+        statCompleted = view.findViewById(R.id.stat_completed_count);
+        statPending   = view.findViewById(R.id.stat_pending_count);
+        recentItem1   = view.findViewById(R.id.recent_item_1);
+        recentItem2   = view.findViewById(R.id.recent_item_2);
+        recentDivider = view.findViewById(R.id.recent_divider);
+        recent1Icon   = view.findViewById(R.id.recent_1_icon);
+        recent2Icon   = view.findViewById(R.id.recent_2_icon);
+        recent1Name   = view.findViewById(R.id.recent_1_name);
+        recent1Meta   = view.findViewById(R.id.recent_1_meta);
+        recent2Name   = view.findViewById(R.id.recent_2_name);
+        recent2Meta   = view.findViewById(R.id.recent_2_meta);
+        linkVerTodas  = view.findViewById(R.id.link_ver_todas);
     }
 
     private void observeViewModel() {
@@ -122,13 +147,6 @@ public class ProfileFragment extends Fragment {
         });
 
         viewModel.getProfile().observe(getViewLifecycleOwner(), this::populateProfileFields);
-
-        viewModel.getCategories().observe(getViewLifecycleOwner(), this::buildCategoryChips);
-
-        viewModel.getPreferences().observe(getViewLifecycleOwner(), prefs -> {
-            pendingPreferences = prefs;
-            applyPreferenceChips(prefs);
-        });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
@@ -153,6 +171,16 @@ public class ProfileFragment extends Fragment {
                         .into(profilePhoto);
             }
         });
+
+        viewModel.getHistorialCount().observe(getViewLifecycleOwner(), count -> {
+            if (statCompleted != null) statCompleted.setText(String.valueOf(count != null ? count : 0));
+        });
+
+        viewModel.getPendingCount().observe(getViewLifecycleOwner(), count -> {
+            if (statPending != null) statPending.setText(String.valueOf(count != null ? count : 0));
+        });
+
+        viewModel.getRecentActivities().observe(getViewLifecycleOwner(), this::bindRecentActivities);
     }
 
     private void populateProfileFields(UserProfileData profile) {
@@ -185,47 +213,47 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private void buildCategoryChips(List<String> categories) {
-        if (categories == null || chipGroupPreferences == null) return;
-        chipGroupPreferences.removeAllViews();
-        for (String cat : categories) {
-            Chip chip = new Chip(new ContextThemeWrapper(
-                    requireContext(),
-                    com.google.android.material.R.style.Widget_Material3_Chip_Filter));
-            chip.setTag(cat);
-            chip.setText(formatCategoryLabel(cat));
-            chip.setCheckable(true);
-            chipGroupPreferences.addView(chip);
+    private void bindRecentActivities(List<BookingSummaryItem> items) {
+        if (items == null || items.isEmpty()) {
+            recentItem1.setVisibility(View.GONE);
+            recentDivider.setVisibility(View.GONE);
+            recentItem2.setVisibility(View.GONE);
+            return;
         }
-        if (pendingPreferences != null) {
-            applyPreferenceChips(pendingPreferences);
-        }
-    }
-
-    private void applyPreferenceChips(List<String> savedCategories) {
-        if (savedCategories == null || chipGroupPreferences == null) return;
-        for (int i = 0; i < chipGroupPreferences.getChildCount(); i++) {
-            View child = chipGroupPreferences.getChildAt(i);
-            if (child instanceof Chip) {
-                Chip chip = (Chip) child;
-                Object tag = chip.getTag();
-                chip.setChecked(tag != null && savedCategories.contains(tag.toString()));
-            }
+        bindRecentItem(items.get(0), recentItem1, recent1Icon, recent1Name, recent1Meta);
+        if (items.size() > 1) {
+            recentDivider.setVisibility(View.VISIBLE);
+            bindRecentItem(items.get(1), recentItem2, recent2Icon, recent2Name, recent2Meta);
+        } else {
+            recentDivider.setVisibility(View.GONE);
+            recentItem2.setVisibility(View.GONE);
         }
     }
 
-    private static String formatCategoryLabel(String category) {
-        if (category == null || category.isEmpty()) return "";
-        String[] words = category.replace("_", " ").toLowerCase().split(" ");
-        StringBuilder sb = new StringBuilder();
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                sb.append(Character.toUpperCase(word.charAt(0)));
-                sb.append(word.substring(1));
-                sb.append(' ');
-            }
-        }
-        return sb.toString().trim();
+    private void bindRecentItem(BookingSummaryItem item, View container,
+                                 ImageView icon, TextView name, TextView meta) {
+        container.setVisibility(View.VISIBLE);
+        name.setText(item.getActivityName());
+        String metaText = formatStatus(item.getStatus()) + " · " + FormatUtils.formatShortDate(item.getDate());
+        meta.setText(metaText);
+        int color = metaColor(item.getStatus());
+        meta.setTextColor(color);
+        icon.setColorFilter(color);
+    }
+
+    private String formatStatus(String status) {
+        if ("COMPLETED".equals(status)) return getString(R.string.booking_status_completed);
+        if ("CANCELLED".equals(status)) return getString(R.string.booking_status_cancelled);
+        return status != null ? status : "";
+    }
+
+    private int metaColor(String status) {
+        TypedValue tv = new TypedValue();
+        int attr = "CANCELLED".equals(status)
+                ? com.google.android.material.R.attr.colorError
+                : com.google.android.material.R.attr.colorOnSurfaceVariant;
+        requireContext().getTheme().resolveAttribute(attr, tv, true);
+        return tv.data;
     }
 
     private void onSaveClicked() {
@@ -247,16 +275,7 @@ public class ProfileFragment extends Fragment {
         }
         if (!valid) return;
 
-        List<String> selectedCategories = new ArrayList<>();
-        for (int i = 0; i < chipGroupPreferences.getChildCount(); i++) {
-            View child = chipGroupPreferences.getChildAt(i);
-            if (child instanceof Chip && ((Chip) child).isChecked()) {
-                Object tag = child.getTag();
-                if (tag != null) selectedCategories.add(tag.toString());
-            }
-        }
-
-        viewModel.saveAll(firstName, lastName, phone, selectedCategories);
+        viewModel.saveAll(firstName, lastName, phone, viewModel.getCurrentPreferences());
     }
 
     private String getText(TextInputEditText field) {
@@ -282,18 +301,29 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        navController        = null;
-        profilePhoto         = null;
-        emailText            = null;
-        layoutFirstName      = null;
-        layoutLastName       = null;
-        editFirstName        = null;
-        editLastName         = null;
-        editPhone            = null;
-        chipGroupPreferences = null;
-        btnSave              = null;
-        loadingSpinner       = null;
-        scrollView           = null;
+        navController    = null;
+        profilePhoto     = null;
+        emailText        = null;
+        layoutFirstName  = null;
+        layoutLastName   = null;
+        editFirstName    = null;
+        editLastName     = null;
+        editPhone        = null;
+        btnSave          = null;
+        loadingSpinner   = null;
+        scrollView       = null;
+        statCompleted = null;
+        statPending   = null;
+        recentItem1   = null;
+        recentItem2   = null;
+        recentDivider = null;
+        recent1Icon   = null;
+        recent2Icon   = null;
+        recent1Name   = null;
+        recent1Meta   = null;
+        recent2Name   = null;
+        recent2Meta   = null;
+        linkVerTodas  = null;
         super.onDestroyView();
     }
 }
