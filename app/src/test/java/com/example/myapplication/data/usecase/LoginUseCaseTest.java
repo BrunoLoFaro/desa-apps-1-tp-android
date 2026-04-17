@@ -52,7 +52,7 @@ public class LoginUseCaseTest {
         response.lastName = "User";
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository).saveSession(eq("jwt-token"), argThat(user ->
+        verify(sessionRepository).saveSession(eq("jwt-token"), any(), argThat(user ->
                 user.id == 1L
                         && "test@mail.com".equals(user.email)
                         && "Test".equals(user.firstName)
@@ -74,7 +74,7 @@ public class LoginUseCaseTest {
         response.token = null;
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
         verify(outerCallback).onSuccess(response);
     }
 
@@ -91,7 +91,7 @@ public class LoginUseCaseTest {
         response.token = "   ";
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
         verify(outerCallback).onSuccess(response);
     }
 
@@ -108,6 +108,6 @@ public class LoginUseCaseTest {
         captor.getValue().onError(errorMsg);
 
         verify(outerCallback).onError(errorMsg);
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
     }
 }
