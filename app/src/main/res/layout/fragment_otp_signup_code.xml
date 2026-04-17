@@ -39,7 +39,17 @@
                 android:text="@string/otp_signup_code_subtitle"
                 android:textColor="?attr/colorPrimary" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/otp_signup_resend_timer_text"
+                style="@style/TextAppearance.XploreNow.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textColor="?attr/colorSecondary"
+                tools:text="Reenviar en 30s" />
+
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/otp_signup_code_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -48,11 +58,88 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/otp_signup_code_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_width="1dp"
+                    android:layout_height="1dp"
+                    android:alpha="0.01"
+                    android:cursorVisible="false"
                     android:inputType="number"
                     android:maxLength="6" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:id="@+id/otp_signup_digit_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_1"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="1" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_2"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="2" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_3"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="3" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_4"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="4" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_5"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="5" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/otp_digit_6"
+                    style="@style/TextAppearance.XploreNow.H2"
+                    android:layout_width="44dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/otp_digit_box_default"
+                    android:gravity="center"
+                    android:textColor="?attr/colorOnSurface"
+                    tools:text="6" />
+
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/otp_signup_verify_button"
@@ -67,6 +154,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:enabled="false"
                 android:text="@string/otp_action_resend"
                 android:textAppearance="@style/TextAppearance.XploreNow.Button" />
 

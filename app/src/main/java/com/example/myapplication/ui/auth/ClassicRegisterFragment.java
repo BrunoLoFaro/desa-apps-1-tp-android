@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.ui.auth.viewmodel.ClassicRegisterViewModel;
+import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -28,7 +28,7 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
 
-    private ClassicRegisterViewModel viewModel;
+    private SignupViewModel viewModel;
 
     @Nullable
     @Override
@@ -53,11 +53,12 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        viewModel = new ViewModelProvider(this).get(ClassicRegisterViewModel.class);
+        // Activity-scoped to reuse the same OTP state used by SignupFragment.
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
         registerButton.setOnClickListener(v -> attemptClassicRegister());
 
-        viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
             registerButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             passwordEditText.setEnabled(!state.isLoading);
@@ -68,18 +69,19 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
 
             if (state.error != null) {
                 showError(state.error.resolve(requireContext()));
-                viewModel.errorConsumed();
+                viewModel.requestOtpErrorConsumed();
             }
-            if (state.navigateToHome) {
-                navigateToHome();
-                viewModel.navigationConsumed();
+            if (state.navigateToOtpCode) {
+                Bundle args = new Bundle();
+                args.putString("email", safeText(emailEditText));
+                args.putString("password", safeText(passwordEditText));
+                args.putString("firstName", safeText(firstNameEditText));
+                args.putString("lastName", safeText(lastNameEditText));
+                args.putString("dni", safeText(dniEditText));
+                navController.navigate(R.id.action_classicRegisterFragment_to_otpSignupCodeFragment, args);
+                viewModel.requestOtpNavigationConsumed();
             }
         });
-    }
-
-    @Override
-    protected void navigateToHome() {
-        navController.navigate(R.id.action_classicRegisterFragment_to_homeFragment);
     }
 
     private void attemptClassicRegister() {
@@ -92,7 +94,11 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         String error = validateFields(email, password, firstName, lastName, dni);
         if (error != null) { showError(error); return; }
 
-        viewModel.register(email, password, firstName, lastName, dni);
+        viewModel.requestSignupOtp(email);
+    }
+
+    private String safeText(TextInputEditText editText) {
+        return editText.getText() != null ? editText.getText().toString().trim() : "";
     }
 
     private String validateFields(String email, String password, String firstName,
