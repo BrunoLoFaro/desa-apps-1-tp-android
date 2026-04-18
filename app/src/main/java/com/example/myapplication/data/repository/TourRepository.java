@@ -5,6 +5,7 @@ import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.local.ActivityDetailCacheManager;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
@@ -27,14 +28,17 @@ public class TourRepository {
     private final ActivityService activityService;
     private final ConfigLoader configLoader;
     private final NetworkErrorParser errorParser;
+    private final ActivityDetailCacheManager activityDetailCacheManager;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public TourRepository(ActivityService activityService, ConfigLoader configLoader,
-                          NetworkErrorParser errorParser) {
+                          NetworkErrorParser errorParser,
+                          ActivityDetailCacheManager activityDetailCacheManager) {
         this.activityService = activityService;
         this.configLoader = configLoader;
         this.errorParser = errorParser;
+        this.activityDetailCacheManager = activityDetailCacheManager;
     }
 
     public void getFeaturedTours(RepositoryCallback<List<TourActivity>> callback) {
@@ -59,7 +63,21 @@ public class TourRepository {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         String endpoint = config.activitiesEndpoint + "/" + activityId;
-        enqueueDetail(activityService.getActivityDetail(endpoint), callback, R.string.error_load_activities);
+        enqueueDetail(activityService.getActivityDetail(endpoint), new RepositoryCallback<ActivityDetailResponse>() {
+            @Override
+            public void onSuccess(ActivityDetailResponse data) {
+                activityDetailCacheManager.save(activityId, data);
+                callback.onSuccess(data);
+            }
+            @Override
+            public void onError(UiMessage error) {
+                callback.onError(error);
+            }
+        }, R.string.error_load_activities);
+    }
+
+    public ActivityDetailResponse getCachedActivityDetail(long activityId) {
+        return activityDetailCacheManager.load(activityId);
     }
 
     public void getCategories(RepositoryCallback<List<String>> callback) {

@@ -19,6 +19,19 @@
             app:navigationIcon="@drawable/ic_back"
             app:title="Detalle" />
 
+        <TextView
+            android:id="@+id/detail_offline_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSecondaryContainer"
+            android:gravity="center"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="16dp"
+            android:text="@string/bookings_offline_notice"
+            android:textAppearance="@style/TextAppearance.XploreNow.Body"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:visibility="gone" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView

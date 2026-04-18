@@ -26,6 +26,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     private List<BookingResponse> bookings = Collections.emptyList();
     private final OnCancelClickListener cancelClickListener;
     private OnDetailClickListener detailClickListener;
+    private boolean offline = false;
 
     public BookingAdapter(OnCancelClickListener cancelClickListener) {
         this.cancelClickListener = cancelClickListener;
@@ -38,6 +39,13 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     public void updateData(List<BookingResponse> newData) {
         bookings = newData != null ? newData : Collections.emptyList();
         notifyDataSetChanged();
+    }
+
+    public void setOffline(boolean offline) {
+        if (this.offline != offline) {
+            this.offline = offline;
+            notifyDataSetChanged();
+        }
     }
 
     @NonNull
@@ -68,7 +76,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             holder.guide.setVisibility(View.GONE);
         }
 
-        boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
+        boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status) && !offline;
         holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
         holder.cancelButton.setOnClickListener(v -> {
             if (cancelClickListener != null) cancelClickListener.onCancel(booking.id);

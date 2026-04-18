@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.home.viewmodel;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -11,6 +14,7 @@ import com.example.myapplication.data.model.ActivitySessionResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.TourRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -20,25 +24,45 @@ import javax.inject.Inject;
 public class DetailViewModel extends ViewModel {
 
     private final TourRepository tourRepository;
+    private final Context context;
 
     private final MutableLiveData<TourActivity> _activity = new MutableLiveData<>();
     private final MutableLiveData<List<ActivitySessionResponse>> _sessions =
             new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isOffline = new MutableLiveData<>(false);
 
     @Inject
-    public DetailViewModel(TourRepository tourRepository) {
+    public DetailViewModel(TourRepository tourRepository, @ApplicationContext Context context) {
         this.tourRepository = tourRepository;
+        this.context = context;
     }
 
     public LiveData<TourActivity> getActivity() { return _activity; }
     public LiveData<List<ActivitySessionResponse>> getSessions() { return _sessions; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<Boolean> isLoading() { return _loading; }
+    public LiveData<Boolean> isOffline() { return _isOffline; }
 
     public void load(long activityId) {
         _loading.setValue(true);
+
+        if (!isOnline()) {
+            ActivityDetailResponse cached = tourRepository.getCachedActivityDetail(activityId);
+            _loading.setValue(false);
+            if (cached != null) {
+                _isOffline.setValue(true);
+                _sessions.setValue(cached.sessions != null ? cached.sessions : Collections.emptyList());
+                _activity.setValue(mapToTourActivity(cached));
+            } else {
+                _isOffline.setValue(false);
+                _error.setValue(UiMessage.from(R.string.error_network_generic));
+            }
+            return;
+        }
+
+        _isOffline.setValue(false);
         tourRepository.getActivityDetail(activityId, new RepositoryCallback<ActivityDetailResponse>() {
             @Override
             public void onSuccess(ActivityDetailResponse data) {
@@ -49,8 +73,15 @@ public class DetailViewModel extends ViewModel {
 
             @Override
             public void onError(UiMessage error) {
+                ActivityDetailResponse cached = tourRepository.getCachedActivityDetail(activityId);
                 _loading.setValue(false);
-                _error.setValue(error != null ? error : UiMessage.from(R.string.error_network_generic));
+                if (cached != null) {
+                    _isOffline.setValue(true);
+                    _sessions.setValue(cached.sessions != null ? cached.sessions : Collections.emptyList());
+                    _activity.setValue(mapToTourActivity(cached));
+                } else {
+                    _error.setValue(error != null ? error : UiMessage.from(R.string.error_network_generic));
+                }
             }
         });
     }
@@ -59,6 +90,12 @@ public class DetailViewModel extends ViewModel {
     protected void onCleared() {
         tourRepository.cancelAll();
         super.onCleared();
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkCapabilities caps = cm.getNetworkCapabilities(cm.getActiveNetwork());
+        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     private static TourActivity mapToTourActivity(ActivityDetailResponse data) {
@@ -70,7 +107,6 @@ public class DetailViewModel extends ViewModel {
         float rating = data.avgRating != null ? data.avgRating.floatValue() : 0f;
         int reviewCount = data.reviewCount != null ? data.reviewCount.intValue() : 0;
 
-        // Fill "detail" fields the current UI already has.
         TourActivity activity = new TourActivity(
                 safe(data.name),
                 destination,

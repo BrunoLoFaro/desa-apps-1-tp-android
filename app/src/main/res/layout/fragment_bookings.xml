@@ -36,41 +36,63 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- ── Pestaña Activas ─────────────────────────────────────────── -->
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/section_activas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:visibility="visible">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/bookings_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingTop="8dp"
-                android:paddingBottom="24dp"
-                android:clipToPadding="false"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-            <ProgressBar
-                android:id="@+id/bookings_loading_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
             <TextView
-                android:id="@+id/activas_empty_text"
+                android:id="@+id/offline_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:layout_marginTop="32dp"
+                android:background="?attr/colorSecondaryContainer"
+                android:drawablePadding="6dp"
                 android:gravity="center"
-                android:text="@string/bookings_empty_activas"
+                android:paddingVertical="10dp"
+                android:paddingHorizontal="16dp"
+                android:text="@string/bookings_offline_notice"
                 android:textAppearance="@style/TextAppearance.XploreNow.Body"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/colorOnSecondaryContainer"
                 android:visibility="gone" />
 
-        </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/bookings_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="24dp"
+                    android:clipToPadding="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                <ProgressBar
+                    android:id="@+id/bookings_loading_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/activas_empty_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:layout_marginTop="32dp"
+                    android:gravity="center"
+                    android:text="@string/bookings_empty_activas"
+                    android:textAppearance="@style/TextAppearance.XploreNow.Body"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
+
+            </FrameLayout>
+
+        </LinearLayout>
 
         <!-- ── Pestaña Historial ───────────────────────────────────────── -->
         <androidx.core.widget.NestedScrollView

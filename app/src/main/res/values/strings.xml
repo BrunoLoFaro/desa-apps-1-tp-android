@@ -130,6 +130,7 @@
     <string name="bookings_tab_historial">Historial</string>
     <string name="bookings_empty_activas">No tenés reservas activas.</string>
     <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+    <string name="bookings_offline_notice">Sin conexión — mostrando reservas guardadas</string>
 
     <!-- Profile activity summary -->
     <string name="profile_section_summary">Resumen de actividades</string>

@@ -34,6 +34,7 @@ import java.util.List;
 public class DetailFragment extends Fragment {
 
     private View rootView;
+    private android.widget.TextView detailOfflineBanner;
 
     private TourActivity tourActivity;
     private boolean fromHistory;
@@ -90,6 +91,7 @@ public class DetailFragment extends Fragment {
         detailViewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         createBookingViewModel = new ViewModelProvider(this).get(CreateBookingViewModel.class);
         historyReviewViewModel = new ViewModelProvider(this).get(HistoryReviewViewModel.class);
+        detailOfflineBanner = view.findViewById(R.id.detail_offline_banner);
 
         if (bookButton != null) {
             bookButton.setOnClickListener(v -> {
@@ -174,6 +176,12 @@ public class DetailFragment extends Fragment {
 
             Long id = tourActivity.getId();
             if (id != null && id > 0) {
+                detailViewModel.isOffline().observe(getViewLifecycleOwner(), offline -> {
+                    if (detailOfflineBanner != null) {
+                        detailOfflineBanner.setVisibility(
+                                Boolean.TRUE.equals(offline) ? View.VISIBLE : View.GONE);
+                    }
+                });
                 detailViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
                     if (loading != null) {
                         loading.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE);

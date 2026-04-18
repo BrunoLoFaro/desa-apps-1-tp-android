@@ -2,6 +2,7 @@ package com.example.myapplication.data.repository;
 
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
+import com.example.myapplication.data.local.BookingCacheManager;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.data.model.BookingsPageResponse;
 import com.example.myapplication.data.model.CreateBookingRequest;
@@ -18,21 +19,37 @@ public class BookingRepository {
     private final BookingService bookingService;
     private final SessionRepository sessionRepository;
     private final NetworkErrorParser errorParser;
+    private final BookingCacheManager bookingCacheManager;
     private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public BookingRepository(BookingService bookingService, SessionRepository sessionRepository,
-                             NetworkErrorParser errorParser) {
+                             NetworkErrorParser errorParser, BookingCacheManager bookingCacheManager) {
         this.bookingService = bookingService;
         this.sessionRepository = sessionRepository;
         this.errorParser = errorParser;
+        this.bookingCacheManager = bookingCacheManager;
     }
 
     public void createBooking(Long sessionId, int participants, RepositoryCallback<BookingResponse> callback) {
         long userId = sessionRepository.getUserId();
         String url = "users/" + userId + "/bookings";
         enqueue(bookingService.createBooking(url, new CreateBookingRequest(sessionId, participants)),
-                callback, R.string.error_internal_server);
+                new RepositoryCallback<BookingResponse>() {
+                    @Override
+                    public void onSuccess(BookingResponse data) {
+                        List<BookingResponse> existing = bookingCacheManager.load(userId);
+                        List<BookingResponse> updated = new java.util.ArrayList<>();
+                        updated.add(data);
+                        if (existing != null) updated.addAll(existing);
+                        bookingCacheManager.save(userId, updated);
+                        callback.onSuccess(data);
+                    }
+                    @Override
+                    public void onError(com.example.myapplication.data.common.UiMessage error) {
+                        callback.onError(error);
+                    }
+                }, R.string.error_internal_server);
     }
 
     public void listMyBookings(String statusFilter, RepositoryCallback<List<BookingResponse>> callback) {
@@ -44,7 +61,10 @@ public class BookingRepository {
         enqueue(bookingService.listBookings(url), new RepositoryCallback<BookingsPageResponse>() {
             @Override
             public void onSuccess(BookingsPageResponse data) {
-                callback.onSuccess(data != null && data.items != null ? data.items : java.util.Collections.emptyList());
+                List<BookingResponse> items = data != null && data.items != null
+                        ? data.items : java.util.Collections.emptyList();
+                bookingCacheManager.save(userId, items);
+                callback.onSuccess(items);
             }
 
             @Override
@@ -52,6 +72,10 @@ public class BookingRepository {
                 callback.onError(error);
             }
         }, R.string.error_internal_server);
+    }
+
+    public List<BookingResponse> getCachedBookings(long userId) {
+        return bookingCacheManager.load(userId);
     }
 
     public void cancelBooking(Long bookingId, RepositoryCallback<BookingResponse> callback) {

@@ -40,6 +40,7 @@ public class BookingsFragment extends Fragment {
 
     // Activas views
     private View sectionActivas;
+    private TextView offlineBanner;
     private RecyclerView activasRecycler;
     private ProgressBar activasLoading;
     private TextView activasEmpty;
@@ -84,6 +85,7 @@ public class BookingsFragment extends Fragment {
 
     private void bindViews(@NonNull View view) {
         sectionActivas    = view.findViewById(R.id.section_activas);
+        offlineBanner     = view.findViewById(R.id.offline_banner);
         activasRecycler   = view.findViewById(R.id.bookings_recycler_view);
         activasLoading    = view.findViewById(R.id.bookings_loading_spinner);
         activasEmpty      = view.findViewById(R.id.activas_empty_text);
@@ -208,6 +210,16 @@ public class BookingsFragment extends Fragment {
             filterDestination.setAdapter(adapter);
         });
 
+        viewModel.isOffline().observe(getViewLifecycleOwner(), offline -> {
+            boolean isOffline = Boolean.TRUE.equals(offline);
+            if (offlineBanner != null) {
+                offlineBanner.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            }
+            if (bookingAdapter != null) {
+                bookingAdapter.setOffline(isOffline);
+            }
+        });
+
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()),
@@ -265,6 +277,7 @@ public class BookingsFragment extends Fragment {
     @Override
     public void onDestroyView() {
         sectionActivas    = null;
+        offlineBanner     = null;
         activasRecycler   = null;
         activasLoading    = null;
         activasEmpty      = null;
