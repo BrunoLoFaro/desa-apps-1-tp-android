@@ -49,7 +49,6 @@ public class BookingsFragment extends Fragment {
         RecyclerView recycler = view.findViewById(R.id.bookings_recycler_view);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking, this::showReviewDialog);
         BookingAdapter adapter = new BookingAdapter(this::confirmCancel, this::showReviewDialog);
         recycler.setAdapter(adapter);
 
@@ -93,7 +92,6 @@ public class BookingsFragment extends Fragment {
         viewModel.loadMyBookings(null);
     }
 
-    private void showReviewDialog(BookingResponse booking) {
     private void confirmCancel(BookingResponse booking) {
         if (booking == null || booking.id == null) return;
 
