@@ -145,6 +145,12 @@
         tools:layout="@layout/fragment_bookings" />
 
     <fragment
+        android:id="@+id/exploreFragment"
+        android:name="com.example.myapplication.ui.explore.ExploreFragment"
+        android:label="Explore"
+        tools:layout="@layout/fragment_explore" />
+
+    <fragment
         android:id="@+id/detailFragment"
         android:name="com.example.myapplication.ui.home.DetailFragment"
         android:label="Detail"
