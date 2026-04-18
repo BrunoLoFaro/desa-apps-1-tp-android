@@ -1,8 +1,9 @@
 package com.example.myapplication.data.model;
 
 import com.squareup.moshi.Json;
+import java.util.List;
 
-public class ActivitySummaryResponse {
+public class ActivityDetailResponse {
     @Json(name = "id")
     public Long id;
 
@@ -15,14 +16,35 @@ public class ActivitySummaryResponse {
     @Json(name = "category")
     public String category;
 
+    @Json(name = "description")
+    public String description;
+
+    @Json(name = "includesText")
+    public String includesText;
+
+    @Json(name = "meetingPoint")
+    public String meetingPoint;
+
+    @Json(name = "guide")
+    public GuideResponse guide;
+
     @Json(name = "durationMinutes")
     public int durationMinutes;
 
-    @Json(name = "price")
-    public double price;
+    @Json(name = "language")
+    public String language;
+
+    @Json(name = "cancellationPolicy")
+    public String cancellationPolicy;
+
+    @Json(name = "basePrice")
+    public double basePrice;
 
     @Json(name = "currency")
     public String currency;
+
+    @Json(name = "sessions")
+    public List<ActivitySessionResponse> sessions;
 
     @Json(name = "availableSpots")
     public int availableSpots;

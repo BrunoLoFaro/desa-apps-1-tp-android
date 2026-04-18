@@ -172,7 +172,8 @@ public class AuthRepository {
             @Override
             public void onFailure(Call<T> call, Throwable t) {
                 activeCalls.remove(call);
-                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+                // Ahora usamos el fallbackErrorResId específico de la acción en lugar de uno genérico de red
+                callback.onError(errorParser.getFailureMessage(t, fallbackErrorResId));
             }
         });
     }

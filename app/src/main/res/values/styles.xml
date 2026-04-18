@@ -5,6 +5,13 @@
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
+    <!-- Error Text Style for TextInputLayout -->
+    <style name="Widget.XploreNow.TextInputLayout.ErrorText" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="android:maxLines">5</item>
+        <item name="android:singleLine">false</item>
+    </style>
+
     <!-- Button Styles -->
     <style name="Widget.XploreNow.Button.Primary" parent="Widget.Material3.Button">
         <item name="cornerRadius">12dp</item>
