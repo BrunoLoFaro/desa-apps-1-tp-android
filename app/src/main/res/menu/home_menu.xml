@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_theme_toggle"
-        android:icon="@android:drawable/ic_menu_day"
+        android:icon="@drawable/ic_theme_toggle"
         android:title="@string/action_theme_toggle"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_logout"

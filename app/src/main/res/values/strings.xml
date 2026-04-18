@@ -99,4 +99,27 @@
     <string name="review_thanks">¡Gracias por tu reseña!</string>
 
     <string name="no_reviews">Sin reseñas</string>
+
+    <string name="explore_filter_destination">Destino</string>
+    <string name="explore_filter_category">Categoría</string>
+    <string name="explore_filter_date">Fecha</string>
+    <string name="explore_filter_min_price">Min</string>
+    <string name="explore_filter_max_price">Max</string>
+    <string name="explore_filters_apply">Aplicar</string>
+    <string name="explore_filters_clear">Limpiar</string>
+    <string name="explore_empty_state">Sin resultados</string>
+    <string name="explore_empty_state_subtitle">Probá ajustar filtros o limpiar.</string>
+    <string name="explore_empty_clear_filters">Limpiar filtros</string>
+    <string name="explore_date_picker_title">Seleccioná una fecha</string>
+    <string name="explore_invalid_price">Precio inválido</string>
+    <string name="explore_invalid_price_range">Rango inválido</string>
+    <string name="explore_all_destinations">Todos</string>
+    <string name="explore_all_categories">Todas</string>
+    <string name="explore_price_helper">Ej: 1000 o 1.000,50</string>
+
+    <string name="cancel_booking_title">Cancelar reserva</string>
+    <string name="cancel_booking_confirm">Confirmar</string>
+    <string name="cancel_booking_back">Volver</string>
+    <string name="cancel_booking_policy_unknown">Política no disponible</string>
+    <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
 </resources>

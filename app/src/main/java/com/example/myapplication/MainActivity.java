@@ -35,6 +35,12 @@ public class MainActivity extends AppCompatActivity {
                     return navController.popBackStack(R.id.homeFragment, false);
                 }
 
+                if (id == R.id.nav_explore) {
+                    if (current == R.id.exploreFragment) return true;
+                    navController.navigate(R.id.exploreFragment);
+                    return true;
+                }
+
                 if (id == R.id.nav_bookings) {
                     if (current == R.id.bookingsFragment) return true;
                     navController.navigate(R.id.bookingsFragment);
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
-                if (destId == R.id.homeFragment || destId == R.id.bookingsFragment) {
+                if (destId == R.id.homeFragment || destId == R.id.bookingsFragment || destId == R.id.exploreFragment) {
                     bottomNav.setVisibility(View.VISIBLE);
                 } else {
                     bottomNav.setVisibility(View.GONE);
@@ -59,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (destId == R.id.homeFragment) {
                     bottomNav.getMenu().findItem(R.id.nav_home).setChecked(true);
+                } else if (destId == R.id.exploreFragment) {
+                    bottomNav.getMenu().findItem(R.id.nav_explore).setChecked(true);
                 } else if (destId == R.id.bookingsFragment) {
                     bottomNav.getMenu().findItem(R.id.nav_bookings).setChecked(true);
                 }

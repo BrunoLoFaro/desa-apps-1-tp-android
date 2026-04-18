@@ -50,6 +50,7 @@ public class BookingsFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         BookingAdapter adapter = new BookingAdapter(viewModel::cancelBooking, this::showReviewDialog);
+        BookingAdapter adapter = new BookingAdapter(this::confirmCancel, this::showReviewDialog);
         recycler.setAdapter(adapter);
 
         ChipGroup filters = view.findViewById(R.id.bookings_filter_group);
@@ -90,6 +91,26 @@ public class BookingsFragment extends Fragment {
 
         // initial load: "Todas"
         viewModel.loadMyBookings(null);
+    }
+
+    private void showReviewDialog(BookingResponse booking) {
+    private void confirmCancel(BookingResponse booking) {
+        if (booking == null || booking.id == null) return;
+
+        String policy = booking.cancellationPolicy;
+        if (policy == null || policy.trim().isEmpty()) {
+            policy = getString(R.string.cancel_booking_policy_unknown);
+        }
+
+        String activityName = booking.activityName != null ? booking.activityName : "";
+        String message = getString(R.string.cancel_booking_message, activityName, policy);
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.cancel_booking_title)
+                .setMessage(message)
+                .setNegativeButton(R.string.cancel_booking_back, (d, which) -> d.dismiss())
+                .setPositiveButton(R.string.cancel_booking_confirm, (d, which) -> viewModel.cancelBooking(booking.id))
+                .show();
     }
 
     private void showReviewDialog(BookingResponse booking) {

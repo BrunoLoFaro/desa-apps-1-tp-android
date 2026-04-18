@@ -8,6 +8,7 @@ import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.data.network.ReviewService;
+import com.example.myapplication.data.network.CatalogMetaService;
 import com.example.myapplication.data.session.SessionManager;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
@@ -111,6 +112,12 @@ public class AppModule {
     @Singleton
     static ActivityService provideActivityService(Retrofit retrofit) {
         return retrofit.create(ActivityService.class);
+    }
+
+    @Provides
+    @Singleton
+    static CatalogMetaService provideCatalogMetaService(Retrofit retrofit) {
+        return retrofit.create(CatalogMetaService.class);
     }
 
     @Provides
