@@ -10,13 +10,23 @@ import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
+    private static final int REVIEW_WINDOW_HOURS = 48;
+
     public interface OnCancelClickListener {
-        void onCancel(Long bookingId);
+        void onCancel(BookingResponse booking);
+    }
+
+    public interface OnReviewClickListener {
+        void onReview(BookingResponse booking);
     }
 
     public interface OnDetailClickListener {
@@ -26,9 +36,11 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     private List<BookingResponse> bookings = Collections.emptyList();
     private final OnCancelClickListener cancelClickListener;
     private OnDetailClickListener detailClickListener;
+    private final OnReviewClickListener reviewClickListener;
 
-    public BookingAdapter(OnCancelClickListener cancelClickListener) {
+    public BookingAdapter(OnCancelClickListener cancelClickListener, OnReviewClickListener reviewClickListener) {
         this.cancelClickListener = cancelClickListener;
+        this.reviewClickListener = reviewClickListener;
     }
 
     public void setOnDetailClickListener(OnDetailClickListener listener) {
@@ -71,7 +83,15 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
         holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
         holder.cancelButton.setOnClickListener(v -> {
-            if (cancelClickListener != null) cancelClickListener.onCancel(booking.id);
+            if (cancelClickListener != null) cancelClickListener.onCancel(booking);
+        });
+
+        boolean canReview = booking.canReview
+                && "COMPLETED".equalsIgnoreCase(booking.status)
+                && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
+        holder.reviewButton.setVisibility(canReview ? View.VISIBLE : View.GONE);
+        holder.reviewButton.setOnClickListener(v -> {
+            if (reviewClickListener != null) reviewClickListener.onReview(booking);
         });
 
         holder.detailButton.setOnClickListener(v -> {
@@ -91,6 +111,39 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         return value;
     }
 
+    private static boolean isWithinReviewWindow(String sessionStartIso, int durationMinutes) {
+        LocalDateTime start = tryParseLocalDateTime(sessionStartIso);
+        if (start == null) {
+            return true;
+        }
+        LocalDateTime end = start.plusMinutes(Math.max(0, durationMinutes));
+        return !LocalDateTime.now().isAfter(end.plusHours(REVIEW_WINDOW_HOURS));
+    }
+
+    private static LocalDateTime tryParseLocalDateTime(String raw) {
+        if (raw == null) return null;
+        String value = raw.trim();
+        if (value.isEmpty()) return null;
+
+        try {
+            return OffsetDateTime.parse(value).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        String normalized = value.replace(" ", "T");
+        try {
+            return LocalDateTime.parse(normalized, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        return null;
+    }
+
     static class BookingViewHolder extends RecyclerView.ViewHolder {
         final TextView title;
         final TextView subtitle;
@@ -99,6 +152,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         final TextView guide;
         final MaterialButton detailButton;
         final MaterialButton cancelButton;
+        final MaterialButton reviewButton;
 
         BookingViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -109,6 +163,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             guide        = itemView.findViewById(R.id.booking_guide);
             detailButton = itemView.findViewById(R.id.booking_detail_button);
             cancelButton = itemView.findViewById(R.id.booking_cancel_button);
+            reviewButton = itemView.findViewById(R.id.booking_review_button);
         }
     }
 }

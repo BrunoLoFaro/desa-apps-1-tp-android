@@ -3,12 +3,14 @@ package com.example.myapplication.ui.bookings.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
+import com.example.myapplication.data.repository.ReviewRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,11 +24,11 @@ public class BookingsViewModel extends ViewModel {
 
     private final BookingRepository bookingRepository;
     private final ProfileRepository profileRepository;
-
-    // ── Activas ──────────────────────────────────────────────────────────────
+    private final ReviewRepository reviewRepository;
     private final MutableLiveData<List<BookingResponse>> _bookings =
             new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
+    private final MutableLiveData<UiMessage> _message = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private String currentFilter = null;
 
@@ -45,14 +47,17 @@ public class BookingsViewModel extends ViewModel {
 
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository,
-                             ProfileRepository profileRepository) {
+                             ProfileRepository profileRepository,
+                             ReviewRepository reviewRepository) {
         this.bookingRepository = bookingRepository;
         this.profileRepository = profileRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     // ── Activas getters ──────────────────────────────────────────────────────
     public LiveData<List<BookingResponse>> getBookings() { return _bookings; }
     public LiveData<UiMessage> getError() { return _error; }
+    public LiveData<UiMessage> getMessage() { return _message; }
     public LiveData<Boolean> isLoading() { return _loading; }
 
     // ── Tab state ────────────────────────────────────────────────────────────
@@ -63,6 +68,10 @@ public class BookingsViewModel extends ViewModel {
     public LiveData<List<BookingSummaryItem>> getHistorial() { return _historial; }
     public LiveData<Boolean> isHistorialLoading() { return _historialLoading; }
     public LiveData<List<String>> getAvailableDestinations() { return _availableDestinations; }
+
+    public void clearMessage() {
+        _message.setValue(null);
+    }
 
     // ── Activas actions ──────────────────────────────────────────────────────
 
@@ -178,10 +187,31 @@ public class BookingsViewModel extends ViewModel {
         _availableDestinations.setValue(new ArrayList<>(seen));
     }
 
+    public void submitReview(Long bookingId, int activityRating, Integer guideRating, String comment) {
+        if (bookingId == null) return;
+        _loading.setValue(true);
+        reviewRepository.createReview(bookingId, activityRating, guideRating, comment,
+                new RepositoryCallback<com.example.myapplication.data.model.ReviewSummaryResponse>() {
+                    @Override
+                    public void onSuccess(com.example.myapplication.data.model.ReviewSummaryResponse data) {
+                        _loading.setValue(false);
+                        _message.setValue(UiMessage.from(R.string.review_thanks));
+                        loadMyBookings(currentFilter);
+                    }
+
+                    @Override
+                    public void onError(UiMessage error) {
+                        _loading.setValue(false);
+                        _error.setValue(error);
+                    }
+                });
+    }
+
     @Override
     protected void onCleared() {
         bookingRepository.cancelAll();
         profileRepository.cancelAll();
+        reviewRepository.cancelAll();
         super.onCleared();
     }
 }

@@ -32,7 +32,7 @@ public class HomeViewModel extends ViewModel {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
         this.profileImageManager = profileImageManager;
-        loadTours();
+        refreshTours();
     }
 
     public LiveData<List<TourActivity>> getFeaturedTours() { return _featuredTours; }
@@ -62,7 +62,7 @@ public class HomeViewModel extends ViewModel {
         });
     }
 
-    private void loadTours() {
+    public void refreshTours() {
         pendingCalls = 2;
         _loading.setValue(true);
 

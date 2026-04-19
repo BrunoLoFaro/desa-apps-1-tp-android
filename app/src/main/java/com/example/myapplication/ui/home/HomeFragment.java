@@ -5,10 +5,12 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import com.example.myapplication.ui.home.viewmodel.HomeViewModel;
@@ -46,6 +48,23 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
+
+        View searchBarCard = view.findViewById(R.id.search_bar_card);
+        EditText searchEditText = view.findViewById(R.id.search_edit_text);
+        View.OnClickListener openExplore = v -> {
+            if (navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getId() == R.id.exploreFragment) {
+                return;
+            }
+            navController.navigate(R.id.exploreFragment);
+        };
+        if (searchBarCard != null) searchBarCard.setOnClickListener(openExplore);
+        if (searchEditText != null) {
+            searchEditText.setOnClickListener(openExplore);
+            searchEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) openExplore.onClick(v);
+            });
+        }
 
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(
@@ -98,19 +117,25 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
     }
 
     private void toggleTheme() {
-        int currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode();
-        if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) {
-            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
-                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+        int currentMode = AppCompatDelegate.getDefaultNightMode();
+        if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         } else {
-            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
-                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         }
     }
 
     private void logout() {
         homeViewModel.logout();
         navController.navigate(R.id.action_homeFragment_to_loginFragment);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (homeViewModel != null && homeViewModel.hasValidSession()) {
+            homeViewModel.refreshTours();
+        }
     }
 
     @Override
