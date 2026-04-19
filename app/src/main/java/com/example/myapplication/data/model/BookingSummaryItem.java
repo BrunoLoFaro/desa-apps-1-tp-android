@@ -10,10 +10,12 @@ public class BookingSummaryItem {
     private final String destination;
     private final String guideName;
     private final int durationMinutes;
+    private final String imageUrl;
 
     public BookingSummaryItem(Long id, Long activityId, String activityName, String status,
                               String date, String price,
-                              String destination, String guideName, int durationMinutes) {
+                              String destination, String guideName, int durationMinutes,
+                              String imageUrl) {
         this.id = id;
         this.activityId = activityId;
         this.activityName = activityName;
@@ -23,6 +25,7 @@ public class BookingSummaryItem {
         this.destination = destination;
         this.guideName = guideName;
         this.durationMinutes = durationMinutes;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() { return id; }
@@ -34,4 +37,5 @@ public class BookingSummaryItem {
     public String getDestination() { return destination; }
     public String getGuideName() { return guideName; }
     public int getDurationMinutes() { return durationMinutes; }
+    public String getImageUrl() { return imageUrl; }
 }

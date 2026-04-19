@@ -32,4 +32,7 @@ public class BookingSummaryItemResponse {
 
     @Json(name = "durationMinutes")
     public int durationMinutes;
+
+    @Json(name = "imageUrl")
+    public String imageUrl;
 }

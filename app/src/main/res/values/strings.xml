@@ -131,6 +131,7 @@
     <string name="history_filter_from">Desde</string>
     <string name="history_filter_to">Hasta</string>
     <string name="history_filter_clear">Limpiar</string>
+    <string name="history_filter_search">Buscar</string>
     <string name="history_guide_prefix">Guía: %s</string>
     <string name="profile_no_completed_activities">Sin actividades finalizadas.</string>
 

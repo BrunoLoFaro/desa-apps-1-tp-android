@@ -233,7 +233,8 @@ public class ProfileRepository extends BaseRepository {
                     date, price,
                     item.destination != null ? item.destination : "",
                     item.guideName != null ? item.guideName : "",
-                    item.durationMinutes));
+                    item.durationMinutes,
+                    item.imageUrl));
         }
         return result;
     }

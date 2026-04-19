@@ -23,7 +23,6 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
-import com.example.myapplication.util.SimpleTextWatcher;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -61,7 +60,8 @@ public class BookingsFragment extends Fragment {
     private AutoCompleteTextView filterDestination;
     private TextInputEditText filterFromDate;
     private TextInputEditText filterToDate;
-    private MaterialButton btnClearFilters;
+    private MaterialButton btnBuscar;
+    private MaterialButton btnLimpiar;
 
     @Nullable
     @Override
@@ -102,7 +102,8 @@ public class BookingsFragment extends Fragment {
         filterDestination = view.findViewById(R.id.filter_destination);
         filterFromDate    = view.findViewById(R.id.filter_from_date);
         filterToDate      = view.findViewById(R.id.filter_to_date);
-        btnClearFilters   = view.findViewById(R.id.btn_clear_filters);
+        btnBuscar         = view.findViewById(R.id.btn_buscar);
+        btnLimpiar        = view.findViewById(R.id.btn_limpiar);
     }
 
     private void setupAdapters(@NonNull View view) {
@@ -116,37 +117,50 @@ public class BookingsFragment extends Fragment {
     }
 
     private void setupFilters() {
-        filterDestination.addTextChangedListener(new SimpleTextWatcher() {
+        filterDestination.addTextChangedListener(new com.example.myapplication.util.SimpleTextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                viewModel.setFilterDestination(s.toString());
-                updateClearButtonVisibility();
+                updateBuscarState();
             }
         });
 
         filterFromDate.setOnClickListener(v -> showDatePicker(true));
         filterToDate.setOnClickListener(v -> showDatePicker(false));
 
-        btnClearFilters.setOnClickListener(v -> {
+        btnBuscar.setOnClickListener(v -> {
+            String dest = filterDestination.getText() != null
+                    ? filterDestination.getText().toString() : "";
+            String from = filterFromDate.getText() != null
+                    ? filterFromDate.getText().toString() : "";
+            String to = filterToDate.getText() != null
+                    ? filterToDate.getText().toString() : "";
+            viewModel.setFilterDestination(dest);
+            viewModel.setFilterFrom(from);
+            viewModel.setFilterTo(to);
+            btnLimpiar.setVisibility(hasAnyFilter() ? View.VISIBLE : View.GONE);
+        });
+
+        btnLimpiar.setOnClickListener(v -> {
             filterDestination.setText("");
             filterFromDate.setText("");
             filterToDate.setText("");
             viewModel.clearFilters();
-            updateClearButtonVisibility();
+            btnLimpiar.setVisibility(View.GONE);
+            updateBuscarState();
         });
     }
 
-    private void updateClearButtonVisibility() {
-        boolean hasFilter =
-                (filterDestination != null && filterDestination.getText() != null
-                        && !filterDestination.getText().toString().isEmpty())
-                || (filterFromDate != null && filterFromDate.getText() != null
-                        && !filterFromDate.getText().toString().isEmpty())
-                || (filterToDate != null && filterToDate.getText() != null
-                        && !filterToDate.getText().toString().isEmpty());
-        if (btnClearFilters != null) {
-            btnClearFilters.setVisibility(hasFilter ? View.VISIBLE : View.GONE);
-        }
+    private boolean hasAnyFilter() {
+        return (filterDestination != null && filterDestination.getText() != null
+                && !filterDestination.getText().toString().isEmpty())
+            || (filterFromDate != null && filterFromDate.getText() != null
+                && !filterFromDate.getText().toString().isEmpty())
+            || (filterToDate != null && filterToDate.getText() != null
+                && !filterToDate.getText().toString().isEmpty());
+    }
+
+    private void updateBuscarState() {
+        if (btnBuscar != null) btnBuscar.setEnabled(hasAnyFilter());
     }
 
     private void setupTabs(@NonNull View view) {
@@ -312,12 +326,10 @@ public class BookingsFragment extends Fragment {
                     String date = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day);
                     if (isFrom) {
                         filterFromDate.setText(date);
-                        viewModel.setFilterFrom(date);
                     } else {
                         filterToDate.setText(date);
-                        viewModel.setFilterTo(date);
                     }
-                    updateClearButtonVisibility();
+                    updateBuscarState();
                 },
                 cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
         ).show();
@@ -338,7 +350,8 @@ public class BookingsFragment extends Fragment {
         filterDestination = null;
         filterFromDate    = null;
         filterToDate      = null;
-        btnClearFilters   = null;
+        btnBuscar         = null;
+        btnLimpiar        = null;
         super.onDestroyView();
     }
 
