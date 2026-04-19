@@ -216,7 +216,6 @@ public class BookingsFragment extends Fragment {
                         Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
         viewModel.getMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null) {

@@ -96,14 +96,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         });
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (homeViewModel != null) {
-            homeViewModel.reloadRecommended();
-        }
-    }
-
     private boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_logout) {

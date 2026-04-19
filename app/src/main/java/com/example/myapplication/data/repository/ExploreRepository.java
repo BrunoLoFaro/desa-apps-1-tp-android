@@ -12,11 +12,11 @@ import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.CatalogMetaService;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -107,8 +107,8 @@ public class ExploreRepository {
         for (ActivitySummaryResponse item : items) {
             String destination = item.destination != null ? item.destination.name : "";
             String normalizedCategory = item.category != null ? item.category.replace("_", " ") : "";
-            String duration = formatDuration(item.durationMinutes);
-            String price = formatPrice(item.price, item.currency);
+            String duration = FormatUtils.formatDuration(item.durationMinutes);
+            String price = FormatUtils.formatPrice(item.price, item.currency);
 
             TourActivity activity = new TourActivity(item.name, destination, normalizedCategory, duration, price,
                     item.availableSpots, null);
@@ -152,20 +152,6 @@ public class ExploreRepository {
         String base = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
         String path = relativePath != null ? relativePath : "";
         return HttpUrl.parse(base + path);
-    }
-
-    private static String formatDuration(int minutes) {
-        if (minutes < 60) return minutes + " min";
-        int hours = minutes / 60;
-        int remaining = minutes % 60;
-        if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
-        return hours + " h " + remaining + " min";
-    }
-
-    private static String formatPrice(double price, String currency) {
-        if (price <= 0) return "Gratis";
-        String symbol = "ARS".equals(currency) ? "$" : (currency == null ? "" : currency + " ");
-        return symbol + String.format(Locale.US, "%.2f", price);
     }
 
     private <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
