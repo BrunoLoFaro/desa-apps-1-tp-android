@@ -1,6 +1,9 @@
 package com.example.myapplication.ui.profile;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.widget.ImageView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +19,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.myapplication.R;
@@ -33,8 +38,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 
 @AndroidEntryPoint
 public class ProfileFragment extends Fragment {
@@ -43,6 +46,7 @@ public class ProfileFragment extends Fragment {
     private NavController navController;
 
     private ActivityResultLauncher<String> pickImageLauncher;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     private ShapeableImageView profilePhoto;
     private TextView emailText;
@@ -86,7 +90,21 @@ public class ProfileFragment extends Fragment {
 
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
-                uri -> { if (uri != null) viewModel.setSelectedPhotoUri(uri); }
+                uri -> {
+                    if (uri != null) viewModel.setSelectedPhotoUri(uri);
+                }
+        );
+
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (Boolean.TRUE.equals(isGranted)) {
+                        openGallery();
+                    } else {
+                        Toast.makeText(requireContext(),
+                                R.string.error_permission_denied, Toast.LENGTH_SHORT).show();
+                    }
+                }
         );
     }
 
@@ -108,7 +126,7 @@ public class ProfileFragment extends Fragment {
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> openGallery());
+        view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
         linkVerTodas.setOnClickListener(v ->
                 navController.navigate(R.id.action_profileFragment_to_bookingsFragment));
@@ -316,6 +334,18 @@ public class ProfileFragment extends Fragment {
 
     private String getText(TextInputEditText field) {
         return field.getText() != null ? field.getText().toString().trim() : "";
+    }
+
+    private void checkPermissionAndOpenGallery() {
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+        if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                == PackageManager.PERMISSION_GRANTED) {
+            openGallery();
+        } else {
+            requestPermissionLauncher.launch(permission);
+        }
     }
 
     private void openGallery() {
