@@ -10,9 +10,7 @@ import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
-import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -102,7 +100,7 @@ public class TourRepository {
             public void onResponse(Call<ActivitiesPageResponse> c, Response<ActivitiesPageResponse> response) {
                 activeCalls.remove(c);
                 if (response.isSuccessful() && response.body() != null && response.body().items != null) {
-                    callback.onSuccess(mapToTourActivities(response.body().items));
+                    callback.onSuccess(ExploreRepository.mapToTourActivities(response.body().items));
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
                 }
@@ -137,23 +135,6 @@ public class TourRepository {
                 callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
             }
         });
-    }
-
-    private List<TourActivity> mapToTourActivities(List<ActivitySummaryResponse> items) {
-        List<TourActivity> result = new ArrayList<>(items.size());
-        for (ActivitySummaryResponse item : items) {
-            String destination = item.destination != null ? item.destination.name : "";
-            String category = item.category != null ? item.category.replace("_", " ") : "";
-            String duration = FormatUtils.formatDuration(item.durationMinutes);
-            String price = FormatUtils.formatPrice(item.price, item.currency);
-            TourActivity activity = new TourActivity(item.name, destination, category, duration, price,
-                    item.availableSpots, null);
-            activity.setId(item.id);
-            if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
-            if (item.reviewCount != null) activity.setReviewsCount(item.reviewCount.intValue());
-            result.add(activity);
-        }
-        return result;
     }
 
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {

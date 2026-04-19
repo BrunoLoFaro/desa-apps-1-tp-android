@@ -68,7 +68,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         String destination = booking.destination != null ? booking.destination.name : "";
         holder.subtitle.setText(destination);
 
-        holder.dateTime.setText(formatStartTime(booking.sessionStartTime));
+        holder.dateTime.setText(FormatUtils.formatStartTime(booking.sessionStartTime));
 
         holder.duration.setText(FormatUtils.formatDuration(booking.durationMinutes));
 
@@ -102,13 +102,6 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     @Override
     public int getItemCount() {
         return bookings.size();
-    }
-
-    private static String formatStartTime(String iso) {
-        if (iso == null) return "";
-        String value = iso.replace("T", " ");
-        if (value.length() >= 16) return value.substring(0, 16);
-        return value;
     }
 
     private static boolean isWithinReviewWindow(String sessionStartIso, int durationMinutes) {

@@ -32,4 +32,11 @@ public final class FormatUtils {
         if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
         return hours + " h " + remaining + " min";
     }
+
+    public static String formatStartTime(String iso) {
+        if (iso == null) return "";
+        String value = iso.replace("T", " ");
+        if (value.length() >= 16) return value.substring(0, 16);
+        return value;
+    }
 }
