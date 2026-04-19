@@ -2,8 +2,6 @@ package com.example.myapplication.ui.bookings;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,18 +23,25 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
+import com.example.myapplication.util.SimpleTextWatcher;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 @AndroidEntryPoint
 public class BookingsFragment extends Fragment {
+
+    private static final String[] MONTHS =
+            {"ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"};
 
     private BookingsViewModel viewModel;
 
@@ -80,7 +85,6 @@ public class BookingsFragment extends Fragment {
         setupTabs(view);
         observeViewModel(view);
 
-        // Carga inicial: Activas (CONFIRMED)
         viewModel.loadMyBookings("CONFIRMED");
     }
 
@@ -112,13 +116,12 @@ public class BookingsFragment extends Fragment {
     }
 
     private void setupFilters() {
-        filterDestination.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+        filterDestination.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.setFilterDestination(s.toString());
                 updateClearButtonVisibility();
             }
-            @Override public void afterTextChanged(Editable s) {}
         });
 
         filterFromDate.setOnClickListener(v -> showDatePicker(true));
@@ -169,7 +172,6 @@ public class BookingsFragment extends Fragment {
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
 
-        // Restaurar tab al volver de otra pantalla
         int savedTab = viewModel.getSelectedTab();
         if (savedTab == 1) {
             TabLayout.Tab tab = tabLayout.getTabAt(1);
@@ -180,13 +182,11 @@ public class BookingsFragment extends Fragment {
     private void observeViewModel(@NonNull View view) {
         viewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
             activasLoading.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE);
-            if (!Boolean.TRUE.equals(loading)) {
-                // empty state handled in bookings observer
-            }
         });
 
         viewModel.getBookings().observe(getViewLifecycleOwner(), bookings -> {
-            bookingAdapter.updateData(bookings);
+            List<BookingListItem> grouped = buildGroupedList(bookings);
+            bookingAdapter.updateData(grouped);
             boolean empty = bookings == null || bookings.isEmpty();
             activasEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
             activasRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
@@ -224,6 +224,58 @@ public class BookingsFragment extends Fragment {
             }
         });
     }
+
+    // ── Grouping ─────────────────────────────────────────────────────────────
+
+    private List<BookingListItem> buildGroupedList(List<BookingResponse> bookings) {
+        if (bookings == null || bookings.isEmpty()) return Collections.emptyList();
+
+        String todayStr = LocalDate.now().toString();
+
+        List<BookingResponse> todayItems = new ArrayList<>();
+        List<BookingResponse> upcomingItems = new ArrayList<>();
+
+        for (BookingResponse b : bookings) {
+            String dateStr = b.sessionStartTime != null && b.sessionStartTime.length() >= 10
+                    ? b.sessionStartTime.substring(0, 10) : null;
+            if (todayStr.equals(dateStr)) {
+                todayItems.add(b);
+            } else {
+                upcomingItems.add(b);
+            }
+        }
+
+        List<BookingListItem> result = new ArrayList<>();
+
+        // Hoy first
+        if (!todayItems.isEmpty()) {
+            result.add(new BookingListItem.SectionHeader(getString(R.string.bookings_section_hoy), true));
+            for (BookingResponse b : todayItems) result.add(toBookingItem(b, true));
+        }
+
+        // Próximas after
+        if (!upcomingItems.isEmpty()) {
+            result.add(new BookingListItem.SectionHeader(getString(R.string.bookings_section_proximas), false));
+            for (BookingResponse b : upcomingItems) result.add(toBookingItem(b, false));
+        }
+
+        return result;
+    }
+
+    private BookingListItem.BookingItem toBookingItem(BookingResponse booking, boolean isToday) {
+        String dayNumber = "";
+        String monthAbbr = "";
+        if (booking.sessionStartTime != null && booking.sessionStartTime.length() >= 10) {
+            try {
+                String[] parts = booking.sessionStartTime.substring(0, 10).split("-");
+                dayNumber = parts[2];
+                monthAbbr = MONTHS[Integer.parseInt(parts[1]) - 1];
+            } catch (Exception ignored) {}
+        }
+        return new BookingListItem.BookingItem(booking, dayNumber, monthAbbr, isToday);
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
 
     private void navigateToDetail(BookingResponse booking) {
         if (booking.activityId == null) return;
@@ -290,25 +342,6 @@ public class BookingsFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void confirmCancel(BookingResponse booking) {
-        if (booking == null || booking.id == null) return;
-
-        String policy = booking.cancellationPolicy;
-        if (policy == null || policy.trim().isEmpty()) {
-            policy = getString(R.string.cancel_booking_policy_unknown);
-        }
-
-        String activityName = booking.activityName != null ? booking.activityName : "";
-        String message = getString(R.string.cancel_booking_message, activityName, policy);
-
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.cancel_booking_title)
-                .setMessage(message)
-                .setNegativeButton(R.string.cancel_booking_back, (d, which) -> d.dismiss())
-                .setPositiveButton(R.string.cancel_booking_confirm, (d, which) -> viewModel.cancelBooking(booking.id))
-                .show();
-    }
-
     private void showReviewDialog(BookingResponse booking) {
         if (booking == null || booking.id == null) return;
 
@@ -319,9 +352,7 @@ public class BookingsFragment extends Fragment {
 
         String title = getString(R.string.review_title);
         String activityName = booking.activityName != null ? booking.activityName.trim() : "";
-        if (!activityName.isEmpty()) {
-            title = activityName;
-        }
+        if (!activityName.isEmpty()) title = activityName;
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(title)
