@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (destId == R.id.homeFragment) {
-                    bottomNav.getMenu().findItem(R.id.nav_home).setChecked(true);
+                    bottomNav.getMenu().findItem(R.id.homeFragment).setChecked(true);
                 } else if (destId == R.id.exploreFragment) {
                     bottomNav.getMenu().findItem(R.id.nav_explore).setChecked(true);
                 } else if (destId == R.id.bookingsFragment) {

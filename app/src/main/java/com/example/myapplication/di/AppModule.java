@@ -7,6 +7,7 @@ import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
+import com.example.myapplication.data.network.CatalogMetaService;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;

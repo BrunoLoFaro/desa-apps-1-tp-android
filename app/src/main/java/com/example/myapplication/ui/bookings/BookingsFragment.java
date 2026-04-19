@@ -102,7 +102,7 @@ public class BookingsFragment extends Fragment {
     }
 
     private void setupAdapters(@NonNull View view) {
-        bookingAdapter = new BookingAdapter(viewModel::cancelBooking, this::showReviewDialog);
+        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialog);
         bookingAdapter.setOnDetailClickListener(this::navigateToDetail);
         activasRecycler.setAdapter(bookingAdapter);
 
