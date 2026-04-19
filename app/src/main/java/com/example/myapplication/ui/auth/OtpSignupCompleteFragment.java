@@ -29,6 +29,10 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
 
     private String email;
     private String code;
+    private String prefillPassword;
+    private String prefillFirstName;
+    private String prefillLastName;
+    private String prefillDni;
     private SignupViewModel viewModel;
 
     @Nullable
@@ -43,6 +47,10 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         if (getArguments() != null) {
             email = getArguments().getString("email");
             code = getArguments().getString("code");
+            prefillPassword = getArguments().getString("password");
+            prefillFirstName = getArguments().getString("firstName");
+            prefillLastName = getArguments().getString("lastName");
+            prefillDni = getArguments().getString("dni");
         }
 
         passwordEditText = view.findViewById(R.id.otp_signup_complete_password_edit_text);
@@ -62,6 +70,11 @@ public class OtpSignupCompleteFragment extends BaseAuthFragment {
         viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
         completeButton.setOnClickListener(v -> completeRegistration());
+
+        if (prefillPassword != null) passwordEditText.setText(prefillPassword);
+        if (prefillFirstName != null) firstNameEditText.setText(prefillFirstName);
+        if (prefillLastName != null) lastNameEditText.setText(prefillLastName);
+        if (prefillDni != null) dniEditText.setText(prefillDni);
 
         viewModel.getOtpCompleteState().observe(getViewLifecycleOwner(), state -> {
             completeButton.setEnabled(!state.isLoading);

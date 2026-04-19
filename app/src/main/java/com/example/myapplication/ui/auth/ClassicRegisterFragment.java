@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.ui.auth.viewmodel.ClassicRegisterViewModel;
+import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -36,7 +36,7 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
 
-    private ClassicRegisterViewModel viewModel;
+    private SignupViewModel viewModel;
 
     @Nullable
     @Override
@@ -66,13 +66,13 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        viewModel = new ViewModelProvider(this).get(ClassicRegisterViewModel.class);
+        // Activity-scoped to reuse the same OTP state used by SignupFragment.
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
         registerButton.setOnClickListener(v -> attemptClassicRegister());
-
         setupTextWatchers();
 
-        viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
             registerButton.setEnabled(!state.isLoading);
             emailEditText.setEnabled(!state.isLoading);
             passwordEditText.setEnabled(!state.isLoading);
@@ -81,25 +81,42 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
             dniEditText.setEnabled(!state.isLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
-            if (state.error != null) {
-                showError(state.error.resolve(requireContext()));
-                viewModel.errorConsumed();
+            if (state.isLoading) {
+                clearAllErrors();
             }
-            if (state.navigateToHome) {
-                navigateToHome();
-                viewModel.navigationConsumed();
+
+            if (state.error != null) {
+                emailInputLayout.setError(state.error.resolve(requireContext()));
+                viewModel.requestOtpErrorConsumed();
+            }
+
+            if (state.navigateToOtpCode) {
+                Bundle args = new Bundle();
+                args.putString("email", safeText(emailEditText));
+                args.putString("password", safeText(passwordEditText));
+                args.putString("firstName", safeText(firstNameEditText));
+                args.putString("lastName", safeText(lastNameEditText));
+                args.putString("dni", safeText(dniEditText));
+                navController.navigate(R.id.action_classicRegisterFragment_to_otpSignupCodeFragment, args);
+                viewModel.requestOtpNavigationConsumed();
             }
         });
     }
 
     private void setupTextWatchers() {
         TextWatcher watcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 clearAllErrors();
             }
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         };
+
         emailEditText.addTextChangedListener(watcher);
         passwordEditText.addTextChangedListener(watcher);
         firstNameEditText.addTextChangedListener(watcher);
@@ -115,40 +132,54 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         dniInputLayout.setError(null);
     }
 
-    @Override
-    protected void navigateToHome() {
-        navController.navigate(R.id.action_classicRegisterFragment_to_homeFragment);
-    }
-
     private void attemptClassicRegister() {
-        String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
-        String password = passwordEditText.getText() != null ? passwordEditText.getText().toString() : "";
-        String firstName = firstNameEditText.getText() != null ? firstNameEditText.getText().toString().trim() : "";
-        String lastName = lastNameEditText.getText() != null ? lastNameEditText.getText().toString().trim() : "";
-        String dni = dniEditText.getText() != null ? dniEditText.getText().toString().trim() : "";
+        String email = safeText(emailEditText);
+        String password = safeText(passwordEditText);
+        String firstName = safeText(firstNameEditText);
+        String lastName = safeText(lastNameEditText);
+        String dni = safeText(dniEditText);
 
         clearAllErrors();
         if (validateFields(email, password, firstName, lastName, dni)) {
-            viewModel.register(email, password, firstName, lastName, dni);
+            viewModel.requestSignupOtp(email);
         }
     }
 
+    private String safeText(TextInputEditText editText) {
+        return editText.getText() != null ? editText.getText().toString().trim() : "";
+    }
+
     private boolean validateFields(String email, String password, String firstName,
-                                  String lastName, String dni) {
+                                   String lastName, String dni) {
         String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
-        if (errEmail != null) { emailInputLayout.setError(errEmail); return false; }
+        if (errEmail != null) {
+            emailInputLayout.setError(errEmail);
+            return false;
+        }
 
         String errPass = AuthInputValidator.validatePassword(requireContext(), password);
-        if (errPass != null) { passwordInputLayout.setError(errPass); return false; }
+        if (errPass != null) {
+            passwordInputLayout.setError(errPass);
+            return false;
+        }
 
         String errFirst = AuthInputValidator.validateFirstName(requireContext(), firstName);
-        if (errFirst != null) { firstNameInputLayout.setError(errFirst); return false; }
+        if (errFirst != null) {
+            firstNameInputLayout.setError(errFirst);
+            return false;
+        }
 
         String errLast = AuthInputValidator.validateLastName(requireContext(), lastName);
-        if (errLast != null) { lastNameInputLayout.setError(errLast); return false; }
+        if (errLast != null) {
+            lastNameInputLayout.setError(errLast);
+            return false;
+        }
 
         String errDni = AuthInputValidator.validateDni(requireContext(), dni);
-        if (errDni != null) { dniInputLayout.setError(errDni); return false; }
+        if (errDni != null) {
+            dniInputLayout.setError(errDni);
+            return false;
+        }
 
         return true;
     }
