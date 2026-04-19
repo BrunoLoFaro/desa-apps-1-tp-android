@@ -7,32 +7,28 @@ import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.ActivityDetailResponse;
-import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import retrofit2.Call;
 import retrofit2.Response;
 
 @Singleton
-public class TourRepository {
+public class TourRepository extends BaseRepository {
 
     private final ActivityService activityService;
     private final ConfigLoader configLoader;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public TourRepository(ActivityService activityService, ConfigLoader configLoader,
                           NetworkErrorParser errorParser) {
+        super(errorParser);
         this.activityService = activityService;
         this.configLoader = configLoader;
-        this.errorParser = errorParser;
     }
 
     public void getFeaturedTours(RepositoryCallback<List<TourActivity>> callback) {
@@ -63,32 +59,7 @@ public class TourRepository {
     public void getCategories(RepositoryCallback<List<String>> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        Call<List<String>> call = activityService.getCategories(config.categoriesEndpoint);
-        activeCalls.add(call);
-        call.enqueue(new retrofit2.Callback<List<String>>() {
-            @Override
-            public void onResponse(Call<List<String>> c, Response<List<String>> response) {
-                activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
-                } else {
-                    callback.onError(errorParser.getErrorMessage(response, R.string.error_load_activities));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<String>> c, Throwable t) {
-                activeCalls.remove(c);
-                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
-            }
-        });
-    }
-
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
+        enqueue(activityService.getCategories(config.categoriesEndpoint), callback, R.string.error_load_activities);
     }
 
     private void enqueuePage(Call<ActivitiesPageResponse> call,

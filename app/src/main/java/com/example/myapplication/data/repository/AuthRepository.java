@@ -15,35 +15,22 @@ import com.example.myapplication.data.model.PasswordResetConfirmRequest;
 import com.example.myapplication.data.model.RegisterRequest;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.util.NetworkErrorParser;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import retrofit2.Call;
-import retrofit2.Response;
 
-/**
- * Single source of truth for all authentication network calls.
- * Receives AuthService via Hilt DI — no manual Retrofit creation.
- * Uses CopyOnWriteArrayList for thread-safe call tracking.
- */
 @Singleton
-public class AuthRepository {
+public class AuthRepository extends BaseRepository {
 
     private final AuthService authService;
     private final ConfigLoader configLoader;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public AuthRepository(AuthService authService, ConfigLoader configLoader,
                           NetworkErrorParser errorParser) {
+        super(errorParser);
         this.authService = authService;
         this.configLoader = configLoader;
-        this.errorParser = errorParser;
     }
-
-    // ─────────────────────────── Auth operations ────────────────────────────
 
     public void login(String email, String password, RepositoryCallback<LoginResponse> callback) {
         AppConfig config = getConfig(callback);
@@ -124,19 +111,6 @@ public class AuthRepository {
                 callback, R.string.error_password_reset_confirm_default);
     }
 
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
-    }
-
-    // ──────────────────────────── Internal helpers ───────────────────────────
-
-    /**
-     * Loads and validates the AppConfig. Returns null (and calls callback.onError)
-     * if the config is invalid. Config is loaded only once per operation.
-     */
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
         AppConfig config = configLoader.loadConfig();
         if (config == null || !config.hasValidBaseUrl()) {
@@ -144,31 +118,5 @@ public class AuthRepository {
             return null;
         }
         return config;
-    }
-
-    /**
-     * Enqueues a Retrofit call, tracks it for cancellation, and routes results
-     * through the provided RepositoryCallback — keeping all Retrofit types inside this class.
-     */
-    private <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackErrorResId) {
-        activeCalls.add(call);
-        call.enqueue(new retrofit2.Callback<T>() {
-            @Override
-            public void onResponse(Call<T> call, Response<T> response) {
-                activeCalls.remove(call);
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
-                } else {
-                    callback.onError(errorParser.getErrorMessage(response, fallbackErrorResId));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<T> call, Throwable t) {
-                activeCalls.remove(call);
-                // Ahora usamos el fallbackErrorResId específico de la acción en lugar de uno genérico de red
-                callback.onError(errorParser.getFailureMessage(t, fallbackErrorResId));
-            }
-        });
     }
 }

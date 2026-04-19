@@ -17,7 +17,6 @@ import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.HttpUrl;
@@ -25,7 +24,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 @Singleton
-public class ExploreRepository {
+public class ExploreRepository extends BaseRepository {
 
     public static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -33,18 +32,16 @@ public class ExploreRepository {
     private final CatalogMetaService metaService;
     private final ConfigLoader configLoader;
     private final SessionManager sessionManager;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public ExploreRepository(ActivityService activityService, CatalogMetaService metaService,
                              ConfigLoader configLoader, SessionManager sessionManager,
                              NetworkErrorParser errorParser) {
+        super(errorParser);
         this.activityService = activityService;
         this.metaService = metaService;
         this.configLoader = configLoader;
         this.sessionManager = sessionManager;
-        this.errorParser = errorParser;
     }
 
     public void listActivities(
@@ -92,13 +89,6 @@ public class ExploreRepository {
             return;
         }
         enqueue(metaService.listCategories(url.toString()), callback, R.string.error_network_generic);
-    }
-
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
     }
 
     public static List<TourActivity> mapToTourActivities(List<ActivitySummaryResponse> items) {
@@ -154,7 +144,8 @@ public class ExploreRepository {
         return HttpUrl.parse(base + path);
     }
 
-    private <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
+    @Override
+    protected <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
         activeCalls.add(call);
         call.enqueue(new retrofit2.Callback<T>() {
             @Override
@@ -187,4 +178,3 @@ public class ExploreRepository {
         return config;
     }
 }
-

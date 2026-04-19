@@ -39,4 +39,9 @@ public final class FormatUtils {
         if (value.length() >= 16) return value.substring(0, 16);
         return value;
     }
+
+    public static String formatDate(String iso) {
+        if (iso == null || iso.length() < 10) return iso != null ? iso : "";
+        return iso.substring(0, 10);
+    }
 }

@@ -18,7 +18,6 @@ import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.MediaType;
@@ -27,36 +26,30 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 @Singleton
-public class ProfileRepository {
+public class ProfileRepository extends BaseRepository {
 
     private final ProfileService profileService;
     private final ConfigLoader configLoader;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
     private final com.example.myapplication.data.session.SessionManager sessionManager;
 
     @Inject
     public ProfileRepository(ProfileService profileService, ConfigLoader configLoader,
                              NetworkErrorParser errorParser,
                              com.example.myapplication.data.session.SessionManager sessionManager) {
+        super(errorParser);
         this.profileService = profileService;
         this.configLoader = configLoader;
-        this.errorParser = errorParser;
         this.sessionManager = sessionManager;
     }
-
 
     public void getProfile(RepositoryCallback<UserProfileData> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         long userId = sessionManager.getUserId();
         String endpoint = config.profileEndpoint.replace("{userId}", String.valueOf(userId));
-        Call<UserProfileResponse> call = profileService.getProfile(endpoint);
-        enqueueProfile(call, callback);
+        enqueueProfile(profileService.getProfile(endpoint), callback);
     }
 
-
-    /** Actualiza datos de perfil (solo texto). La imagen se gestiona localmente en Android. */
     public void updateProfile(String firstName, String lastName, String phone,
                               RepositoryCallback<UserProfileData> callback) {
         AppConfig config = getConfig(callback);
@@ -67,8 +60,7 @@ public class ProfileRepository {
         String json = buildProfileJson(firstName, lastName, phone);
         RequestBody body = RequestBody.create(json.getBytes(), MediaType.parse("application/json"));
 
-        Call<UserProfileResponse> call = profileService.updateProfile(endpoint, body);
-        enqueueProfile(call, callback);
+        enqueueProfile(profileService.updateProfile(endpoint, body), callback);
     }
 
     private String buildProfileJson(String firstName, String lastName, String phone) {
@@ -178,7 +170,7 @@ public class ProfileRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(response.body());
                 } else if (response.code() == 404) {
-                    callback.onSuccess(null); // sin reseña aún
+                    callback.onSuccess(null);
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
                 }
@@ -192,15 +184,6 @@ public class ProfileRepository {
         });
     }
 
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
-    }
-
-    // ── Private helpers ─────────────────────────────────────────────────────────
-
     private void enqueueProfile(Call<UserProfileResponse> call,
                                 RepositoryCallback<UserProfileData> callback) {
         activeCalls.add(call);
@@ -211,7 +194,6 @@ public class ProfileRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onSuccess(mapToProfileData(response.body()));
                 } else if (response.code() == 404) {
-                    // Usuario no encontrado en backend → sesión inválida, forzar logout
                     sessionManager.triggerForceLogout();
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
@@ -232,7 +214,7 @@ public class ProfileRepository {
             r.firstName != null ? r.firstName : "",
             r.lastName != null ? r.lastName : "",
             r.phone != null ? r.phone : "",
-            null,   // imagen gestionada localmente — backend siempre retorna null
+            null,
             null,
             r.preferredCategories != null ? r.preferredCategories : Collections.emptyList(),
             r.confirmedBookings,
@@ -244,7 +226,7 @@ public class ProfileRepository {
     private List<BookingSummaryItem> mapToSummaryItems(List<BookingSummaryItemResponse> items) {
         List<BookingSummaryItem> result = new ArrayList<>(items.size());
         for (BookingSummaryItemResponse item : items) {
-            String date = formatDate(item.sessionStartTime);
+            String date = FormatUtils.formatDate(item.sessionStartTime);
             String price = FormatUtils.formatPrice(item.totalPrice, item.currency);
             result.add(new BookingSummaryItem(
                     item.id, item.activityId, item.activityName, item.status,
@@ -254,11 +236,6 @@ public class ProfileRepository {
                     item.durationMinutes));
         }
         return result;
-    }
-
-    private static String formatDate(String isoDateTime) {
-        if (isoDateTime == null || isoDateTime.length() < 10) return "";
-        return isoDateTime.substring(0, 10);
     }
 
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
