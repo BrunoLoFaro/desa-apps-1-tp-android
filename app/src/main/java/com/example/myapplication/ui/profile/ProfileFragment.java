@@ -4,7 +4,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.widget.ImageView;
 import android.os.Bundle;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +25,13 @@ import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.io.File;
+import java.time.LocalDate;
 import java.util.List;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -60,16 +61,26 @@ public class ProfileFragment extends Fragment {
     // Summary views
     private TextView statCompleted;
     private TextView statPending;
+    private TextView badgeHoy;
+    private TextView linkVerTodas;
+
     private View recentItem1;
     private View recentItem2;
     private View recentDivider;
+    private MaterialCardView recent1IconBg;
+    private MaterialCardView recent2IconBg;
     private ImageView recent1Icon;
     private ImageView recent2Icon;
     private TextView recent1Name;
+    private TextView recent1Dest;
     private TextView recent1Meta;
+    private TextView recent1Time;
+    private ImageView recent1Avatar;
     private TextView recent2Name;
+    private TextView recent2Dest;
     private TextView recent2Meta;
-    private TextView linkVerTodas;
+    private TextView recent2Time;
+    private ImageView recent2Avatar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,6 +117,7 @@ public class ProfileFragment extends Fragment {
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
         profilePhoto.setOnClickListener(v -> checkPermissionAndOpenGallery());
+        view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
         linkVerTodas.setOnClickListener(v ->
                 navController.navigate(R.id.action_profileFragment_to_bookingsFragment));
@@ -125,18 +137,28 @@ public class ProfileFragment extends Fragment {
         loadingSpinner  = view.findViewById(R.id.loading_spinner);
         scrollView      = view.findViewById(R.id.scroll_view);
 
-        statCompleted = view.findViewById(R.id.stat_completed_count);
-        statPending   = view.findViewById(R.id.stat_pending_count);
-        recentItem1   = view.findViewById(R.id.recent_item_1);
-        recentItem2   = view.findViewById(R.id.recent_item_2);
-        recentDivider = view.findViewById(R.id.recent_divider);
-        recent1Icon   = view.findViewById(R.id.recent_1_icon);
-        recent2Icon   = view.findViewById(R.id.recent_2_icon);
-        recent1Name   = view.findViewById(R.id.recent_1_name);
-        recent1Meta   = view.findViewById(R.id.recent_1_meta);
-        recent2Name   = view.findViewById(R.id.recent_2_name);
-        recent2Meta   = view.findViewById(R.id.recent_2_meta);
-        linkVerTodas  = view.findViewById(R.id.link_ver_todas);
+        statCompleted  = view.findViewById(R.id.stat_completed_count);
+        statPending    = view.findViewById(R.id.stat_pending_count);
+        badgeHoy       = view.findViewById(R.id.badge_hoy);
+        linkVerTodas   = view.findViewById(R.id.link_ver_todas);
+
+        recentItem1    = view.findViewById(R.id.recent_item_1);
+        recentItem2    = view.findViewById(R.id.recent_item_2);
+        recentDivider  = view.findViewById(R.id.recent_divider);
+        recent1IconBg  = view.findViewById(R.id.recent_1_icon_bg);
+        recent2IconBg  = view.findViewById(R.id.recent_2_icon_bg);
+        recent1Icon    = view.findViewById(R.id.recent_1_icon);
+        recent2Icon    = view.findViewById(R.id.recent_2_icon);
+        recent1Name    = view.findViewById(R.id.recent_1_name);
+        recent1Dest    = view.findViewById(R.id.recent_1_dest);
+        recent1Meta    = view.findViewById(R.id.recent_1_meta);
+        recent1Time    = view.findViewById(R.id.recent_1_time);
+        recent1Avatar  = view.findViewById(R.id.recent_1_avatar);
+        recent2Name    = view.findViewById(R.id.recent_2_name);
+        recent2Dest    = view.findViewById(R.id.recent_2_dest);
+        recent2Meta    = view.findViewById(R.id.recent_2_meta);
+        recent2Time    = view.findViewById(R.id.recent_2_time);
+        recent2Avatar  = view.findViewById(R.id.recent_2_avatar);
     }
 
     private void observeViewModel() {
@@ -215,15 +237,24 @@ public class ProfileFragment extends Fragment {
 
     private void bindRecentActivities(List<BookingSummaryItem> items) {
         if (items == null || items.isEmpty()) {
+            if (badgeHoy != null) badgeHoy.setVisibility(View.GONE);
             recentItem1.setVisibility(View.GONE);
             recentDivider.setVisibility(View.GONE);
             recentItem2.setVisibility(View.GONE);
             return;
         }
-        bindRecentItem(items.get(0), recentItem1, recent1Icon, recent1Name, recent1Meta);
+
+        BookingSummaryItem first = items.get(0);
+        boolean isFirstToday = LocalDate.now().toString().equals(first.getDate());
+        if (badgeHoy != null) badgeHoy.setVisibility(isFirstToday ? View.VISIBLE : View.GONE);
+
+        bindRecentItem(first, recentItem1,
+                recent1IconBg, recent1Icon, recent1Name, recent1Dest, recent1Meta, recent1Time, recent1Avatar);
+
         if (items.size() > 1) {
             recentDivider.setVisibility(View.VISIBLE);
-            bindRecentItem(items.get(1), recentItem2, recent2Icon, recent2Name, recent2Meta);
+            bindRecentItem(items.get(1), recentItem2,
+                    recent2IconBg, recent2Icon, recent2Name, recent2Dest, recent2Meta, recent2Time, recent2Avatar);
         } else {
             recentDivider.setVisibility(View.GONE);
             recentItem2.setVisibility(View.GONE);
@@ -231,29 +262,41 @@ public class ProfileFragment extends Fragment {
     }
 
     private void bindRecentItem(BookingSummaryItem item, View container,
-                                 ImageView icon, TextView name, TextView meta) {
+                                 MaterialCardView iconBg, ImageView icon,
+                                 TextView name, TextView dest, TextView meta,
+                                 TextView time, ImageView avatar) {
         container.setVisibility(View.VISIBLE);
         name.setText(item.getActivityName());
-        String metaText = formatStatus(item.getStatus()) + " · " + FormatUtils.formatShortDate(item.getDate());
-        meta.setText(metaText);
-        int color = metaColor(item.getStatus());
-        meta.setTextColor(color);
-        icon.setColorFilter(color);
-    }
+        dest.setText(item.getDestination());
 
-    private String formatStatus(String status) {
-        if ("COMPLETED".equals(status)) return getString(R.string.booking_status_completed);
-        if ("CANCELLED".equals(status)) return getString(R.string.booking_status_cancelled);
-        return status != null ? status : "";
-    }
+        boolean isConfirmed = "CONFIRMED".equalsIgnoreCase(item.getStatus());
 
-    private int metaColor(String status) {
-        TypedValue tv = new TypedValue();
-        int attr = "CANCELLED".equals(status)
-                ? com.google.android.material.R.attr.colorError
-                : com.google.android.material.R.attr.colorOnSurfaceVariant;
-        requireContext().getTheme().resolveAttribute(attr, tv, true);
-        return tv.data;
+        if (isConfirmed) {
+            iconBg.setCardBackgroundColor(
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_primaryContainer));
+            icon.setImageResource(R.drawable.ic_calendar);
+            icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.md_theme_primary));
+            String guide = item.getGuideName();
+            if (guide != null && !guide.isEmpty()) {
+                meta.setText(getString(R.string.history_guide_prefix, guide));
+            } else {
+                meta.setText("");
+            }
+            String t = item.getTime();
+            if (t != null && !t.isEmpty()) {
+                time.setText(t);
+                time.setVisibility(View.VISIBLE);
+            } else {
+                time.setVisibility(View.GONE);
+            }
+        } else {
+            iconBg.setCardBackgroundColor(
+                    ContextCompat.getColor(requireContext(), R.color.md_theme_primaryContainer));
+            icon.setImageResource(R.drawable.ic_check);
+            icon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.success));
+            meta.setText(getString(R.string.booking_status_completed));
+            time.setVisibility(View.GONE);
+        }
     }
 
     private void onSaveClicked() {
@@ -312,18 +355,27 @@ public class ProfileFragment extends Fragment {
         btnSave          = null;
         loadingSpinner   = null;
         scrollView       = null;
-        statCompleted = null;
-        statPending   = null;
-        recentItem1   = null;
-        recentItem2   = null;
-        recentDivider = null;
-        recent1Icon   = null;
-        recent2Icon   = null;
-        recent1Name   = null;
-        recent1Meta   = null;
-        recent2Name   = null;
-        recent2Meta   = null;
-        linkVerTodas  = null;
+        statCompleted    = null;
+        statPending      = null;
+        badgeHoy         = null;
+        linkVerTodas     = null;
+        recentItem1      = null;
+        recentItem2      = null;
+        recentDivider    = null;
+        recent1IconBg    = null;
+        recent2IconBg    = null;
+        recent1Icon      = null;
+        recent2Icon      = null;
+        recent1Name      = null;
+        recent1Dest      = null;
+        recent1Meta      = null;
+        recent1Time      = null;
+        recent1Avatar    = null;
+        recent2Name      = null;
+        recent2Dest      = null;
+        recent2Meta      = null;
+        recent2Time      = null;
+        recent2Avatar    = null;
         super.onDestroyView();
     }
 }

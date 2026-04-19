@@ -228,15 +228,22 @@ public class ProfileRepository extends BaseRepository {
         for (BookingSummaryItemResponse item : items) {
             String date = FormatUtils.formatDate(item.sessionStartTime);
             String price = FormatUtils.formatPrice(item.totalPrice, item.currency);
+            String time = extractTime(item.sessionStartTime);
             result.add(new BookingSummaryItem(
                     item.id, item.activityId, item.activityName, item.status,
                     date, price,
                     item.destination != null ? item.destination : "",
                     item.guideName != null ? item.guideName : "",
                     item.durationMinutes,
-                    item.imageUrl));
+                    item.imageUrl, time));
         }
         return result;
+    }
+
+    private static String extractTime(String iso) {
+        if (iso == null) return "";
+        String s = FormatUtils.formatStartTime(iso);
+        return s.length() >= 16 ? s.substring(11, 16) : "";
     }
 
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {
