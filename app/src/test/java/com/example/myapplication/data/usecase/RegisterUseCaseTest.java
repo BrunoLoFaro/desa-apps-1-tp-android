@@ -54,7 +54,7 @@ public class RegisterUseCaseTest {
         response.lastName = "Lopez";
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository).saveSession(eq("jwt-token"), argThat(user ->
+        verify(sessionRepository).saveSession(eq("jwt-token"), any(), argThat(user ->
                 user.id == 2L
                         && "a@b.com".equals(user.email)
                         && "Ana".equals(user.firstName)
@@ -77,7 +77,7 @@ public class RegisterUseCaseTest {
         response.token = null;
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
         verify(outerCallback).onSuccess(response);
     }
 
@@ -95,6 +95,6 @@ public class RegisterUseCaseTest {
         captor.getValue().onError(errorMsg);
 
         verify(outerCallback).onError(errorMsg);
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
     }
 }

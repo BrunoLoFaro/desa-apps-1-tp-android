@@ -134,13 +134,33 @@
         <action
             android:id="@+id/action_homeFragment_to_bookingsFragment"
             app:destination="@id/bookingsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/bookingsFragment"
         android:name="com.example.myapplication.ui.bookings.BookingsFragment"
         android:label="Bookings"
-        tools:layout="@layout/fragment_bookings" />
+        tools:layout="@layout/fragment_bookings">
+        <action
+            android:id="@+id/action_bookingsFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.myapplication.ui.profile.ProfileFragment"
+        android:label="Perfil"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_bookingsFragment"
+            app:destination="@id/bookingsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/exploreFragment"

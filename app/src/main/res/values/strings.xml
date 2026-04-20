@@ -8,6 +8,7 @@
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
     <string name="error_empty_fields">Por favor, completa todos los campos.</string>
+    <string name="error_invalid_credentials">Usuario o contraseña inválidos.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
@@ -82,6 +83,7 @@
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
+    <string name="error_load_recommended">No se pudieron cargar las actividades recomendadas.</string>
     <string name="free_label">Gratis</string>
     <string name="home_menu_logout">Cerrar sesión</string>
     <string name="action_theme_toggle">Cambiar tema</string>
@@ -107,6 +109,66 @@
 
     <string name="no_reviews">Sin reseñas</string>
 
+    <!-- Profile -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_section_personal">Datos personales</string>
+    <string name="profile_section_preferences">Mis preferencias</string>
+    <string name="profile_section_activities">Mis actividades</string>
+    <string name="profile_save_button">Guardar cambios</string>
+    <string name="profile_saved_ok">Perfil guardado correctamente.</string>
+    <string name="profile_no_activities">Sin actividades aún.</string>
+    <string name="profile_photo_desc">Foto de perfil</string>
+    <string name="phone_hint">Teléfono</string>
+    <string name="error_load_profile">No se pudo cargar el perfil.</string>
+    <string name="error_save_profile">No se pudo guardar el perfil.</string>
+    <string name="action_profile">Perfil</string>
+
+    <!-- Booking statuses -->
+    <string name="booking_status_confirmed">Reservada</string>
+    <string name="booking_status_completed">Realizada</string>
+    <string name="booking_status_cancelled">Cancelada</string>
+
+    <!-- History filters -->
+    <string name="history_filter_destination">Destino</string>
+    <string name="history_filter_from">Desde</string>
+    <string name="history_filter_to">Hasta</string>
+    <string name="history_filter_clear">Limpiar</string>
+    <string name="history_filter_search">Buscar</string>
+    <string name="history_guide_prefix">Guía: %s</string>
+    <string name="profile_no_completed_activities">Sin actividades finalizadas.</string>
+
+    <!-- Experience section -->
+    <string name="experience_rating_format">Calificación: %d/5</string>
+    <string name="experience_no_rating">Sin calificación</string>
+
+    <string name="booking_detail_button">Ver detalle</string>
+    <string name="booking_cancel_button">Cancelar</string>
+
+    <!-- Bookings tabs -->
+    <string name="bookings_tab_activas">Activas</string>
+    <string name="bookings_tab_historial">Historial</string>
+    <string name="bookings_empty_activas">No tenés reservas activas.</string>
+    <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+    <string name="bookings_section_hoy">Hoy</string>
+    <string name="bookings_section_proximas">Próximas</string>
+    <string name="booking_badge_upcoming">Próximo</string>
+
+    <!-- Profile activity summary -->
+    <string name="profile_section_summary">Resumen de actividades</string>
+    <string name="profile_stat_completed_label">finalizadas</string>
+    <string name="profile_stat_completed_sub">Actividades completadas</string>
+    <string name="profile_stat_pending_label">pendiente</string>
+    <string name="profile_stat_pending_sub">Actividades futuras</string>
+    <string name="profile_view_all_activities">Ver todas ›</string>
+
+    <!-- Activity categories -->
+    <string name="category_aventura">Aventura</string>
+    <string name="category_gastronomia">Gastronomía</string>
+    <string name="category_excursion">Excursión</string>
+    <string name="category_visita_guiada">Visita guiada</string>
+    <string name="category_free_tour">Free Tour</string>
+    <string name="category_otra">Otra</string>
+
     <string name="explore_filter_destination">Destino</string>
     <string name="explore_filter_category">Categoría</string>
     <string name="explore_filter_date">Fecha</string>
@@ -129,4 +191,5 @@
     <string name="cancel_booking_back">Volver</string>
     <string name="cancel_booking_policy_unknown">Política no disponible</string>
     <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
+    <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
 </resources>

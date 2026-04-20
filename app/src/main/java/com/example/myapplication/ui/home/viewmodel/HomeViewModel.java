@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
@@ -17,6 +18,7 @@ public class HomeViewModel extends ViewModel {
 
     private final SessionRepository sessionRepository;
     private final TourRepository tourRepository;
+    private final ProfileImageManager profileImageManager;
 
     private final MutableLiveData<List<TourActivity>> _featuredTours = new MutableLiveData<>();
     private final MutableLiveData<List<TourActivity>> _allTours = new MutableLiveData<>();
@@ -25,9 +27,11 @@ public class HomeViewModel extends ViewModel {
     private int pendingCalls = 0;
 
     @Inject
-    public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository) {
+    public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository,
+                         ProfileImageManager profileImageManager) {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
+        this.profileImageManager = profileImageManager;
         refreshTours();
     }
 
@@ -41,14 +45,28 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void logout() {
+        profileImageManager.delete(sessionRepository.getUserId());
         sessionRepository.clearSession();
+    }
+
+    public void reloadRecommended() {
+        tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
+            @Override
+            public void onSuccess(List<TourActivity> data) {
+                _featuredTours.setValue(data);
+            }
+            @Override
+            public void onError(UiMessage error) {
+                // best-effort: silent on background refresh
+            }
+        });
     }
 
     public void refreshTours() {
         pendingCalls = 2;
         _loading.setValue(true);
 
-        tourRepository.getFeaturedTours(new RepositoryCallback<List<TourActivity>>() {
+        tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
                 _featuredTours.setValue(data);

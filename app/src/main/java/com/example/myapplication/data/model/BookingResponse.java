@@ -9,6 +9,9 @@ public class BookingResponse {
     @Json(name = "sessionId")
     public Long sessionId;
 
+    @Json(name = "activityId")
+    public Long activityId;
+
     @Json(name = "activityName")
     public String activityName;
 

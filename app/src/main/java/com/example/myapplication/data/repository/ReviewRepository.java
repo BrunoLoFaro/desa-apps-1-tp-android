@@ -6,25 +6,21 @@ import com.example.myapplication.data.model.CreateReviewRequest;
 import com.example.myapplication.data.model.ReviewSummaryResponse;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.util.NetworkErrorParser;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class ReviewRepository {
+public class ReviewRepository extends BaseRepository {
 
     private final ReviewService reviewService;
     private final SessionRepository sessionRepository;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public ReviewRepository(ReviewService reviewService, SessionRepository sessionRepository,
                             NetworkErrorParser errorParser) {
+        super(errorParser);
         this.reviewService = reviewService;
         this.sessionRepository = sessionRepository;
-        this.errorParser = errorParser;
     }
 
     public void createReview(Long bookingId, int activityRating, Integer guideRating, String comment,
@@ -35,14 +31,8 @@ public class ReviewRepository {
         enqueue(reviewService.createReview(url, request), callback, R.string.error_internal_server);
     }
 
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
-    }
-
-    private <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
+    @Override
+    protected <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
         activeCalls.add(call);
         call.enqueue(new retrofit2.Callback<T>() {
             @Override
@@ -66,4 +56,3 @@ public class ReviewRepository {
         });
     }
 }
-

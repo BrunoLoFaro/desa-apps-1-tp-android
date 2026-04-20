@@ -40,7 +40,7 @@ public class RegisterUseCase {
                                     data.userId != null ? data.userId : -1L,
                                     data.email, data.firstName, data.lastName
                             );
-                            sessionRepository.saveSession(data.token, user);
+                            sessionRepository.saveSession(data.token, data.refreshToken, user);
                         }
                         callback.onSuccess(data);
                     }

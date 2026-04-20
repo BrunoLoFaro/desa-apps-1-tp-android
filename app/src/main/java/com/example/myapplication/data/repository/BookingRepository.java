@@ -8,24 +8,19 @@ import com.example.myapplication.data.model.CreateBookingRequest;
 import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
-import retrofit2.Call;
-import retrofit2.Response;
 
-public class BookingRepository {
+public class BookingRepository extends BaseRepository {
 
     private final BookingService bookingService;
     private final SessionRepository sessionRepository;
-    private final NetworkErrorParser errorParser;
-    private final List<Call<?>> activeCalls = new CopyOnWriteArrayList<>();
 
     @Inject
     public BookingRepository(BookingService bookingService, SessionRepository sessionRepository,
                              NetworkErrorParser errorParser) {
+        super(errorParser);
         this.bookingService = bookingService;
         this.sessionRepository = sessionRepository;
-        this.errorParser = errorParser;
     }
 
     public void createBooking(Long sessionId, int participants, RepositoryCallback<BookingResponse> callback) {
@@ -58,36 +53,5 @@ public class BookingRepository {
         long userId = sessionRepository.getUserId();
         String url = "users/" + userId + "/bookings/" + bookingId;
         enqueue(bookingService.cancelBooking(url), callback, R.string.error_internal_server);
-    }
-
-    public void cancelAll() {
-        for (Call<?> call : activeCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-        activeCalls.clear();
-    }
-
-    private <T> void enqueue(Call<T> call, RepositoryCallback<T> callback, int fallbackResId) {
-        activeCalls.add(call);
-        call.enqueue(new retrofit2.Callback<T>() {
-            @Override
-            public void onResponse(Call<T> c, Response<T> response) {
-                activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null) {
-                    callback.onSuccess(response.body());
-                } else {
-                    if (response.code() == 401) {
-                        sessionRepository.clearSession();
-                    }
-                    callback.onError(errorParser.getErrorMessage(response, fallbackResId));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<T> c, Throwable t) {
-                activeCalls.remove(c);
-                callback.onError(errorParser.getFailureMessage(t, fallbackResId));
-            }
-        });
     }
 }

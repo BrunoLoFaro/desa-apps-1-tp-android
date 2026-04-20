@@ -8,10 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.ActivitySessionResponse;
+import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.card.MaterialCardView;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionViewHolder> {
 
@@ -49,10 +49,10 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
     public void onBindViewHolder(@NonNull SessionViewHolder holder, int position) {
         ActivitySessionResponse session = sessions.get(position);
 
-        holder.dateTime.setText(formatStartTime(session.startTime));
+        holder.dateTime.setText(FormatUtils.formatStartTime(session.startTime));
         holder.spots.setText(holder.itemView.getContext().getString(
                 R.string.slots_available, Math.max(0, session.availableSpots)));
-        holder.price.setText(formatPrice(session.price));
+        holder.price.setText(FormatUtils.formatPrice(session.price, "ARS"));
 
         holder.itemView.setSelected(position == selectedPosition);
         if (holder.card != null) {
@@ -76,18 +76,6 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
     @Override
     public int getItemCount() {
         return sessions.size();
-    }
-
-    private static String formatStartTime(String iso) {
-        if (iso == null) return "";
-        String value = iso.replace("T", " ");
-        if (value.length() >= 16) return value.substring(0, 16);
-        return value;
-    }
-
-    private static String formatPrice(double price) {
-        if (price <= 0) return "Gratis";
-        return String.format(Locale.US, "$%.2f", price);
     }
 
     static class SessionViewHolder extends RecyclerView.ViewHolder {
