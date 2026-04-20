@@ -15,27 +15,33 @@ import retrofit2.Response;
 public class NetworkErrorParser {
 
     private final JsonAdapter<ApiErrorResponse> adapter;
+    private final ErrorTranslator errorTranslator;
 
     @Inject
-    public NetworkErrorParser(Moshi moshi) {
+    public NetworkErrorParser(Moshi moshi, ErrorTranslator errorTranslator) {
         this.adapter = moshi.adapter(ApiErrorResponse.class);
+        this.errorTranslator = errorTranslator;
     }
 
     /**
      * Parses an HTTP error response into a UiMessage.
-     * Returns a StringMessage with the server's error text when available,
-     * or a ResMessage with the fallback resource ID otherwise.
      */
     public UiMessage getErrorMessage(Response<?> response, int fallbackResId) {
         if (response == null) {
             return UiMessage.from(fallbackResId);
         }
 
-        // Si es un error 500 (Internal Server Error), usamos un mensaje amigable
-        if (response.code() == 500) {
-            return UiMessage.from(R.string.error_internal_server);
+        // 1. Handle by HTTP Status Code first (Global Policy)
+        switch (response.code()) {
+            case 401:
+                return UiMessage.from(R.string.error_invalid_credentials);
+            case 403:
+                return UiMessage.from(R.string.error_invalid_config);
+            case 500:
+                return UiMessage.from(R.string.error_internal_server);
         }
 
+        // 2. Try to parse and translate the server's specific message
         try (ResponseBody errorBody = response.errorBody()) {
             if (errorBody != null) {
                 String errorJson = errorBody.string();
@@ -46,13 +52,23 @@ public class NetworkErrorParser {
 
                 if (errorJson != null && !errorJson.isEmpty()) {
                     ApiErrorResponse apiError = adapter.fromJson(errorJson);
-                    if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
-                        return UiMessage.from(apiError.message.trim());
+                    if (apiError != null) {
+                        String serverMsg = apiError.message != null ? apiError.message.trim() : apiError.error;
+                        
+                        if (serverMsg != null && !serverMsg.isEmpty()) {
+                            String url = response.raw().request().url().toString();
+                            int translatedResId = errorTranslator.translate(serverMsg, url);
+
+                            if (translatedResId != -1) {
+                                return UiMessage.from(translatedResId);
+                            }
+                            return UiMessage.from(serverMsg);
+                        }
                     }
                 }
             }
         } catch (Exception e) {
-            Log.e("NetworkErrorParser", "Error al parsear el cuerpo del error", e);
+            Log.e("NetworkErrorParser", "Error parsing error body", e);
         }
 
         String message = response.message();

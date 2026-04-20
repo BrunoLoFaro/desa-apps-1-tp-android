@@ -35,6 +35,7 @@
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_invalid_credentials">Credenciales inválidas. Por favor, verificá tu email y contraseña.</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
     <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
     <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
