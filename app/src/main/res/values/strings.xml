@@ -8,6 +8,7 @@
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
     <string name="error_empty_fields">Por favor, completa todos los campos.</string>
+    <string name="error_invalid_credentials">Usuario o contraseña inválidos.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>

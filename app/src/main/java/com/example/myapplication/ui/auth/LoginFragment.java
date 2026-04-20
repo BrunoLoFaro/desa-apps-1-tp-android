@@ -8,16 +8,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
+import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.ui.auth.viewmodel.LoginViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginFragment extends BaseAuthFragment {
 
+    private TextInputLayout emailLayout;
+    private TextInputLayout passwordLayout;
     private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
@@ -36,6 +40,8 @@ public class LoginFragment extends BaseAuthFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailLayout = view.findViewById(R.id.email_layout);
+        passwordLayout = view.findViewById(R.id.password_layout);
         emailEditText = view.findViewById(R.id.email_edit_text);
         passwordEditText = view.findViewById(R.id.password_edit_text);
         loginButton = view.findViewById(R.id.login_button);
@@ -62,7 +68,7 @@ public class LoginFragment extends BaseAuthFragment {
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
             if (state.error != null) {
-                showError(state.error.resolve(requireContext()));
+                handleError(state.error);
                 viewModel.errorConsumed();
             }
             if (state.navigateToHome) {
@@ -76,19 +82,45 @@ public class LoginFragment extends BaseAuthFragment {
         }
     }
 
+    private void handleError(UiMessage error) {
+        // En el enfoque "pro", si el error es un ResMessage que conocemos,
+        // podemos reaccionar específicamente sin comparar strings.
+        if (error instanceof UiMessage.ResMessage) {
+            int resId = ((UiMessage.ResMessage) error).resId;
+            if (resId == R.string.error_invalid_email) {
+                emailLayout.setError(getString(resId));
+                return;
+            } else if (resId == R.string.error_invalid_credentials) {
+                // Para credenciales inválidas, marcamos ambos o mostramos snackbar
+                showError(getString(resId));
+                return;
+            }
+        }
+        
+        // Fallback para otros errores (Strings del server o errores genéricos)
+        showError(error.resolve(requireContext()));
+    }
+
     @Override
     protected void navigateToHome() {
         navController.navigate(R.id.action_loginFragment_to_homeFragment);
     }
 
     private void attemptLogin() {
+        emailLayout.setError(null);
+        passwordLayout.setError(null);
+
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
         String password = passwordEditText.getText() != null
                 ? passwordEditText.getText().toString() : "";
 
-        if (email.isEmpty() || password.isEmpty()) {
-            showError(getString(R.string.error_empty_fields));
+        if (email.isEmpty()) {
+            emailLayout.setError(getString(R.string.error_empty_fields));
+            return;
+        }
+        if (password.isEmpty()) {
+            passwordLayout.setError(getString(R.string.error_empty_fields));
             return;
         }
 
@@ -97,6 +129,8 @@ public class LoginFragment extends BaseAuthFragment {
 
     @Override
     public void onDestroyView() {
+        emailLayout = null;
+        passwordLayout = null;
         emailEditText = null;
         passwordEditText = null;
         loginButton = null;
