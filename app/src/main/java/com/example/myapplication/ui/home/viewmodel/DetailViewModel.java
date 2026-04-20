@@ -13,8 +13,6 @@ import com.example.myapplication.data.repository.TourRepository;
 import com.example.myapplication.util.FormatUtils;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -46,17 +44,7 @@ public class DetailViewModel extends ViewModel {
             @Override
             public void onSuccess(ActivityDetailResponse data) {
                 _loading.setValue(false);
-                
-                List<ActivitySessionResponse> sessions = data.sessions != null ? data.sessions : new ArrayList<>();
-                
-                // Mock para "Free tour por telmo"
-                if (data.name != null && data.name.toLowerCase().contains("telmo")) {
-                    if (sessions.isEmpty()) {
-                        sessions = createMockSessions(data.id, data.basePrice);
-                    }
-                }
-                
-                _sessions.setValue(sessions);
+                _sessions.setValue(data.sessions != null ? data.sessions : Collections.emptyList());
                 _activity.setValue(mapToTourActivity(data));
             }
 
@@ -66,23 +54,6 @@ public class DetailViewModel extends ViewModel {
                 _error.setValue(error != null ? error : UiMessage.from(R.string.error_network_generic));
             }
         });
-    }
-
-    private List<ActivitySessionResponse> createMockSessions(Long activityId, Double price) {
-        List<ActivitySessionResponse> mocks = new ArrayList<>();
-        // Usamos LocalDateTime.now() asumiendo que el dispositivo tiene API 26+ 
-        // o desugaring habilitado.
-        LocalDateTime now = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0);
-        
-        for (int i = 0; i < 3; i++) {
-            ActivitySessionResponse s = new ActivitySessionResponse();
-            s.id = 2000L + i; // ID temporal para evitar colisiones
-            s.startTime = now.plusDays(i).toString();
-            s.availableSpots = 10;
-            s.price = price != null ? price : 0.0;
-            mocks.add(s);
-        }
-        return mocks;
     }
 
     @Override
