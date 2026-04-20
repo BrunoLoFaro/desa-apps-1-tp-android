@@ -89,7 +89,8 @@
     <string name="error_internal_server">Ocurrió un error en el servidor. Por favor, reintentá más tarde.</string>
 
     <string name="book_now">Reservar</string>
-    <string name="view_sessions">Ver horarios</string>
+    <string name="view_sessions">Ver fechas</string>
+    <string name="available_dates">Fechas disponibles</string>
     <string name="participants_hint">Participantes</string>
 
     <string name="bookings_filter_all">Todas</string>

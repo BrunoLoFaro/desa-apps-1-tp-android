@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_back"
-            app:title="Horarios disponibles" />
+            app:title="@string/available_dates" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
