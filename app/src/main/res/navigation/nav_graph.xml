@@ -176,6 +176,19 @@
         <argument
             android:name="activity_data"
             app:argType="com.example.myapplication.data.model.TourActivity" />
+        <action
+            android:id="@+id/action_detailFragment_to_sessionsFragment"
+            app:destination="@id/sessionsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/sessionsFragment"
+        android:name="com.example.myapplication.ui.home.SessionsFragment"
+        android:label="Horarios"
+        tools:layout="@layout/fragment_sessions">
+        <argument
+            android:name="activity_data"
+            app:argType="com.example.myapplication.data.model.TourActivity" />
     </fragment>
 
 </navigation>

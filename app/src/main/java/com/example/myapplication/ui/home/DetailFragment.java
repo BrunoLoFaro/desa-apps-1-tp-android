@@ -4,31 +4,26 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.ActivitySessionResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.model.ReviewResponse;
-import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
-import java.util.List;
 
 @AndroidEntryPoint
 public class DetailFragment extends Fragment {
@@ -40,10 +35,7 @@ public class DetailFragment extends Fragment {
     private String bookingStatus;
     private Long bookingId;
     private DetailViewModel detailViewModel;
-    private CreateBookingViewModel createBookingViewModel;
     private HistoryReviewViewModel historyReviewViewModel;
-    private SessionAdapter sessionAdapter;
-    private ActivitySessionResponse selectedSession;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,86 +64,14 @@ public class DetailFragment extends Fragment {
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
-        RecyclerView sessionsRecycler = view.findViewById(R.id.sessions_recycler_view);
-        sessionsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-        View bookingCard = view.findViewById(R.id.booking_card);
-        TextInputEditText participantsInput = view.findViewById(R.id.participants_input);
-        MaterialButton bookButton = view.findViewById(R.id.book_button);
-
-        sessionAdapter = new SessionAdapter(session -> {
-            selectedSession = session;
-            if (bookingCard != null) bookingCard.setVisibility(View.VISIBLE);
-        });
-        sessionsRecycler.setAdapter(sessionAdapter);
-
-        View sessionsTitle = view.findViewById(R.id.sessions_title);
         ProgressBar loading = view.findViewById(R.id.detail_loading_spinner);
 
         detailViewModel = new ViewModelProvider(this).get(DetailViewModel.class);
-        createBookingViewModel = new ViewModelProvider(this).get(CreateBookingViewModel.class);
         historyReviewViewModel = new ViewModelProvider(this).get(HistoryReviewViewModel.class);
-
-        if (bookButton != null) {
-            bookButton.setOnClickListener(v -> {
-                if (selectedSession == null || selectedSession.id == null) {
-                    android.widget.Toast.makeText(requireContext(), "Selecciona un horario", android.widget.Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                int participants = 1;
-                if (participantsInput != null && participantsInput.getText() != null) {
-                    String value = participantsInput.getText().toString().trim();
-                    if (!value.isEmpty()) {
-                        try {
-                            participants = Integer.parseInt(value);
-                        } catch (NumberFormatException ignored) {
-                            participants = 1;
-                        }
-                    }
-                }
-                if (participants < 1) {
-                    android.widget.Toast.makeText(requireContext(), "Participantes invalidos", android.widget.Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (selectedSession.availableSpots > 0 && participants > selectedSession.availableSpots) {
-                    android.widget.Toast.makeText(requireContext(), "No hay cupos suficientes", android.widget.Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                createBookingViewModel.create(selectedSession.id, participants);
-            });
-        }
-
-        createBookingViewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (bookButton != null) {
-                bookButton.setEnabled(!Boolean.TRUE.equals(isLoading));
-            }
-        });
-        createBookingViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
-                android.widget.Toast.makeText(requireContext(), error.resolve(requireContext()),
-                        android.widget.Toast.LENGTH_SHORT).show();
-            }
-        });
-        createBookingViewModel.getBooking().observe(getViewLifecycleOwner(), booking -> {
-            if (booking != null) {
-                android.widget.Toast.makeText(requireContext(), "Reserva creada", android.widget.Toast.LENGTH_SHORT).show();
-                // refresca cupos/sesiones
-                if (tourActivity != null && tourActivity.getId() != null) {
-                    detailViewModel.load(tourActivity.getId());
-                }
-                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
-                selectedSession = null;
-                if (bookingCard != null) bookingCard.setVisibility(View.GONE);
-                createBookingViewModel.clearBooking();
-            }
-        });
 
         View experienceSection = view.findViewById(R.id.experience_section);
 
         if (fromHistory) {
-            if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
-            sessionsRecycler.setVisibility(View.GONE);
             boolean isCompleted = "COMPLETED".equals(bookingStatus);
             if (experienceSection != null) {
                 experienceSection.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
@@ -194,27 +114,9 @@ public class DetailFragment extends Fragment {
                         }
                     }
                 });
-                detailViewModel.getSessions().observe(getViewLifecycleOwner(), sessions -> {
-                    if (fromHistory) return;
-                    populateSessions(sessions);
-                    selectedSession = null;
-                    if (bookingCard != null) bookingCard.setVisibility(View.GONE);
-                    boolean hasSessions = sessions != null && !sessions.isEmpty();
-                    if (sessionsTitle != null) sessionsTitle.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
-                    sessionsRecycler.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
-                });
 
                 detailViewModel.load(id);
-            } else {
-                if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
-                sessionsRecycler.setVisibility(View.GONE);
             }
-        }
-    }
-
-    private void populateSessions(List<ActivitySessionResponse> sessions) {
-        if (sessionAdapter != null) {
-            sessionAdapter.updateData(sessions);
         }
     }
 
@@ -235,6 +137,8 @@ public class DetailFragment extends Fragment {
         TextView meetingPoint = root.findViewById(R.id.activity_meeting_point);
         TextView includes = root.findViewById(R.id.activity_includes);
         TextView cancellation = root.findViewById(R.id.activity_cancellation);
+        
+        Button viewSessionsBtn = root.findViewById(R.id.btn_book_now_item);
 
         // Forzar visibilidad del contenedor de detalles
         if (detailedContainer != null) {
@@ -275,6 +179,15 @@ public class DetailFragment extends Fragment {
                     .centerCrop()
                     .into(image);
         }
+
+        if (viewSessionsBtn != null) {
+            viewSessionsBtn.setVisibility(fromHistory ? View.GONE : View.VISIBLE);
+            viewSessionsBtn.setOnClickListener(v -> {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("activity_data", tourActivity);
+                Navigation.findNavController(v).navigate(R.id.action_detailFragment_to_sessionsFragment, bundle);
+            });
+        }
     }
 
     private void populateExperienceSection(View section, ReviewResponse review) {
@@ -302,7 +215,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onDestroyView() {
         rootView = null;
-        sessionAdapter = null;
         detailViewModel = null;
         historyReviewViewModel = null;
         super.onDestroyView();

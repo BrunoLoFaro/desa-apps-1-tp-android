@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -69,8 +70,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
+            if (holder.bookButton != null) holder.bookButton.setVisibility(View.GONE);
         } else {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
+            if (holder.bookButton != null) holder.bookButton.setVisibility(View.VISIBLE);
+            
             if (holder.description != null) holder.description.setText(activity.getDescription());
             if (holder.language != null) holder.language.setText("Idioma: " + activity.getLanguage());
             if (holder.guide != null) holder.guide.setText("Guía: " + activity.getGuideName());
@@ -98,6 +102,14 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.itemView.setOnClickListener(listener);
         holder.image.setOnClickListener(listener);
         holder.name.setOnClickListener(listener);
+
+        if (holder.bookButton != null) {
+            holder.bookButton.setOnClickListener(v -> {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("activity_data", activity);
+                Navigation.findNavController(v).navigate(R.id.action_homeFragment_to_detailFragment, bundle);
+            });
+        }
     }
 
     private String formatList(String input) {
@@ -125,6 +137,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         TextView description, rating, language, guide, meetingPoint, includes, cancellation;
         View detailedContainer;
         FloatingActionButton favoriteBtn;
+        Button bookButton;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -145,6 +158,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             includes = itemView.findViewById(R.id.activity_includes);
             cancellation = itemView.findViewById(R.id.activity_cancellation);
             favoriteBtn = itemView.findViewById(R.id.favorite_button);
+            bookButton = itemView.findViewById(R.id.btn_book_now_item);
         }
     }
 }

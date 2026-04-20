@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
@@ -12,45 +13,58 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/session_datetime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.XploreNow.H2"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:text="2026-04-01 10:00" />
-
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/session_datetime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="1 de Abril, 10:00" />
 
             <TextView
                 android:id="@+id/session_spots"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginTop="4dp"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp"
-                android:text="Cupos: 10" />
+                tools:text="Cupos: 10" />
 
             <TextView
                 android:id="@+id/session_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:textColor="?attr/colorTertiary"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:text="$100.00" />
+                tools:text="$100.00" />
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_book_session"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:paddingHorizontal="24dp"
+            android:text="@string/book_now"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cornerRadius="24dp"
+            app:elevation="4dp" />
 
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

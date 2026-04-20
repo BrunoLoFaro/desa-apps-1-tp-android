@@ -22,6 +22,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/detail_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
@@ -36,31 +37,13 @@
                 android:id="@+id/detail_content"
                 layout="@layout/item_activity" />
 
-            <TextView
-                android:id="@+id/sessions_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                android:text="Horarios disponibles"
-                android:textAppearance="@style/TextAppearance.XploreNow.H2"
-                android:textColor="?attr/colorPrimary" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/sessions_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:paddingBottom="24dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_session" />
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/experience_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
                 app:strokeWidth="0dp"
@@ -96,49 +79,6 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="15sp"
                         android:visibility="gone" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/booking_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/participants_hint">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/participants_input"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:text="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/book_button"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/book_now" />
 
                 </LinearLayout>
 

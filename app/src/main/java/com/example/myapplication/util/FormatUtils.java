@@ -1,8 +1,13 @@
 package com.example.myapplication.util;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public final class FormatUtils {
+
+    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM, HH:mm'hs'", new Locale("es", "ES"));
 
     private FormatUtils() {}
 
@@ -35,9 +40,19 @@ public final class FormatUtils {
 
     public static String formatStartTime(String iso) {
         if (iso == null) return "";
-        String value = iso.replace("T", " ");
-        if (value.length() >= 16) return value.substring(0, 16);
-        return value;
+        try {
+            // Manejar tanto "2023-10-25T10:00" como "2023-10-25 10:00"
+            String sanitizedIso = iso.replace(" ", "T");
+            LocalDateTime dt = LocalDateTime.parse(sanitizedIso);
+            String formatted = dt.format(DISPLAY_FORMATTER);
+            // Capitalizar la primera letra (día de la semana)
+            return formatted.substring(0, 1).toUpperCase() + formatted.substring(1);
+        } catch (Exception e) {
+            // Fallback simple si falla el parseo
+            String value = iso.replace("T", " ");
+            if (value.length() >= 16) return value.substring(0, 16);
+            return value;
+        }
     }
 
     public static String formatDate(String iso) {
