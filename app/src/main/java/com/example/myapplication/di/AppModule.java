@@ -7,8 +7,9 @@ import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
-import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.network.CatalogMetaService;
+import com.example.myapplication.data.network.ProfileService;
+import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
@@ -16,9 +17,13 @@ import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Singleton;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -37,7 +42,7 @@ public class AppModule {
      */
     @Provides
     @Singleton
-    static OkHttpClient provideOkHttpClient(SessionManager sessionManager) {
+    public static OkHttpClient provideOkHttpClient(SessionManager sessionManager, ConfigLoader configLoader) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -47,8 +52,10 @@ public class AppModule {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(
                 message -> Log.d(TAG, "HTTP: " + message)
         );
+        // BASIC en lugar de BODY: evita bufferizar la respuesta completa en el interceptor,
+        // lo que causaba EOFException al leer transfer-encoding chunked en multipart responses.
         logging.setLevel(BuildConfig.DEBUG
-                ? HttpLoggingInterceptor.Level.BODY
+                ? HttpLoggingInterceptor.Level.BASIC
                 : HttpLoggingInterceptor.Level.NONE);
         builder.addInterceptor(logging);
 
@@ -65,7 +72,76 @@ public class AppModule {
             return chain.proceed(original);
         });
 
-        // 3. Request/Response timing inspector (debug only)
+        // 3. Authenticator — maneja 401: intenta refresh token, luego reintenta la request original.
+        //    Si el refresh falla, o ya se reintentó una vez, fuerza logout.
+        builder.authenticator((route, response) -> {
+            // Si la request que falló ya tenía el header X-Auth-Retried, ya reintentamos → logout.
+            if (response.request().header("X-Auth-Retried") != null) {
+                Log.d(TAG, "401 tras retry — refresh token inválido. Forzando logout.");
+                sessionManager.triggerForceLogout();
+                return null;
+            }
+
+            String refreshToken = sessionManager.getRefreshToken();
+            if (refreshToken == null || refreshToken.isEmpty()) {
+                Log.d(TAG, "401 sin refresh token disponible. Forzando logout.");
+                sessionManager.triggerForceLogout();
+                return null;
+            }
+
+            // Llamada sincrónica al endpoint de refresh usando un OkHttpClient sin interceptores
+            // para evitar dependencia circular y loops.
+            try {
+                AppConfig config = configLoader.loadConfig();
+                if (config == null || config.baseUrl == null || config.refreshEndpoint == null) {
+                    sessionManager.triggerForceLogout();
+                    return null;
+                }
+                String refreshUrl = config.baseUrl + config.refreshEndpoint;
+                String jsonBody = "{\"refreshToken\":\"" + refreshToken + "\"}";
+                RequestBody body = RequestBody.create(
+                        jsonBody.getBytes(), MediaType.parse("application/json"));
+                Request refreshRequest = new Request.Builder()
+                        .url(refreshUrl)
+                        .post(body)
+                        .build();
+
+                OkHttpClient plainClient = new OkHttpClient();
+                try (okhttp3.Response refreshResponse = plainClient.newCall(refreshRequest).execute()) {
+                    if (!refreshResponse.isSuccessful() || refreshResponse.body() == null) {
+                        Log.d(TAG, "Refresh fallido (" + refreshResponse.code() + "). Forzando logout.");
+                        sessionManager.triggerForceLogout();
+                        return null;
+                    }
+                    String responseBody = refreshResponse.body().string();
+
+                    Matcher tokenMatcher = Pattern.compile("\"token\"\\s*:\\s*\"([^\"]+)\"")
+                            .matcher(responseBody);
+                    Matcher refreshMatcher = Pattern.compile("\"refreshToken\"\\s*:\\s*\"([^\"]+)\"")
+                            .matcher(responseBody);
+                    if (!tokenMatcher.find()) {
+                        sessionManager.triggerForceLogout();
+                        return null;
+                    }
+                    String newAccessToken = tokenMatcher.group(1);
+                    String newRefreshToken = refreshMatcher.find() ? refreshMatcher.group(1) : refreshToken;
+
+                    sessionManager.saveTokens(newAccessToken, newRefreshToken);
+                    Log.d(TAG, "Token refrescado exitosamente. Reintentando request original.");
+
+                    return response.request().newBuilder()
+                            .header("Authorization", "Bearer " + newAccessToken)
+                            .header("X-Auth-Retried", "1")
+                            .build();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error al refrescar token", e);
+                sessionManager.triggerForceLogout();
+                return null;
+            }
+        });
+
+        // 4. Request/Response timing inspector (debug only)
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(chain -> {
                 long start = System.currentTimeMillis();
@@ -124,6 +200,12 @@ public class AppModule {
     @Singleton
     static BookingService provideBookingService(Retrofit retrofit) {
         return retrofit.create(BookingService.class);
+    }
+
+    @Provides
+    @Singleton
+    static ProfileService provideProfileService(Retrofit retrofit) {
+        return retrofit.create(ProfileService.class);
     }
 
     @Provides

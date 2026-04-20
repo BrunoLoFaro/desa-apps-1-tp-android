@@ -10,10 +10,10 @@ import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySessionResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.TourRepository;
+import com.example.myapplication.util.FormatUtils;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import javax.inject.Inject;
 
 @HiltViewModel
@@ -64,8 +64,8 @@ public class DetailViewModel extends ViewModel {
     private static TourActivity mapToTourActivity(ActivityDetailResponse data) {
         String destination = data.destination != null ? safe(data.destination.name) : "";
         String category = data.category != null ? data.category.replace("_", " ") : "";
-        String duration = formatDuration(data.durationMinutes);
-        String price = formatPrice(data.basePrice, data.currency);
+        String duration = FormatUtils.formatDuration(data.durationMinutes);
+        String price = FormatUtils.formatPrice(data.basePrice, data.currency);
         String guideName = data.guide != null ? safe(data.guide.fullName) : null;
         float rating = data.avgRating != null ? data.avgRating.floatValue() : 0f;
         int reviewCount = data.reviewCount != null ? data.reviewCount.intValue() : 0;
@@ -97,17 +97,4 @@ public class DetailViewModel extends ViewModel {
         return value == null ? "" : value;
     }
 
-    private static String formatDuration(int minutes) {
-        if (minutes < 60) return minutes + " min";
-        int hours = minutes / 60;
-        int remaining = minutes % 60;
-        if (remaining == 0) return hours + (hours == 1 ? " hora" : " horas");
-        return hours + " h " + remaining + " min";
-    }
-
-    private static String formatPrice(double price, String currency) {
-        if (price <= 0) return "Gratis";
-        String symbol = "ARS".equals(currency) ? "$" : (currency == null ? "" : currency + " ");
-        return symbol + String.format(Locale.US, "%.2f", price);
-    }
 }

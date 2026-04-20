@@ -80,7 +80,7 @@ public class OtpSignupUseCaseTest {
         
         captor.getValue().onSuccess(response);
 
-        verify(sessionRepository).saveSession(eq("jwt-token"), argThat(user ->
+        verify(sessionRepository).saveSession(eq("jwt-token"), any(), argThat(user ->
                 user.id == 1L && "test@mail.com".equals(user.email)
         ));
         verify(loginCallback).onSuccess(response);
@@ -99,7 +99,7 @@ public class OtpSignupUseCaseTest {
         captor.getValue().onError(errorMsg);
 
         verify(loginCallback).onError(errorMsg);
-        verify(sessionRepository, never()).saveSession(anyString(), any());
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
     }
 
     @Test

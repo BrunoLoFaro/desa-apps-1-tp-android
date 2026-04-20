@@ -15,8 +15,8 @@ public class SessionRepository {
         this.sessionManager = sessionManager;
     }
 
-    public void saveSession(String token, User user) {
-        sessionManager.saveSession(token, user.id, user.email, user.firstName, user.lastName);
+    public void saveSession(String token, String refreshToken, User user) {
+        sessionManager.saveSession(token, refreshToken, user.id, user.email, user.firstName, user.lastName);
     }
 
     public String getAccessToken() {

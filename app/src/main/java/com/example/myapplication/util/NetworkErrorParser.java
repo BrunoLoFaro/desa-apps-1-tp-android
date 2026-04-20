@@ -15,10 +15,12 @@ import retrofit2.Response;
 public class NetworkErrorParser {
 
     private final JsonAdapter<ApiErrorResponse> adapter;
+    private final ErrorTranslator errorTranslator;
 
     @Inject
-    public NetworkErrorParser(Moshi moshi) {
+    public NetworkErrorParser(Moshi moshi, ErrorTranslator errorTranslator) {
         this.adapter = moshi.adapter(ApiErrorResponse.class);
+        this.errorTranslator = errorTranslator;
     }
 
     /**
@@ -47,7 +49,16 @@ public class NetworkErrorParser {
                 if (errorJson != null && !errorJson.isEmpty()) {
                     ApiErrorResponse apiError = adapter.fromJson(errorJson);
                     if (apiError != null && apiError.message != null && !apiError.message.trim().isEmpty()) {
-                        return UiMessage.from(apiError.message.trim());
+                        String serverMsg = apiError.message.trim();
+                        String url = response.raw().request().url().toString();
+
+                        // Use the translator to check if we have a friendly version of this error
+                        int translatedResId = errorTranslator.translate(serverMsg, url);
+                        if (translatedResId != -1) {
+                            return UiMessage.from(translatedResId);
+                        }
+
+                        return UiMessage.from(serverMsg);
                     }
                 }
             }
