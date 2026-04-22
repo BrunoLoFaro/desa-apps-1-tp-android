@@ -29,7 +29,7 @@ public abstract class BaseRepository {
             @Override
             public void onResponse(Call<T> c, Response<T> response) {
                 activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, fallbackResId));

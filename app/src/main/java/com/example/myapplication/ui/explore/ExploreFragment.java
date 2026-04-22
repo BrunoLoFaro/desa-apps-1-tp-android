@@ -78,6 +78,10 @@ public class ExploreFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         TourAdapter adapter = new TourAdapter(false, true);
         recycler.setAdapter(adapter);
+        adapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
+            if (activity.getId() == null) return;
+            viewModel.toggleFavorite(activity.getId(), targetFavorite, null);
+        });
 
         recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override

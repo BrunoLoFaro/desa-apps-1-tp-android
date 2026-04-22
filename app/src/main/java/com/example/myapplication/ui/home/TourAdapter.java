@@ -17,9 +17,14 @@ import java.util.List;
 
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
 
+    public interface OnFavoriteToggleListener {
+        void onFavoriteToggle(TourActivity activity, boolean targetFavorite);
+    }
+
     private List<TourActivity> tourActivities;
     private final boolean isHorizontal;
     private final boolean isCompact;
+    private OnFavoriteToggleListener favoriteToggleListener;
 
     public TourAdapter(boolean isHorizontal) {
         this(isHorizontal, isHorizontal);
@@ -34,6 +39,10 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     public void updateData(List<TourActivity> newData) {
         this.tourActivities = newData;
         notifyDataSetChanged();
+    }
+
+    public void setOnFavoriteToggleListener(OnFavoriteToggleListener listener) {
+        this.favoriteToggleListener = listener;
     }
 
     @NonNull
@@ -57,7 +66,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.category.setText(activity.getCategory().toUpperCase());
         holder.duration.setText(activity.getDuration());
         holder.price.setText(activity.getPrice());
-        holder.slots.setText(holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
+        boolean soldOut = activity.getAvailableSlots() <= 0;
+        holder.slots.setText(soldOut
+                ? holder.itemView.getContext().getString(R.string.sold_out)
+                : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
+        holder.itemView.setAlpha(soldOut ? 0.65f : 1f);
 
         if (holder.rating != null) {
             if (activity.getReviewsCount() <= 0) {
@@ -89,10 +102,30 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                 .centerCrop()
                 .into(holder.image);
 
+        if (holder.favoriteBtn != null) {
+            holder.favoriteBtn.setImageResource(activity.isFavorite() ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+            holder.favoriteBtn.setOnClickListener(v -> {
+                boolean targetFavorite = !activity.isFavorite();
+                activity.setFavorite(targetFavorite);
+                int adapterPosition = holder.getAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    notifyItemChanged(adapterPosition);
+                }
+                if (favoriteToggleListener != null) {
+                    favoriteToggleListener.onFavoriteToggle(activity, targetFavorite);
+                }
+            });
+        }
+
+        if (holder.favoriteUpdateBadge != null) {
+            boolean hasUpdates = activity.hasFavoriteUpdate() || activity.isPriceChanged() || activity.isSlotsChanged();
+            holder.favoriteUpdateBadge.setVisibility(hasUpdates ? View.VISIBLE : View.GONE);
+        }
+
         View.OnClickListener listener = v -> {
             Bundle bundle = new Bundle();
             bundle.putSerializable("activity_data", activity);
-            Navigation.findNavController(v).navigate(R.id.action_homeFragment_to_detailFragment, bundle);
+            Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
         };
 
         holder.itemView.setOnClickListener(listener);
@@ -123,6 +156,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         ImageView image;
         TextView category, name, destination, duration, price, slots;
         TextView description, rating, language, guide, meetingPoint, includes, cancellation;
+        TextView favoriteUpdateBadge;
         View detailedContainer;
         FloatingActionButton favoriteBtn;
 
@@ -145,6 +179,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             includes = itemView.findViewById(R.id.activity_includes);
             cancellation = itemView.findViewById(R.id.activity_cancellation);
             favoriteBtn = itemView.findViewById(R.id.favorite_button);
+            favoriteUpdateBadge = itemView.findViewById(R.id.favorite_update_badge);
         }
     }
 }

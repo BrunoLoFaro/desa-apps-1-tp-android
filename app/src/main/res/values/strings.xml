@@ -19,11 +19,14 @@
     <string name="home_all_activities_title">Explora actividades</string>
     <string name="nav_home">Inicio</string>
     <string name="nav_explore">Explorar</string>
+    <string name="nav_favorites">Favoritos</string>
     <string name="nav_bookings">Mis Reservas</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+    <string name="sold_out">Sin cupos</string>
     <string name="price_from">desde</string>
     <string name="favorite_desc">Marcar como favorito</string>
+    <string name="favorite_update_badge">Actualizada</string>
 
     <string name="signup_title">Registrarse</string>
     <string name="signup_with_email_button">Registrarse con correo electrónico</string>
@@ -81,6 +84,9 @@
     <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet o la dirección IP.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
+    <string name="error_load_favorites">No se pudieron cargar los favoritos.</string>
+    <string name="error_add_favorite">No se pudo agregar a favoritos.</string>
+    <string name="error_remove_favorite">No se pudo quitar de favoritos.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
     <string name="error_load_recommended">No se pudieron cargar las actividades recomendadas.</string>
     <string name="free_label">Gratis</string>

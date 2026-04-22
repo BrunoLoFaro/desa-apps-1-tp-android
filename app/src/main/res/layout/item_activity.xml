@@ -44,6 +44,23 @@
                 app:srcCompat="@android:drawable/btn_star_big_off"
                 app:tint="?attr/colorPrimary" />
 
+            <TextView
+                android:id="@+id/favorite_update_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/holo_orange_dark"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/favorite_update_badge"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <!-- Fila de Categoría y Rating -->
             <LinearLayout
                 android:id="@+id/category_rating_row"

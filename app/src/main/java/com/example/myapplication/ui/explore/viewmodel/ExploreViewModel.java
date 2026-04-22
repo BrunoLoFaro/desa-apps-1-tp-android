@@ -9,6 +9,7 @@ import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.DestinationResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.ExploreRepository;
+import com.example.myapplication.data.repository.TourRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +19,12 @@ import javax.inject.Inject;
 @HiltViewModel
 public class ExploreViewModel extends ViewModel {
 
+    public interface FavoriteToggleCallback {
+        void onCompleted(boolean success, UiMessage error);
+    }
+
     private final ExploreRepository exploreRepository;
+    private final TourRepository tourRepository;
 
     private final MutableLiveData<List<TourActivity>> _activities =
             new MutableLiveData<>(Collections.emptyList());
@@ -40,8 +46,9 @@ public class ExploreViewModel extends ViewModel {
     private String maxPrice = null;
 
     @Inject
-    public ExploreViewModel(ExploreRepository exploreRepository) {
+    public ExploreViewModel(ExploreRepository exploreRepository, TourRepository tourRepository) {
         this.exploreRepository = exploreRepository;
+        this.tourRepository = tourRepository;
     }
 
     public LiveData<List<TourActivity>> getActivities() { return _activities; }
@@ -98,6 +105,23 @@ public class ExploreViewModel extends ViewModel {
         loadPage(currentPage + 1, false);
     }
 
+    public void toggleFavorite(long activityId, boolean targetFavorite, FavoriteToggleCallback callback) {
+        applyFavoriteLocally(activityId, targetFavorite);
+        tourRepository.toggleFavorite(activityId, targetFavorite, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                if (callback != null) callback.onCompleted(true, null);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                applyFavoriteLocally(activityId, !targetFavorite);
+                _error.setValue(error);
+                if (callback != null) callback.onCompleted(false, error);
+            }
+        });
+    }
+
     private void loadPage(int page, boolean replace) {
         _loading.setValue(true);
         exploreRepository.listActivities(page, pageSize, destinationId, category, dateIso, minPrice, maxPrice,
@@ -133,7 +157,19 @@ public class ExploreViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         exploreRepository.cancelAll();
+        tourRepository.cancelAll();
         super.onCleared();
+    }
+
+    private void applyFavoriteLocally(long activityId, boolean targetFavorite) {
+        List<TourActivity> current = _activities.getValue();
+        if (current == null || current.isEmpty()) return;
+        for (TourActivity item : current) {
+            if (item.getId() != null && item.getId() == activityId) {
+                item.setFavorite(targetFavorite);
+            }
+        }
+        _activities.setValue(current);
     }
 }
 

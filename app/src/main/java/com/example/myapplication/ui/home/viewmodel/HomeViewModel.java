@@ -16,6 +16,10 @@ import javax.inject.Inject;
 @HiltViewModel
 public class HomeViewModel extends ViewModel {
 
+    public interface FavoriteToggleCallback {
+        void onCompleted(boolean success, UiMessage error);
+    }
+
     private final SessionRepository sessionRepository;
     private final TourRepository tourRepository;
     private final ProfileImageManager profileImageManager;
@@ -93,6 +97,38 @@ public class HomeViewModel extends ViewModel {
                 onCallFinished();
             }
         });
+    }
+
+    public void toggleFavorite(long activityId, boolean targetFavorite, FavoriteToggleCallback callback) {
+        applyFavoriteToLists(activityId, targetFavorite);
+        tourRepository.toggleFavorite(activityId, targetFavorite, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                if (callback != null) callback.onCompleted(true, null);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                applyFavoriteToLists(activityId, !targetFavorite);
+                _error.setValue(error);
+                if (callback != null) callback.onCompleted(false, error);
+            }
+        });
+    }
+
+    private void applyFavoriteToLists(long activityId, boolean favorite) {
+        _featuredTours.setValue(applyFavorite(_featuredTours.getValue(), activityId, favorite));
+        _allTours.setValue(applyFavorite(_allTours.getValue(), activityId, favorite));
+    }
+
+    private static List<TourActivity> applyFavorite(List<TourActivity> list, long activityId, boolean favorite) {
+        if (list == null || list.isEmpty()) return list;
+        for (TourActivity item : list) {
+            if (item.getId() != null && item.getId() == activityId) {
+                item.setFavorite(favorite);
+            }
+        }
+        return list;
     }
 
     private void onCallFinished() {

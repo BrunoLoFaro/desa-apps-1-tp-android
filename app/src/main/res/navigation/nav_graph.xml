@@ -169,6 +169,12 @@
         tools:layout="@layout/fragment_explore" />
 
     <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.example.myapplication.ui.favorites.FavoritesFragment"
+        android:label="Favoritos"
+        tools:layout="@layout/fragment_favorites" />
+
+    <fragment
         android:id="@+id/detailFragment"
         android:name="com.example.myapplication.ui.home.DetailFragment"
         android:label="Detail"
