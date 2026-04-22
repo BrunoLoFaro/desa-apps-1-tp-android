@@ -14,6 +14,9 @@
             android:id="@+id/action_loginFragment_to_signupFragment"
             app:destination="@id/signupFragment" />
         <action
+            android:id="@+id/action_loginFragment_to_classicRegisterFragment"
+            app:destination="@id/classicRegisterFragment" />
+        <action
             android:id="@+id/action_loginFragment_to_homeFragment"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/loginFragment"
@@ -23,32 +26,38 @@
             app:destination="@id/forgotPasswordRequestFragment" />
     </fragment>
 
+    <!-- Pantalla de entrada de email para OTP login -->
     <fragment
         android:id="@+id/signupFragment"
         android:name="com.example.myapplication.ui.auth.SignupFragment"
-        android:label="Signup"
+        android:label="Ingresar con código"
         tools:layout="@layout/fragment_signup">
         <action
             android:id="@+id/action_signupFragment_to_otpSignupCodeFragment"
             app:destination="@id/otpSignupCodeFragment" />
-        <action
-            android:id="@+id/action_signupFragment_to_classicRegisterFragment"
-            app:destination="@id/classicRegisterFragment" />
     </fragment>
 
+    <!-- Pantalla de verificación OTP (registro y login OTP) -->
     <fragment
         android:id="@+id/otpSignupCodeFragment"
         android:name="com.example.myapplication.ui.auth.OtpSignupCodeFragment"
-        android:label="Verify OTP"
+        android:label="Verificar identidad"
         tools:layout="@layout/fragment_otp_signup_code">
         <argument
             android:name="email"
             app:argType="string" />
+        <argument
+            android:name="source"
+            app:argType="string"
+            android:defaultValue="registration" />
         <action
-            android:id="@+id/action_otpSignupCodeFragment_to_otpSignupCompleteFragment"
-            app:destination="@id/otpSignupCompleteFragment" />
+            android:id="@+id/action_otpSignupCodeFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
+    <!-- OtpSignupCompleteFragment: mantenido para compatibilidad de compilación, ya no se navega a él -->
     <fragment
         android:id="@+id/otpSignupCompleteFragment"
         android:name="com.example.myapplication.ui.auth.OtpSignupCompleteFragment"
@@ -56,10 +65,12 @@
         tools:layout="@layout/fragment_otp_signup_complete">
         <argument
             android:name="email"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue="" />
         <argument
             android:name="code"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue="" />
         <action
             android:id="@+id/action_otpSignupCompleteFragment_to_homeFragment"
             app:destination="@id/homeFragment"
@@ -67,10 +78,11 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <!-- Pantalla de registro (sin DNI, con teléfono opcional) -->
     <fragment
         android:id="@+id/classicRegisterFragment"
         android:name="com.example.myapplication.ui.auth.ClassicRegisterFragment"
-        android:label="Classic Register"
+        android:label="Crear cuenta"
         tools:layout="@layout/fragment_classic_register">
         <action
             android:id="@+id/action_classicRegisterFragment_to_otpSignupCodeFragment"
@@ -165,8 +177,7 @@
     <fragment
         android:id="@+id/exploreFragment"
         android:name="com.example.myapplication.ui.explore.ExploreFragment"
-        android:label="Explore"
-        tools:layout="@layout/fragment_explore" />
+        android:label="Explore" />
 
     <fragment
         android:id="@+id/detailFragment"
