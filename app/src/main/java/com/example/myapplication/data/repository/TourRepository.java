@@ -76,13 +76,13 @@ public class TourRepository extends BaseRepository {
     public void addFavorite(long activityId, RepositoryCallback<Void> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        enqueue(activityService.addFavorite(activityId), callback, R.string.error_add_favorite);
+        enqueueVoid(activityService.addFavorite(activityId), callback, R.string.error_add_favorite);
     }
 
     public void removeFavorite(long activityId, RepositoryCallback<Void> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        enqueue(activityService.removeFavorite(activityId), callback, R.string.error_remove_favorite);
+        enqueueVoid(activityService.removeFavorite(activityId), callback, R.string.error_remove_favorite);
     }
 
     public void toggleFavorite(long activityId, boolean targetFavorite, RepositoryCallback<Void> callback) {

@@ -34,7 +34,6 @@ public class FavoritesViewModel extends ViewModel {
     @Inject
     public FavoritesViewModel(TourRepository tourRepository) {
         this.tourRepository = tourRepository;
-        loadFavorites();
     }
 
     public void loadFavorites() {
@@ -52,7 +51,7 @@ public class FavoritesViewModel extends ViewModel {
 
             @Override
             public void onError(UiMessage error) {
-                Log.e("FavoritesViewModel", "Error loading favorites: " + error.resolve(null));
+                Log.e("FavoritesViewModel", "Error loading favorites");
                 _error.setValue(error);
                 _loading.setValue(false);
             }
@@ -63,11 +62,19 @@ public class FavoritesViewModel extends ViewModel {
         List<TourActivity> current = _favorites.getValue() != null
                 ? new ArrayList<>(_favorites.getValue())
                 : new ArrayList<>();
-        List<TourActivity> rollback = new ArrayList<>(current);
+
+        TourActivity affectedItem = null;
+        for (TourActivity item : current) {
+            if (item.getId() != null && item.getId() == activityId) {
+                affectedItem = item;
+                break;
+            }
+        }
+        final TourActivity itemToRestore = affectedItem;
+        final boolean previousFavoriteState = !isFavorite;
+        final List<TourActivity> rollback = new ArrayList<>(current);
 
         if (isFavorite) {
-            // No podemos agregar el tour directamente porque no lo tenemos.
-            // La recarga es la única opción.
             Log.d("FavoritesViewModel", "Adding favorite: " + activityId);
         } else {
             current.removeIf(item -> item.getId() != null && item.getId() == activityId);
@@ -84,7 +91,10 @@ public class FavoritesViewModel extends ViewModel {
 
             @Override
             public void onError(UiMessage error) {
-                Log.e("FavoritesViewModel", "Error toggling favorite: " + error.resolve(null));
+                Log.e("FavoritesViewModel", "Error toggling favorite");
+                if (itemToRestore != null) {
+                    itemToRestore.setFavorite(previousFavoriteState);
+                }
                 _favorites.setValue(rollback);
                 _error.setValue(error);
             }

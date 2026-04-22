@@ -14,7 +14,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:listitem="@layout/item_tour_vertical" />
+            tools:listitem="@layout/item_activity" />
 
         <LinearLayout
             android:id="@+id/empty_view"
@@ -32,19 +32,20 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:src="@drawable/ic_favorite_border"
+                android:contentDescription="@null"
                 app:tint="?android:attr/textColorSecondary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No tienes favoritos"
+                android:text="@string/favorites_empty_title"
                 android:textAppearance="?attr/textAppearanceHeadline6"
                 android:layout_marginTop="16dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tus actividades favoritas aparecerán aquí."
+                android:text="@string/favorites_empty_subtitle"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:layout_marginTop="8dp"/>
 

@@ -85,6 +85,8 @@
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_favorites">No se pudieron cargar los favoritos.</string>
+    <string name="favorites_empty_title">No tienes favoritos</string>
+    <string name="favorites_empty_subtitle">Tus actividades favoritas aparecerán aquí.</string>
     <string name="error_add_favorite">No se pudo agregar a favoritos.</string>
     <string name="error_remove_favorite">No se pudo quitar de favoritos.</string>
     <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
