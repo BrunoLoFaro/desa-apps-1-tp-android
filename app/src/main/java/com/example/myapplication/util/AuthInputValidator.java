@@ -19,28 +19,40 @@ public final class AuthInputValidator {
     }
 
     public static String validateEmail(Context context, String email) {
-        if (email == null || email.trim().isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+        if (email == null || email.trim().isEmpty()) {
+            return context.getString(R.string.error_email_required);
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
             return context.getString(R.string.error_invalid_email);
         }
         return null;
     }
 
     public static String validatePassword(Context context, String password) {
-        if (password == null || !PATTERN.matcher(password).matches()) {
+        if (password == null || password.isEmpty()) {
+            return context.getString(R.string.error_password_required);
+        }
+        if (!PATTERN.matcher(password).matches()) {
             return context.getString(R.string.error_invalid_password);
         }
         return null;
     }
 
     public static String validateFirstName(Context context, String firstName) {
-        if (firstName == null || firstName.trim().length() < 2 || firstName.trim().length() > 80) {
+        if (firstName == null || firstName.trim().isEmpty()) {
+            return context.getString(R.string.error_first_name_required);
+        }
+        if (firstName.trim().length() < 2 || firstName.trim().length() > 80) {
             return context.getString(R.string.error_invalid_first_name);
         }
         return null;
     }
 
     public static String validateLastName(Context context, String lastName) {
-        if (lastName == null || lastName.trim().length() < 2 || lastName.trim().length() > 80) {
+        if (lastName == null || lastName.trim().isEmpty()) {
+            return context.getString(R.string.error_last_name_required);
+        }
+        if (lastName.trim().length() < 2 || lastName.trim().length() > 80) {
             return context.getString(R.string.error_invalid_last_name);
         }
         return null;

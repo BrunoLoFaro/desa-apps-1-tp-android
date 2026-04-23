@@ -47,9 +47,20 @@
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_email_required">El correo electrónico es obligatorio.</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
+    <string name="error_password_required">La contraseña es obligatoria.</string>
     <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_first_name_required">El nombre es obligatorio.</string>
     <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_last_name_required">El apellido es obligatorio.</string>
+
+    <!-- Hints de registro con indicador de campo obligatorio -->
+    <string name="register_email_hint">Correo electrónico *</string>
+    <string name="register_password_hint">Contraseña *</string>
+    <string name="register_first_name_hint">Nombre *</string>
+    <string name="register_last_name_hint">Apellido *</string>
+    <string name="phone_hint_optional">Teléfono (opcional)</string>
     <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
     <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
     <string name="error_register_failed_default">No se pudo completar el registro.</string>

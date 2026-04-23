@@ -99,16 +99,21 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     }
 
     private void setupTextWatchers() {
-        TextWatcher watcher = new TextWatcher() {
+        addClearErrorWatcher(emailEditText, emailInputLayout);
+        addClearErrorWatcher(passwordEditText, passwordInputLayout);
+        addClearErrorWatcher(firstNameEditText, firstNameInputLayout);
+        addClearErrorWatcher(lastNameEditText, lastNameInputLayout);
+        addClearErrorWatcher(phoneEditText, phoneInputLayout);
+    }
+
+    private void addClearErrorWatcher(TextInputEditText field, TextInputLayout layout) {
+        field.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { clearAllErrors(); }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                layout.setError(null);
+            }
             @Override public void afterTextChanged(Editable s) {}
-        };
-        emailEditText.addTextChangedListener(watcher);
-        passwordEditText.addTextChangedListener(watcher);
-        firstNameEditText.addTextChangedListener(watcher);
-        lastNameEditText.addTextChangedListener(watcher);
-        phoneEditText.addTextChangedListener(watcher);
+        });
     }
 
     private void clearAllErrors() {
@@ -126,26 +131,31 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         String lastName = safeText(lastNameEditText);
         String phone = safeText(phoneEditText);
 
-        clearAllErrors();
         if (!validateFields(email, password, firstName, lastName)) return;
 
         viewModel.register(email, password, firstName, lastName, phone.isEmpty() ? null : phone);
     }
 
     private boolean validateFields(String email, String password, String firstName, String lastName) {
+        boolean valid = true;
+
         String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
-        if (errEmail != null) { emailInputLayout.setError(errEmail); return false; }
+        emailInputLayout.setError(errEmail);
+        if (errEmail != null) valid = false;
 
         String errPass = AuthInputValidator.validatePassword(requireContext(), password);
-        if (errPass != null) { passwordInputLayout.setError(errPass); return false; }
+        passwordInputLayout.setError(errPass);
+        if (errPass != null) valid = false;
 
         String errFirst = AuthInputValidator.validateFirstName(requireContext(), firstName);
-        if (errFirst != null) { firstNameInputLayout.setError(errFirst); return false; }
+        firstNameInputLayout.setError(errFirst);
+        if (errFirst != null) valid = false;
 
         String errLast = AuthInputValidator.validateLastName(requireContext(), lastName);
-        if (errLast != null) { lastNameInputLayout.setError(errLast); return false; }
+        lastNameInputLayout.setError(errLast);
+        if (errLast != null) valid = false;
 
-        return true;
+        return valid;
     }
 
     private String safeText(TextInputEditText editText) {
