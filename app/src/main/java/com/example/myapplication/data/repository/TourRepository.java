@@ -7,6 +7,7 @@ import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.ActivityDetailResponse;
+import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.util.NetworkErrorParser;
@@ -54,6 +55,42 @@ public class TourRepository extends BaseRepository {
         if (config == null) return;
         String endpoint = config.activitiesEndpoint + "/" + activityId;
         enqueueDetail(activityService.getActivityDetail(endpoint), callback, R.string.error_load_activities);
+    }
+
+    public void getFavorites(RepositoryCallback<List<TourActivity>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(activityService.getFavorites(), new RepositoryCallback<List<ActivitySummaryResponse>>() {
+            @Override
+            public void onSuccess(List<ActivitySummaryResponse> data) {
+                callback.onSuccess(ExploreRepository.mapToTourActivities(data));
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                callback.onError(error);
+            }
+        }, R.string.error_load_favorites);
+    }
+
+    public void addFavorite(long activityId, RepositoryCallback<Void> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueueVoid(activityService.addFavorite(activityId), callback, R.string.error_add_favorite);
+    }
+
+    public void removeFavorite(long activityId, RepositoryCallback<Void> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueueVoid(activityService.removeFavorite(activityId), callback, R.string.error_remove_favorite);
+    }
+
+    public void toggleFavorite(long activityId, boolean targetFavorite, RepositoryCallback<Void> callback) {
+        if (targetFavorite) {
+            addFavorite(activityId, callback);
+        } else {
+            removeFavorite(activityId, callback);
+        }
     }
 
     public void getCategories(RepositoryCallback<List<String>> callback) {

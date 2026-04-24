@@ -32,4 +32,7 @@ public class ActivitySummaryResponse {
 
     @Json(name = "reviewCount")
     public Long reviewCount;
+
+    @Json(name = "isFavorite")
+    public boolean isFavorite;
 }

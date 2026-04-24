@@ -19,6 +19,10 @@ import javax.inject.Inject;
 @HiltViewModel
 public class DetailViewModel extends ViewModel {
 
+    public interface FavoriteToggleCallback {
+        void onCompleted(boolean success, UiMessage error);
+    }
+
     private final TourRepository tourRepository;
 
     private final MutableLiveData<TourActivity> _activity = new MutableLiveData<>();
@@ -36,6 +40,26 @@ public class DetailViewModel extends ViewModel {
     public LiveData<List<ActivitySessionResponse>> getSessions() { return _sessions; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<Boolean> isLoading() { return _loading; }
+
+    public void toggleFavorite(long activityId, boolean targetFavorite, FavoriteToggleCallback callback) {
+        tourRepository.toggleFavorite(activityId, targetFavorite, new RepositoryCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                TourActivity current = _activity.getValue();
+                if (current != null && current.getId() != null && current.getId() == activityId) {
+                    current.setFavorite(targetFavorite);
+                    _activity.setValue(current);
+                }
+                if (callback != null) callback.onCompleted(true, null);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                _error.setValue(error != null ? error : UiMessage.from(R.string.error_network_generic));
+                if (callback != null) callback.onCompleted(false, error);
+            }
+        });
+    }
 
     public void load(long activityId) {
         _loading.setValue(true);
@@ -90,6 +114,7 @@ public class DetailViewModel extends ViewModel {
                 null
         );
         activity.setId(data.id);
+        activity.setFavorite(data.isFavorite);
         return activity;
     }
 

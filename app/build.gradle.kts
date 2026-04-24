@@ -41,6 +41,11 @@ android {
         viewBinding = false
         buildConfig = true
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
     configurations.all {
         resolutionStrategy {
             force("org.slf4j:slf4j-api:1.7.36")

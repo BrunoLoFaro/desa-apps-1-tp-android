@@ -79,6 +79,15 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         TourAdapter activitiesAdapter = new TourAdapter(false, true);
         activitiesRecycler.setAdapter(activitiesAdapter);
 
+        featuredAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
+            if (activity.getId() == null) return;
+            homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
+        });
+        activitiesAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
+            if (activity.getId() == null) return;
+            homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
+        });
+
         homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
         homeViewModel.getAllTours().observe(getViewLifecycleOwner(), activitiesAdapter::updateData);
 

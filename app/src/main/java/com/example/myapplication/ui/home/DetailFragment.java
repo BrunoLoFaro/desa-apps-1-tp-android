@@ -81,6 +81,9 @@ public class DetailFragment extends Fragment {
         sessionAdapter = new SessionAdapter(session -> {
             selectedSession = session;
             if (bookingCard != null) bookingCard.setVisibility(View.VISIBLE);
+            if (bookButton != null) {
+                bookButton.setEnabled(session.availableSpots > 0);
+            }
         });
         sessionsRecycler.setAdapter(sessionAdapter);
 
@@ -200,6 +203,18 @@ public class DetailFragment extends Fragment {
                     selectedSession = null;
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                     boolean hasSessions = sessions != null && !sessions.isEmpty();
+                    boolean hasAvailableSpots = false;
+                    if (sessions != null) {
+                        for (ActivitySessionResponse session : sessions) {
+                            if (session.availableSpots > 0) {
+                                hasAvailableSpots = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (bookButton != null) {
+                        bookButton.setEnabled(hasAvailableSpots);
+                    }
                     if (sessionsTitle != null) sessionsTitle.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
                     sessionsRecycler.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
                 });
@@ -235,6 +250,7 @@ public class DetailFragment extends Fragment {
         TextView meetingPoint = root.findViewById(R.id.activity_meeting_point);
         TextView includes = root.findViewById(R.id.activity_includes);
         TextView cancellation = root.findViewById(R.id.activity_cancellation);
+        com.google.android.material.floatingactionbutton.FloatingActionButton favoriteButton = root.findViewById(R.id.favorite_button);
 
         // Forzar visibilidad del contenedor de detalles
         if (detailedContainer != null) {
@@ -246,9 +262,30 @@ public class DetailFragment extends Fragment {
         category.setText(tourActivity.getCategory().toUpperCase());
         duration.setText(tourActivity.getDuration());
         price.setText(tourActivity.getPrice());
-        slots.setText(getString(R.string.slots_available, tourActivity.getAvailableSlots()));
+        boolean soldOut = tourActivity.getAvailableSlots() <= 0;
+        slots.setText(soldOut
+                ? getString(R.string.sold_out)
+                : getString(R.string.slots_available, tourActivity.getAvailableSlots()));
+        root.setAlpha(soldOut ? 0.65f : 1f);
         slots.setVisibility(fromHistory ? View.GONE : View.VISIBLE);
-        
+
+        if (favoriteButton != null) {
+            favoriteButton.setImageResource(tourActivity.isFavorite() ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+            favoriteButton.setOnClickListener(v -> {
+                if (tourActivity == null || tourActivity.getId() == null) return;
+                boolean previous = tourActivity.isFavorite();
+                boolean targetFavorite = !previous;
+                tourActivity.setFavorite(targetFavorite);
+                favoriteButton.setImageResource(targetFavorite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+                detailViewModel.toggleFavorite(tourActivity.getId(), targetFavorite, (success, error) -> {
+                    if (!success) {
+                        tourActivity.setFavorite(previous);
+                        favoriteButton.setImageResource(previous ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+                    }
+                });
+            });
+        }
+
         if (description != null) description.setText(tourActivity.getDescription());
         if (rating != null) {
             if (tourActivity.getReviewsCount() <= 0) {

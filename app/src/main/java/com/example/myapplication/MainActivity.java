@@ -53,6 +53,12 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
 
+                if (id == R.id.favoritesFragment) {
+                    if (current == R.id.favoritesFragment) return true;
+                    navController.navigate(R.id.favoritesFragment);
+                    return true;
+                }
+
                 if (id == R.id.profileFragment) {
                     if (current == R.id.profileFragment) return true;
                     navController.navigate(R.id.profileFragment);
@@ -69,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destId = destination.getId();
-                if (destId == R.id.homeFragment || destId == R.id.bookingsFragment || destId == R.id.exploreFragment || destId == R.id.profileFragment) {
+                if (destId == R.id.homeFragment || destId == R.id.bookingsFragment || destId == R.id.exploreFragment || destId == R.id.favoritesFragment || destId == R.id.profileFragment) {
                     bottomNav.setVisibility(View.VISIBLE);
                 } else {
                     bottomNav.setVisibility(View.GONE);
@@ -81,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
                     bottomNav.getMenu().findItem(R.id.nav_explore).setChecked(true);
                 } else if (destId == R.id.bookingsFragment) {
                     bottomNav.getMenu().findItem(R.id.nav_bookings).setChecked(true);
+                } else if (destId == R.id.favoritesFragment) {
+                    bottomNav.getMenu().findItem(R.id.favoritesFragment).setChecked(true);
                 } else if (destId == R.id.profileFragment) {
                     bottomNav.getMenu().findItem(R.id.profileFragment).setChecked(true);
                 }

@@ -43,4 +43,25 @@ public abstract class BaseRepository {
             }
         });
     }
+
+    protected void enqueueVoid(Call<Void> call, RepositoryCallback<Void> callback, int fallbackResId) {
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> c, Response<Void> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onError(errorParser.getErrorMessage(response, fallbackResId));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, fallbackResId));
+            }
+        });
+    }
 }
