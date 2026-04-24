@@ -1,7 +1,13 @@
 package com.example.myapplication.ui.bookings;
 
 import android.app.DatePickerDialog;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +49,8 @@ public class BookingsFragment extends Fragment {
             {"ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"};
 
     private BookingsViewModel viewModel;
+    private View offlineBanner;
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     // Activas views
     private View sectionActivas;
@@ -84,11 +92,13 @@ public class BookingsFragment extends Fragment {
         setupFilters();
         setupTabs(view);
         observeViewModel(view);
+        registerNetworkCallback();
 
         viewModel.loadMyBookings("CONFIRMED");
     }
 
     private void bindViews(@NonNull View view) {
+        offlineBanner     = view.findViewById(R.id.offline_banner);
         sectionActivas    = view.findViewById(R.id.section_activas);
         activasRecycler   = view.findViewById(R.id.bookings_recycler_view);
         activasLoading    = view.findViewById(R.id.bookings_loading_spinner);
@@ -237,6 +247,30 @@ public class BookingsFragment extends Fragment {
                 viewModel.clearMessage();
             }
         });
+
+        viewModel.isOffline().observe(getViewLifecycleOwner(), offline -> {
+            if (offlineBanner != null) {
+                offlineBanner.setVisibility(Boolean.TRUE.equals(offline) ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
+
+    private void registerNetworkCallback() {
+        ConnectivityManager cm = (ConnectivityManager)
+                requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return;
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (isAdded()) viewModel.syncBookings();
+                });
+            }
+        };
+        NetworkRequest request = new NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build();
+        cm.registerNetworkCallback(request, networkCallback);
     }
 
     // ── Grouping ─────────────────────────────────────────────────────────────
@@ -337,6 +371,13 @@ public class BookingsFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (networkCallback != null) {
+            ConnectivityManager cm = (ConnectivityManager)
+                    requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+            if (cm != null) cm.unregisterNetworkCallback(networkCallback);
+            networkCallback = null;
+        }
+        offlineBanner     = null;
         sectionActivas    = null;
         activasRecycler   = null;
         activasLoading    = null;

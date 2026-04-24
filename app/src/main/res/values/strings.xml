@@ -199,4 +199,7 @@
     <string name="cancel_booking_policy_unknown">Política no disponible</string>
     <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
     <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
+
+    <!-- Offline -->
+    <string name="offline_banner_message">Sin conexión — mostrando reservas guardadas</string>
 </resources>
