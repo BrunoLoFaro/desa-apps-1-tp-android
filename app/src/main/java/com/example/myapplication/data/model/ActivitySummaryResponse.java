@@ -9,6 +9,9 @@ public class ActivitySummaryResponse {
     @Json(name = "name")
     public String name;
 
+    @Json(name = "imageUrl")
+    public String imageUrl;
+
     @Json(name = "destination")
     public DestinationResponse destination;
 

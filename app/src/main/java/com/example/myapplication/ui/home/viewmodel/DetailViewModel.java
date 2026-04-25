@@ -102,7 +102,7 @@ public class DetailViewModel extends ViewModel {
                 duration,
                 price,
                 data.availableSpots,
-                null,
+                data.imageUrl,
                 safe(data.description),
                 rating,
                 reviewCount,

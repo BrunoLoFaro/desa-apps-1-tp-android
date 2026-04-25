@@ -1,9 +1,7 @@
 package com.example.myapplication.glide;
 
 import android.content.Context;
-import com.example.myapplication.data.session.SessionManager;
-import com.example.myapplication.di.AppModule;
-import dagger.hilt.android.qualifiers.ApplicationContext;
+import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 
 public class GlideOkHttpProvider {
@@ -11,9 +9,12 @@ public class GlideOkHttpProvider {
 
     public static synchronized OkHttpClient getClient(Context context) {
         if (client == null) {
-            // Usa el mismo SessionManager y configuración que AppModule
-            SessionManager sessionManager = com.example.myapplication.di.SessionManagerProvider.provideSessionManager(context);
-            client = AppModule.provideOkHttpClient(sessionManager, null);
+            // Cliente limpio sin interceptores de auth: Glide carga imágenes públicas (Unsplash, etc.)
+            // y no debe enviar tokens JWT a dominios externos.
+            client = new OkHttpClient.Builder()
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
+                    .build();
         }
         return client;
     }
