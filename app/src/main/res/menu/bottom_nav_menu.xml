@@ -5,9 +5,9 @@
         android:icon="@android:drawable/ic_menu_today"
         android:title="@string/nav_home" />
     <item
-        android:id="@+id/newsFragment"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="Noticias" />
+        android:id="@+id/exploreFragment"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Explorar" />
     <item
         android:id="@+id/favoritesFragment"
         android:icon="@drawable/ic_favorite"

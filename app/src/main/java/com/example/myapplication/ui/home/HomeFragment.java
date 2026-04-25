@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import com.example.myapplication.ui.home.viewmodel.HomeViewModel;
+import com.example.myapplication.ui.home.viewmodel.NewsViewModel;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class HomeFragment extends androidx.fragment.app.Fragment {
 
     private HomeViewModel homeViewModel;
+    private NewsViewModel newsViewModel;
+    private NewsAdapter newsAdapter;
     private NavController navController;
 
     @Nullable
@@ -39,6 +42,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        newsViewModel = new ViewModelProvider(this).get(NewsViewModel.class);
         navController = Navigation.findNavController(view);
 
         if (!homeViewModel.hasValidSession()) {
@@ -51,7 +55,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
 
         View searchBarCard = view.findViewById(R.id.search_bar_card);
         EditText searchEditText = view.findViewById(R.id.search_edit_text);
-        View exploreButton = view.findViewById(R.id.explore_button);
         View.OnClickListener openExplore = v -> {
             if (navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getId() == R.id.exploreFragment) {
@@ -66,7 +69,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
                 if (hasFocus) openExplore.onClick(v);
             });
         }
-        if (exploreButton != null) exploreButton.setOnClickListener(openExplore);
 
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(
@@ -92,6 +94,19 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
 
         homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
         homeViewModel.getAllTours().observe(getViewLifecycleOwner(), activitiesAdapter::updateData);
+
+        RecyclerView newsRecycler = view.findViewById(R.id.news_recycler_view);
+        newsRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        newsAdapter = new NewsAdapter();
+        newsRecycler.setAdapter(newsAdapter);
+
+        newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsAdapter::updateData);
+        newsViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null) {
+                Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+            }
+        });
 
         View scrollView = view.findViewById(R.id.scroll_view);
         ProgressBar loadingSpinner = view.findViewById(R.id.loading_spinner);
@@ -139,12 +154,17 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         if (homeViewModel != null && homeViewModel.hasValidSession()) {
             homeViewModel.refreshTours();
         }
+        if (newsViewModel != null) {
+            newsViewModel.loadNews(0, 10);
+        }
     }
 
     @Override
     public void onDestroyView() {
         navController = null;
         homeViewModel = null;
+        newsViewModel = null;
+        newsAdapter = null;
         super.onDestroyView();
     }
 }
