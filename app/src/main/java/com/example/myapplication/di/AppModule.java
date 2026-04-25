@@ -1,6 +1,8 @@
 package com.example.myapplication.di;
 
+import android.content.Context;
 import android.util.Log;
+import androidx.room.Room;
 import com.example.myapplication.BuildConfig;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
@@ -12,6 +14,9 @@ import com.example.myapplication.data.network.NewsService;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.data.db.AppDatabase;
+import com.example.myapplication.data.db.OfflineBookingDao;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
 import dagger.Provides;
@@ -219,5 +224,19 @@ public class AppModule {
     @Singleton
     static NewsService provideNewsService(Retrofit retrofit) {
         return retrofit.create(NewsService.class);
+    }
+
+    @Provides
+    @Singleton
+    static AppDatabase provideDatabase(@ApplicationContext Context context) {
+        return Room.databaseBuilder(context, AppDatabase.class, "xplorenow_db")
+                .fallbackToDestructiveMigration()
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    static OfflineBookingDao provideOfflineBookingDao(AppDatabase db) {
+        return db.offlineBookingDao();
     }
 }
