@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Buscar"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_theme_toggle"
         android:icon="@drawable/ic_theme_toggle"
         android:title="@string/action_theme_toggle"
