@@ -348,7 +348,7 @@ public class BookingsFragment extends Fragment {
     private void navigateToHistoryDetail(BookingSummaryItem item) {
         if (item.getActivityId() == null) return;
         TourActivity activity = new TourActivity(
-                item.getActivityName(), "", "", "", "", 0, null);
+                item.getActivityName(), "", "", "", "", 0, item.getImageUrl());
         activity.setId(item.getActivityId());
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
