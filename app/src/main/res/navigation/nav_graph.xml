@@ -195,7 +195,7 @@
         <argument
             android:name="related_activity_id"
             app:argType="long"
-            android:defaultValue="-1" />
+            android:defaultValue="-1L" />
     </fragment>
 
     <fragment
@@ -209,7 +209,7 @@
         <argument
             android:name="activity_id"
             app:argType="long"
-            android:defaultValue="-1" />
+            android:defaultValue="-1L" />
     </fragment>
 
 </navigation>
