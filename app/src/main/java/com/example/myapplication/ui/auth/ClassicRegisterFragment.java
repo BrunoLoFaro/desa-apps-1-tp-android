@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
+import com.example.myapplication.ui.auth.viewmodel.RegisterViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -31,12 +31,12 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     private TextInputEditText firstNameEditText;
     private TextInputLayout lastNameInputLayout;
     private TextInputEditText lastNameEditText;
-    private TextInputLayout dniInputLayout;
-    private TextInputEditText dniEditText;
+    private TextInputLayout phoneInputLayout;
+    private TextInputEditText phoneEditText;
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
 
-    private SignupViewModel viewModel;
+    private RegisterViewModel viewModel;
 
     @Nullable
     @Override
@@ -55,8 +55,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         firstNameEditText = view.findViewById(R.id.first_name_edit_text);
         lastNameInputLayout = view.findViewById(R.id.last_name_input_layout);
         lastNameEditText = view.findViewById(R.id.last_name_edit_text);
-        dniInputLayout = view.findViewById(R.id.dni_input_layout);
-        dniEditText = view.findViewById(R.id.dni_edit_text);
+        phoneInputLayout = view.findViewById(R.id.phone_input_layout);
+        phoneEditText = view.findViewById(R.id.phone_edit_text);
         registerButton = view.findViewById(R.id.register_button);
         progressIndicator = view.findViewById(R.id.register_progress_indicator);
 
@@ -66,62 +66,54 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        // Activity-scoped to reuse the same OTP state used by SignupFragment.
-        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
+        viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
 
-        registerButton.setOnClickListener(v -> attemptClassicRegister());
+        registerButton.setOnClickListener(v -> attemptRegister());
         setupTextWatchers();
 
-        viewModel.getRequestOtpState().observe(getViewLifecycleOwner(), state -> {
-            registerButton.setEnabled(!state.isLoading);
-            emailEditText.setEnabled(!state.isLoading);
-            passwordEditText.setEnabled(!state.isLoading);
-            firstNameEditText.setEnabled(!state.isLoading);
-            lastNameEditText.setEnabled(!state.isLoading);
-            dniEditText.setEnabled(!state.isLoading);
+        viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
+            boolean notLoading = !state.isLoading;
+            registerButton.setEnabled(notLoading);
+            emailEditText.setEnabled(notLoading);
+            passwordEditText.setEnabled(notLoading);
+            firstNameEditText.setEnabled(notLoading);
+            lastNameEditText.setEnabled(notLoading);
+            phoneEditText.setEnabled(notLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
-            if (state.isLoading) {
-                clearAllErrors();
-            }
+            if (state.isLoading) clearAllErrors();
 
             if (state.error != null) {
-                emailInputLayout.setError(state.error.resolve(requireContext()));
-                viewModel.requestOtpErrorConsumed();
+                showError(state.error.resolve(requireContext()));
+                viewModel.errorConsumed();
             }
 
             if (state.navigateToOtpCode) {
                 Bundle args = new Bundle();
                 args.putString("email", safeText(emailEditText));
-                args.putString("password", safeText(passwordEditText));
-                args.putString("firstName", safeText(firstNameEditText));
-                args.putString("lastName", safeText(lastNameEditText));
-                args.putString("dni", safeText(dniEditText));
+                args.putString("source", OtpSignupCodeFragment.SOURCE_REGISTRATION);
                 navController.navigate(R.id.action_classicRegisterFragment_to_otpSignupCodeFragment, args);
-                viewModel.requestOtpNavigationConsumed();
+                viewModel.navigationConsumed();
             }
         });
     }
 
     private void setupTextWatchers() {
-        TextWatcher watcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        addClearErrorWatcher(emailEditText, emailInputLayout);
+        addClearErrorWatcher(passwordEditText, passwordInputLayout);
+        addClearErrorWatcher(firstNameEditText, firstNameInputLayout);
+        addClearErrorWatcher(lastNameEditText, lastNameInputLayout);
+        addClearErrorWatcher(phoneEditText, phoneInputLayout);
+    }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                clearAllErrors();
+    private void addClearErrorWatcher(TextInputEditText field, TextInputLayout layout) {
+        field.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                layout.setError(null);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        };
-
-        emailEditText.addTextChangedListener(watcher);
-        passwordEditText.addTextChangedListener(watcher);
-        firstNameEditText.addTextChangedListener(watcher);
-        lastNameEditText.addTextChangedListener(watcher);
-        dniEditText.addTextChangedListener(watcher);
+            @Override public void afterTextChanged(Editable s) {}
+        });
     }
 
     private void clearAllErrors() {
@@ -129,59 +121,45 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         passwordInputLayout.setError(null);
         firstNameInputLayout.setError(null);
         lastNameInputLayout.setError(null);
-        dniInputLayout.setError(null);
+        phoneInputLayout.setError(null);
     }
 
-    private void attemptClassicRegister() {
+    private void attemptRegister() {
         String email = safeText(emailEditText);
         String password = safeText(passwordEditText);
         String firstName = safeText(firstNameEditText);
         String lastName = safeText(lastNameEditText);
-        String dni = safeText(dniEditText);
+        String phone = safeText(phoneEditText);
 
-        clearAllErrors();
-        if (validateFields(email, password, firstName, lastName, dni)) {
-            viewModel.requestSignupOtp(email);
-        }
+        if (!validateFields(email, password, firstName, lastName)) return;
+
+        viewModel.register(email, password, firstName, lastName, phone.isEmpty() ? null : phone);
+    }
+
+    private boolean validateFields(String email, String password, String firstName, String lastName) {
+        boolean valid = true;
+
+        String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
+        emailInputLayout.setError(errEmail);
+        if (errEmail != null) valid = false;
+
+        String errPass = AuthInputValidator.validatePassword(requireContext(), password);
+        passwordInputLayout.setError(errPass);
+        if (errPass != null) valid = false;
+
+        String errFirst = AuthInputValidator.validateFirstName(requireContext(), firstName);
+        firstNameInputLayout.setError(errFirst);
+        if (errFirst != null) valid = false;
+
+        String errLast = AuthInputValidator.validateLastName(requireContext(), lastName);
+        lastNameInputLayout.setError(errLast);
+        if (errLast != null) valid = false;
+
+        return valid;
     }
 
     private String safeText(TextInputEditText editText) {
         return editText.getText() != null ? editText.getText().toString().trim() : "";
-    }
-
-    private boolean validateFields(String email, String password, String firstName,
-                                   String lastName, String dni) {
-        String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
-        if (errEmail != null) {
-            emailInputLayout.setError(errEmail);
-            return false;
-        }
-
-        String errPass = AuthInputValidator.validatePassword(requireContext(), password);
-        if (errPass != null) {
-            passwordInputLayout.setError(errPass);
-            return false;
-        }
-
-        String errFirst = AuthInputValidator.validateFirstName(requireContext(), firstName);
-        if (errFirst != null) {
-            firstNameInputLayout.setError(errFirst);
-            return false;
-        }
-
-        String errLast = AuthInputValidator.validateLastName(requireContext(), lastName);
-        if (errLast != null) {
-            lastNameInputLayout.setError(errLast);
-            return false;
-        }
-
-        String errDni = AuthInputValidator.validateDni(requireContext(), dni);
-        if (errDni != null) {
-            dniInputLayout.setError(errDni);
-            return false;
-        }
-
-        return true;
     }
 
     @Override
@@ -194,8 +172,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         firstNameEditText = null;
         lastNameInputLayout = null;
         lastNameEditText = null;
-        dniInputLayout = null;
-        dniEditText = null;
+        phoneInputLayout = null;
+        phoneEditText = null;
         registerButton = null;
         progressIndicator = null;
         super.onDestroyView();

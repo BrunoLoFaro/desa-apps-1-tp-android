@@ -8,7 +8,6 @@ import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.model.LoginResponse;
 import com.example.myapplication.data.model.LoginRequest;
 import com.example.myapplication.data.model.OtpCodeVerificationRequest;
-import com.example.myapplication.data.model.OtpRegistrationCompleteRequest;
 import com.example.myapplication.data.model.OtpRequest;
 import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.data.model.PasswordResetConfirmRequest;
@@ -39,21 +38,17 @@ public class AuthRepository extends BaseRepository {
                 callback, R.string.error_login_failed_default);
     }
 
+    /** Crea usuario pendiente y dispara OTP al email. Retorna OtpResponse. */
     public void register(String email, String password, String firstName, String lastName,
-                         String dni, RepositoryCallback<LoginResponse> callback) {
+                         String phone, RepositoryCallback<OtpResponse> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         enqueue(authService.register(config.registerEndpoint,
-                        new RegisterRequest(email, password, firstName, lastName, dni)),
+                        new RegisterRequest(email, password, firstName, lastName, phone)),
                 callback, R.string.error_register_failed_default);
     }
 
-    public void requestSignupOtp(String email, RepositoryCallback<OtpResponse> callback) {
-        AppConfig config = getConfig(callback);
-        if (config == null) return;
-        enqueue(authService.requestSignupOtp(config.signupOtpRequestEndpoint, new OtpRequest(email)),
-                callback, R.string.error_signup_otp_request_default);
-    }
+    // ── OTP signup (verificación de cuenta tras registro) ─────────────────────
 
     public void resendSignupOtp(String email, RepositoryCallback<OtpResponse> callback) {
         AppConfig config = getConfig(callback);
@@ -62,7 +57,7 @@ public class AuthRepository extends BaseRepository {
                 callback, R.string.error_signup_otp_resend_default);
     }
 
-    public void verifySignupOtp(String email, String code, RepositoryCallback<OtpResponse> callback) {
+    public void verifySignupOtp(String email, String code, RepositoryCallback<LoginResponse> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
         enqueue(authService.verifySignupOtp(config.signupOtpVerifyEndpoint,
@@ -70,15 +65,31 @@ public class AuthRepository extends BaseRepository {
                 callback, R.string.error_signup_otp_verify_default);
     }
 
-    public void completeSignupWithOtp(String email, String code, String password,
-                                      String firstName, String lastName, String dni,
-                                      RepositoryCallback<LoginResponse> callback) {
+    // ── OTP login (ingresar con código de un solo uso) ────────────────────────
+
+    public void sendLoginOtp(String email, RepositoryCallback<OtpResponse> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
-        enqueue(authService.completeSignupWithOtp(config.signupOtpCompleteEndpoint,
-                        new OtpRegistrationCompleteRequest(email, code, password, firstName, lastName, dni)),
-                callback, R.string.error_signup_complete_default);
+        enqueue(authService.sendLoginOtp(config.otpLoginSendEndpoint, new OtpRequest(email)),
+                callback, R.string.error_signup_otp_request_default);
     }
+
+    public void resendLoginOtp(String email, RepositoryCallback<OtpResponse> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(authService.resendLoginOtp(config.otpLoginResendEndpoint, new OtpRequest(email)),
+                callback, R.string.error_signup_otp_resend_default);
+    }
+
+    public void verifyLoginOtp(String email, String code, RepositoryCallback<LoginResponse> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        enqueue(authService.verifyLoginOtp(config.otpLoginVerifyEndpoint,
+                        new OtpCodeVerificationRequest(email, code)),
+                callback, R.string.error_signup_otp_verify_default);
+    }
+
+    // ── Password reset ────────────────────────────────────────────────────────
 
     public void requestPasswordReset(String email, RepositoryCallback<OtpResponse> callback) {
         AppConfig config = getConfig(callback);

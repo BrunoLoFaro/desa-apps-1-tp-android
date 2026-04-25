@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_back"
-            app:title="@string/register_button" />
+            app:title="@string/register_create_account_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -37,7 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/email_hint"
+                android:hint="@string/register_email_hint"
                 app:errorEnabled="true"
                 app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
                 app:helperTextEnabled="false">
@@ -55,7 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/password_hint"
+                android:hint="@string/register_password_hint"
                 app:endIconMode="password_toggle"
                 app:errorEnabled="true"
                 app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/first_name_hint"
+                android:hint="@string/register_first_name_hint"
                 app:errorEnabled="true"
                 app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
                 app:helperTextEnabled="false">
@@ -92,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="@string/last_name_hint"
+                android:hint="@string/register_last_name_hint"
                 app:errorEnabled="true"
                 app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
                 app:helperTextEnabled="false">
@@ -105,21 +105,22 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/dni_input_layout"
+                android:id="@+id/phone_input_layout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:hint="@string/dni_hint"
+                android:hint="@string/phone_hint_optional"
                 app:errorEnabled="true"
                 app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
-                app:helperTextEnabled="false">
+                app:helperTextEnabled="false"
+                app:placeholderText="@string/phone_placeholder_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/dni_edit_text"
+                    android:id="@+id/phone_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="number" />
+                    android:inputType="phone" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -127,7 +128,7 @@
                 style="@style/Widget.XploreNow.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="@string/register_button" />
+                android:text="@string/register_create_account_button" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/register_progress_indicator"

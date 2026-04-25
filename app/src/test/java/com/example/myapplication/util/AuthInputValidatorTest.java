@@ -18,11 +18,13 @@ public class AuthInputValidatorTest {
     private Context context;
 
     private static final String ERROR_INVALID_PASSWORD = "Invalid Password";
+    private static final String ERROR_PASSWORD_REQUIRED = "Password Required";
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         when(context.getString(R.string.error_invalid_password)).thenReturn(ERROR_INVALID_PASSWORD);
+        when(context.getString(R.string.error_password_required)).thenReturn(ERROR_PASSWORD_REQUIRED);
     }
 
     @Test
@@ -58,12 +60,12 @@ public class AuthInputValidatorTest {
 
     @Test
     public void validatePassword_null_returnsError() {
-        assertEquals(ERROR_INVALID_PASSWORD, AuthInputValidator.validatePassword(context, null));
+        assertEquals(ERROR_PASSWORD_REQUIRED, AuthInputValidator.validatePassword(context, null));
     }
 
     @Test
     public void validatePassword_empty_returnsError() {
-        assertEquals(ERROR_INVALID_PASSWORD, AuthInputValidator.validatePassword(context, ""));
+        assertEquals(ERROR_PASSWORD_REQUIRED, AuthInputValidator.validatePassword(context, ""));
     }
 
     @Test

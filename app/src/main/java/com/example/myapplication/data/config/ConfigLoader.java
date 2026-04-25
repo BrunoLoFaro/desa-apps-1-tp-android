@@ -21,10 +21,11 @@ public class ConfigLoader {
     private static final String KEY_BASE_URL = "base_url";
     private static final String KEY_LOGIN_ENDPOINT = "login_endpoint";
     private static final String KEY_REGISTER_ENDPOINT = "register_endpoint";
-    private static final String KEY_SIGNUP_OTP_REQUEST_ENDPOINT = "signup_otp_request_endpoint";
     private static final String KEY_SIGNUP_OTP_RESEND_ENDPOINT = "signup_otp_resend_endpoint";
     private static final String KEY_SIGNUP_OTP_VERIFY_ENDPOINT = "signup_otp_verify_endpoint";
-    private static final String KEY_SIGNUP_OTP_COMPLETE_ENDPOINT = "signup_otp_complete_endpoint";
+    private static final String KEY_OTP_LOGIN_SEND_ENDPOINT = "otp_login_send_endpoint";
+    private static final String KEY_OTP_LOGIN_RESEND_ENDPOINT = "otp_login_resend_endpoint";
+    private static final String KEY_OTP_LOGIN_VERIFY_ENDPOINT = "otp_login_verify_endpoint";
     private static final String KEY_PASSWORD_RESET_REQUEST_ENDPOINT = "password_reset_request_endpoint";
     private static final String KEY_PASSWORD_RESET_RESEND_ENDPOINT = "password_reset_resend_endpoint";
     private static final String KEY_PASSWORD_RESET_VERIFY_ENDPOINT = "password_reset_verify_endpoint";
@@ -47,10 +48,11 @@ public class ConfigLoader {
             config.baseUrl = prefs.getString(KEY_BASE_URL, defaultConfig != null ? defaultConfig.baseUrl : "");
             config.loginEndpoint = prefs.getString(KEY_LOGIN_ENDPOINT, defaultConfig != null ? defaultConfig.loginEndpoint : null);
             config.registerEndpoint = prefs.getString(KEY_REGISTER_ENDPOINT, defaultConfig != null ? defaultConfig.registerEndpoint : null);
-            config.signupOtpRequestEndpoint = prefs.getString(KEY_SIGNUP_OTP_REQUEST_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpRequestEndpoint : null);
             config.signupOtpResendEndpoint = prefs.getString(KEY_SIGNUP_OTP_RESEND_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpResendEndpoint : null);
             config.signupOtpVerifyEndpoint = prefs.getString(KEY_SIGNUP_OTP_VERIFY_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpVerifyEndpoint : null);
-            config.signupOtpCompleteEndpoint = prefs.getString(KEY_SIGNUP_OTP_COMPLETE_ENDPOINT, defaultConfig != null ? defaultConfig.signupOtpCompleteEndpoint : null);
+            config.otpLoginSendEndpoint = prefs.getString(KEY_OTP_LOGIN_SEND_ENDPOINT, defaultConfig != null ? defaultConfig.otpLoginSendEndpoint : null);
+            config.otpLoginResendEndpoint = prefs.getString(KEY_OTP_LOGIN_RESEND_ENDPOINT, defaultConfig != null ? defaultConfig.otpLoginResendEndpoint : null);
+            config.otpLoginVerifyEndpoint = prefs.getString(KEY_OTP_LOGIN_VERIFY_ENDPOINT, defaultConfig != null ? defaultConfig.otpLoginVerifyEndpoint : null);
             config.passwordResetRequestEndpoint = prefs.getString(KEY_PASSWORD_RESET_REQUEST_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetRequestEndpoint : null);
             config.passwordResetResendEndpoint = prefs.getString(KEY_PASSWORD_RESET_RESEND_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetResendEndpoint : null);
             config.passwordResetVerifyEndpoint = prefs.getString(KEY_PASSWORD_RESET_VERIFY_ENDPOINT, defaultConfig != null ? defaultConfig.passwordResetVerifyEndpoint : null);
@@ -73,5 +75,4 @@ public class ConfigLoader {
             return new AppConfig();
         }
     }
-
 }

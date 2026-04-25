@@ -6,64 +6,59 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.model.LoginResponse;
+import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.data.usecase.RegisterUseCase;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import javax.inject.Inject;
 
 @HiltViewModel
-public class ClassicRegisterViewModel extends ViewModel {
+public class RegisterViewModel extends ViewModel {
 
     public static final class UiState {
         public final boolean isLoading;
         @Nullable public final UiMessage error;
-        public final boolean navigateToHome;
+        public final boolean navigateToOtpCode;
 
-        private UiState(boolean isLoading,
-                        @Nullable UiMessage error, boolean navigateToHome) {
+        private UiState(boolean isLoading, @Nullable UiMessage error, boolean navigateToOtpCode) {
             this.isLoading = isLoading;
             this.error = error;
-            this.navigateToHome = navigateToHome;
+            this.navigateToOtpCode = navigateToOtpCode;
         }
 
-        static UiState idle() {
-            return new UiState(false, null, false);
-        }
+        static UiState idle() { return new UiState(false, null, false); }
         UiState loading() { return new UiState(true, null, false); }
         UiState success() { return new UiState(false, null, true); }
-        UiState withError(UiMessage msg) { return new UiState(false, msg, false); }
-        UiState errorConsumed() { return new UiState(isLoading, null, navigateToHome); }
+        UiState withError(UiMessage m) { return new UiState(false, m, false); }
+        UiState errorConsumed() { return new UiState(isLoading, null, navigateToOtpCode); }
         UiState navigationConsumed() { return new UiState(isLoading, error, false); }
     }
 
     private final RegisterUseCase registerUseCase;
-    private final MutableLiveData<UiState> _uiState;
+    private final MutableLiveData<UiState> _uiState = new MutableLiveData<>(UiState.idle());
 
     @Inject
-    public ClassicRegisterViewModel(RegisterUseCase registerUseCase) {
+    public RegisterViewModel(RegisterUseCase registerUseCase) {
         this.registerUseCase = registerUseCase;
-        _uiState = new MutableLiveData<>(UiState.idle());
     }
 
     public LiveData<UiState> getUiState() { return _uiState; }
 
-    public void register(String email, String password, String firstName,
-                         String lastName, String dni) {
-        UiState current = _uiState.getValue();
-        if (current == null) return;
-        _uiState.setValue(current.loading());
-        registerUseCase.execute(email, password, firstName, lastName, dni,
-                new RepositoryCallback<LoginResponse>() {
+    public void register(String email, String password, String firstName, String lastName, String phone) {
+        UiState s = _uiState.getValue();
+        if (s == null) return;
+        _uiState.setValue(s.loading());
+        registerUseCase.execute(email, password, firstName, lastName, phone,
+                new RepositoryCallback<OtpResponse>() {
                     @Override
-                    public void onSuccess(LoginResponse data) {
-                        UiState s = _uiState.getValue();
-                        if (s != null) _uiState.postValue(s.success());
+                    public void onSuccess(OtpResponse data) {
+                        UiState cur = _uiState.getValue();
+                        if (cur != null) _uiState.postValue(cur.success());
                     }
 
                     @Override
                     public void onError(UiMessage error) {
-                        UiState s = _uiState.getValue();
-                        if (s != null) _uiState.postValue(s.withError(error));
+                        UiState cur = _uiState.getValue();
+                        if (cur != null) _uiState.postValue(cur.withError(error));
                     }
                 });
     }

@@ -1,11 +1,7 @@
 package com.example.myapplication.data.usecase;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
@@ -42,11 +38,7 @@ public class OtpSignupUseCaseTest {
         otpSignupUseCase = new OtpSignupUseCase(authRepository, sessionRepository);
     }
 
-    @Test
-    public void requestOtp_callsRepository() {
-        otpSignupUseCase.requestOtp("test@mail.com", otpCallback);
-        verify(authRepository).requestSignupOtp(eq("test@mail.com"), eq(otpCallback));
-    }
+    // ── signup OTP ─────────────────────────────────────────────────────────────
 
     @Test
     public void resendOtp_callsRepository() {
@@ -54,22 +46,14 @@ public class OtpSignupUseCaseTest {
         verify(authRepository).resendSignupOtp(eq("test@mail.com"), eq(otpCallback));
     }
 
-    @Test
-    public void verifyOtp_callsRepository() {
-        otpSignupUseCase.verifyOtp("test@mail.com", "123456", otpCallback);
-        verify(authRepository).verifySignupOtp(eq("test@mail.com"), eq("123456"), eq(otpCallback));
-    }
-
     @SuppressWarnings("unchecked")
     @Test
-    public void completeSignup_onSuccessWithToken_savesSessionAndCallsBack() {
+    public void verifySignupOtp_onSuccessWithToken_savesSessionAndCallsBack() {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        otpSignupUseCase.completeSignup("test@mail.com", "123456", "pass123", "John", "Doe", "12345678", loginCallback);
-        
-        verify(authRepository).completeSignupWithOtp(
-                eq("test@mail.com"), eq("123456"), eq("pass123"), eq("John"), eq("Doe"), eq("12345678"), captor.capture());
+        otpSignupUseCase.verifySignupOtp("test@mail.com", "123456", loginCallback);
+        verify(authRepository).verifySignupOtp(eq("test@mail.com"), eq("123456"), captor.capture());
 
         LoginResponse response = new LoginResponse();
         response.token = "jwt-token";
@@ -77,29 +61,96 @@ public class OtpSignupUseCaseTest {
         response.email = "test@mail.com";
         response.firstName = "John";
         response.lastName = "Doe";
-        
         captor.getValue().onSuccess(response);
 
         verify(sessionRepository).saveSession(eq("jwt-token"), any(), argThat(user ->
-                user.id == 1L && "test@mail.com".equals(user.email)
-        ));
+                user.id == 1L && "test@mail.com".equals(user.email)));
         verify(loginCallback).onSuccess(response);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void completeSignup_onError_forwardsError() {
+    public void verifySignupOtp_onError_forwardsError() {
         ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
-        otpSignupUseCase.completeSignup("test@mail.com", "wrong", "pass", "J", "D", "1", loginCallback);
-        verify(authRepository).completeSignupWithOtp(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), captor.capture());
+        otpSignupUseCase.verifySignupOtp("test@mail.com", "wrong", loginCallback);
+        verify(authRepository).verifySignupOtp(anyString(), anyString(), captor.capture());
 
-        UiMessage errorMsg = UiMessage.from("Error");
+        UiMessage errorMsg = UiMessage.from("Código inválido");
         captor.getValue().onError(errorMsg);
 
         verify(loginCallback).onError(errorMsg);
         verify(sessionRepository, never()).saveSession(anyString(), any(), any());
+    }
+
+    // ── login OTP ──────────────────────────────────────────────────────────────
+
+    @Test
+    public void sendLoginOtp_callsRepository() {
+        otpSignupUseCase.sendLoginOtp("test@mail.com", otpCallback);
+        verify(authRepository).sendLoginOtp(eq("test@mail.com"), eq(otpCallback));
+    }
+
+    @Test
+    public void resendLoginOtp_callsRepository() {
+        otpSignupUseCase.resendLoginOtp("test@mail.com", otpCallback);
+        verify(authRepository).resendLoginOtp(eq("test@mail.com"), eq(otpCallback));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void verifyLoginOtp_onSuccessWithToken_savesSessionAndCallsBack() {
+        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        otpSignupUseCase.verifyLoginOtp("active@mail.com", "123456", loginCallback);
+        verify(authRepository).verifyLoginOtp(eq("active@mail.com"), eq("123456"), captor.capture());
+
+        LoginResponse response = new LoginResponse();
+        response.token = "jwt-token";
+        response.userId = 2L;
+        response.email = "active@mail.com";
+        response.firstName = "Jane";
+        response.lastName = "Doe";
+        captor.getValue().onSuccess(response);
+
+        verify(sessionRepository).saveSession(eq("jwt-token"), any(), argThat(user ->
+                user.id == 2L && "active@mail.com".equals(user.email)));
+        verify(loginCallback).onSuccess(response);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void verifyLoginOtp_onError_forwardsError() {
+        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        otpSignupUseCase.verifyLoginOtp("active@mail.com", "wrong", loginCallback);
+        verify(authRepository).verifyLoginOtp(anyString(), anyString(), captor.capture());
+
+        UiMessage errorMsg = UiMessage.from("Código inválido");
+        captor.getValue().onError(errorMsg);
+
+        verify(loginCallback).onError(errorMsg);
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void verifyLoginOtp_onSuccessWithoutToken_doesNotSaveSession() {
+        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        otpSignupUseCase.verifyLoginOtp("active@mail.com", "123456", loginCallback);
+        verify(authRepository).verifyLoginOtp(anyString(), anyString(), captor.capture());
+
+        LoginResponse response = new LoginResponse();
+        response.token = null;
+        captor.getValue().onSuccess(response);
+
+        verify(sessionRepository, never()).saveSession(anyString(), any(), any());
+        verify(loginCallback).onSuccess(response);
     }
 
     @Test

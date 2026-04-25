@@ -8,7 +8,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.model.LoginResponse;
+import com.example.myapplication.data.model.OtpResponse;
 import com.example.myapplication.data.usecase.RegisterUseCase;
 
 import org.junit.Before;
@@ -26,36 +26,36 @@ public class ClassicRegisterViewModelTest {
     @Mock
     private RegisterUseCase registerUseCase;
 
-    private ClassicRegisterViewModel viewModel;
+    private RegisterViewModel viewModel;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        viewModel = new ClassicRegisterViewModel(registerUseCase);
+        viewModel = new RegisterViewModel(registerUseCase);
     }
 
     @Test
     public void initialState_isIdle() {
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
         assertNull(state.error);
-        assertFalse(state.navigateToHome);
+        assertFalse(state.navigateToOtpCode);
     }
 
     @Test
     public void register_setsLoadingState() {
         viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertTrue(state.isLoading);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void register_onSuccess_setsNavigateToHome() {
-        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+    public void register_onSuccess_setsNavigateToOtpCode() {
+        ArgumentCaptor<RepositoryCallback<OtpResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
         viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
@@ -63,20 +63,20 @@ public class ClassicRegisterViewModelTest {
                 eq("a@b.com"), eq("123456"), eq("Ana"), eq("Lopez"), eq("12345678"),
                 captor.capture());
 
-        LoginResponse response = new LoginResponse();
-        response.token = "jwt-token";
+        OtpResponse response = new OtpResponse();
+        response.email = "a@b.com";
         captor.getValue().onSuccess(response);
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
-        assertTrue(state.navigateToHome);
+        assertTrue(state.navigateToOtpCode);
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void register_onError_setsError() {
-        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+        ArgumentCaptor<RepositoryCallback<OtpResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
         viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
@@ -85,7 +85,7 @@ public class ClassicRegisterViewModelTest {
 
         captor.getValue().onError(UiMessage.from("Email ya registrado"));
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertFalse(state.isLoading);
         assertNotNull(state.error);
@@ -94,7 +94,7 @@ public class ClassicRegisterViewModelTest {
     @SuppressWarnings("unchecked")
     @Test
     public void errorConsumed_clearsError() {
-        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+        ArgumentCaptor<RepositoryCallback<OtpResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
         viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
@@ -104,7 +104,7 @@ public class ClassicRegisterViewModelTest {
 
         viewModel.errorConsumed();
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
         assertNull(state.error);
     }
@@ -112,21 +112,20 @@ public class ClassicRegisterViewModelTest {
     @SuppressWarnings("unchecked")
     @Test
     public void navigationConsumed_clearsNavigateFlag() {
-        ArgumentCaptor<RepositoryCallback<LoginResponse>> captor =
+        ArgumentCaptor<RepositoryCallback<OtpResponse>> captor =
                 ArgumentCaptor.forClass(RepositoryCallback.class);
 
         viewModel.register("a@b.com", "123456", "Ana", "Lopez", "12345678");
         verify(registerUseCase).execute(anyString(), anyString(), anyString(), anyString(),
                 anyString(), captor.capture());
 
-        LoginResponse response = new LoginResponse();
-        response.token = "token";
+        OtpResponse response = new OtpResponse();
         captor.getValue().onSuccess(response);
 
         viewModel.navigationConsumed();
 
-        ClassicRegisterViewModel.UiState state = viewModel.getUiState().getValue();
+        RegisterViewModel.UiState state = viewModel.getUiState().getValue();
         assertNotNull(state);
-        assertFalse(state.navigateToHome);
+        assertFalse(state.navigateToOtpCode);
     }
 }
