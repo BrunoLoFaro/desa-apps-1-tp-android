@@ -9,6 +9,10 @@
         android:icon="@android:drawable/ic_menu_search"
         android:title="@string/nav_explore" />
     <item
+        android:id="@+id/newsFragment"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="Noticias" />
+    <item
         android:id="@+id/favoritesFragment"
         android:icon="@drawable/ic_favorite"
         android:title="@string/nav_favorites" />

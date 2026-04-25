@@ -8,6 +8,7 @@ import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.data.network.CatalogMetaService;
+import com.example.myapplication.data.network.NewsService;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;
@@ -212,5 +213,11 @@ public class AppModule {
     @Singleton
     static ReviewService provideReviewService(Retrofit retrofit) {
         return retrofit.create(ReviewService.class);
+    }
+
+    @Provides
+    @Singleton
+    static NewsService provideNewsService(Retrofit retrofit) {
+        return retrofit.create(NewsService.class);
     }
 }
