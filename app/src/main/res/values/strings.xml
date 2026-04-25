@@ -224,4 +224,9 @@
 
     <!-- Offline -->
     <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+
+    <!-- Feature 10 - Maps -->
+    <string name="map_meeting_title">Mapa y punto de encuentro</string>
+    <string name="map_meeting_error">No se pudo ubicar el punto en el mapa.</string>
+    <string name="map_directions_button">Como llegar</string>
 </resources>

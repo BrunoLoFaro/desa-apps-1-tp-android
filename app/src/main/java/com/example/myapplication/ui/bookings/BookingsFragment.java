@@ -341,6 +341,7 @@ public class BookingsFragment extends Fragment {
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
         args.putBoolean("from_history", false);
+        args.putBoolean("from_booking", true);
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
     }
@@ -353,6 +354,7 @@ public class BookingsFragment extends Fragment {
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
         args.putBoolean("from_history", true);
+        args.putBoolean("from_booking", true);
         args.putString("booking_status", "COMPLETED");
         if (item.getId() != null) args.putLong("booking_id", item.getId());
         Navigation.findNavController(requireView())

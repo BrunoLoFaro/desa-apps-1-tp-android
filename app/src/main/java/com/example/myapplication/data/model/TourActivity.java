@@ -23,6 +23,7 @@ public class TourActivity implements Serializable {
     private String language;
     private String cancellationPolicy;
     private List<String> galleryUrls;
+    private List<ItineraryPoint> itineraryPoints;
     private boolean isFavorite;
     private boolean favoriteUpdate;
     private boolean priceChanged;
@@ -65,6 +66,7 @@ public class TourActivity implements Serializable {
         this.language = language;
         this.cancellationPolicy = cancellationPolicy;
         this.galleryUrls = galleryUrls;
+        this.itineraryPoints = null;
         this.isFavorite = isFavorite;
         this.favoriteUpdate = false;
         this.priceChanged = false;
@@ -91,6 +93,8 @@ public class TourActivity implements Serializable {
     public String getLanguage() { return language; }
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGalleryUrls() { return galleryUrls; }
+    public List<ItineraryPoint> getItineraryPoints() { return itineraryPoints; }
+    public void setItineraryPoints(List<ItineraryPoint> itineraryPoints) { this.itineraryPoints = itineraryPoints; }
     public boolean isFavorite() { return isFavorite; }
     public void setFavorite(boolean favorite) { isFavorite = favorite; }
     public boolean hasFavoriteUpdate() { return favoriteUpdate; }

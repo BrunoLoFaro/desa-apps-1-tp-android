@@ -8,10 +8,14 @@ import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySessionResponse;
+import com.example.myapplication.data.model.ItineraryPoint;
+import com.example.myapplication.data.model.ItineraryPointResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.TourRepository;
 import com.example.myapplication.util.FormatUtils;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -115,11 +119,27 @@ public class DetailViewModel extends ViewModel {
         );
         activity.setId(data.id);
         activity.setFavorite(data.isFavorite);
+        activity.setItineraryPoints(mapItineraryPoints(data.itineraryPoints));
         return activity;
     }
 
     private static String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private static List<ItineraryPoint> mapItineraryPoints(List<ItineraryPointResponse> points) {
+        if (points == null || points.isEmpty()) return Collections.emptyList();
+        List<ItineraryPointResponse> sorted = new ArrayList<>(points);
+        sorted.sort(Comparator.comparingInt(p -> p.position != null ? p.position : 0));
+
+        List<ItineraryPoint> result = new ArrayList<>();
+        for (ItineraryPointResponse p : sorted) {
+            String name = p.name != null ? p.name : "";
+            String address = p.address != null ? p.address : "";
+            int position = p.position != null ? p.position : 0;
+            result.add(new ItineraryPoint(name, address, position));
+        }
+        return result;
     }
 
 }
