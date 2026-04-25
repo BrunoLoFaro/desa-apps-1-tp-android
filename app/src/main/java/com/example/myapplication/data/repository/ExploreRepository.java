@@ -101,7 +101,7 @@ public class ExploreRepository extends BaseRepository {
             String price = FormatUtils.formatPrice(item.price, item.currency);
 
             TourActivity activity = new TourActivity(item.name, destination, normalizedCategory, duration, price,
-                    item.availableSpots, null);
+                    item.availableSpots, item.imageUrl);
             activity.setId(item.id);
             activity.setFavorite(item.isFavorite);
             if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
