@@ -8,7 +8,6 @@
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
     <string name="error_empty_fields">Por favor, completa todos los campos.</string>
-    <string name="error_invalid_credentials">Usuario o contraseña inválidos.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
@@ -39,6 +38,7 @@
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_invalid_credentials">Credenciales inválidas. Por favor, verificá tu email y contraseña.</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
     <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
     <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
