@@ -26,8 +26,11 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class OtpSignupCodeFragment extends BaseAuthFragment {
 
-    private static final long RESEND_COOLDOWN_SECONDS = 30L;
-    private static final long EXTRA_COOLDOWN_SECONDS = 60L;
+    public static final String SOURCE_REGISTRATION = "registration";
+    public static final String SOURCE_OTP_LOGIN = "otp_login";
+
+    private static final long RESEND_COOLDOWN_SECONDS = 60L;
+    private static final long EXTRA_COOLDOWN_SECONDS = 120L;
     private static final int MAX_INVALID_ATTEMPTS = 3;
 
     private TextInputEditText codeEditText;
@@ -36,6 +39,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     private MaterialButton resendButton;
     private CircularProgressIndicator progressIndicator;
     private MaterialTextView resendTimerText;
+    private MaterialTextView subtitleText;
     private MaterialTextView[] otpDigitViews;
     private CountDownTimer resendTimer;
     private long resendSecondsLeft;
@@ -46,6 +50,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     private int invalidAttempts;
 
     private String email;
+    private String source;
     private SignupViewModel viewModel;
 
     @Nullable
@@ -59,6 +64,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         if (getArguments() != null) {
             email = getArguments().getString("email");
+            source = getArguments().getString("source", SOURCE_REGISTRATION);
         }
 
         codeEditText = view.findViewById(R.id.otp_signup_code_edit_text);
@@ -67,6 +73,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         resendButton = view.findViewById(R.id.otp_signup_resend_button);
         progressIndicator = view.findViewById(R.id.otp_signup_code_progress_indicator);
         resendTimerText = view.findViewById(R.id.otp_signup_resend_timer_text);
+        subtitleText = view.findViewById(R.id.otp_signup_code_subtitle);
 
         otpDigitViews = new MaterialTextView[] {
                 view.findViewById(R.id.otp_digit_1),
@@ -83,7 +90,10 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
-        // Same Activity-scoped instance as SignupFragment
+        if (subtitleText != null && email != null) {
+            subtitleText.setText(getString(R.string.otp_verify_subtitle_format, email));
+        }
+
         viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
         verifyButton.setOnClickListener(v -> verifyCode());
@@ -109,8 +119,6 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
                 } else if (isInvalidOtpBackendMessage(backendMessage)) {
                     invalidAttempts++;
                     message = getString(R.string.error_signup_otp_invalid_custom);
-
-                    // Incorrect OTP can be retried, and user may also choose to resend immediately.
                     cancelCooldownAndEnableResend();
 
                     if (invalidAttempts >= MAX_INVALID_ATTEMPTS) {
@@ -134,21 +142,8 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
                 showInfo(getString(R.string.signup_otp_resent_message));
                 viewModel.otpResentConsumed();
             }
-            if (state.navigateToComplete) {
-                String code = codeEditText.getText() != null
-                        ? codeEditText.getText().toString().trim() : "";
-                Bundle args = new Bundle();
-                args.putString("email", email);
-                args.putString("code", code);
-                // Forward data if navigation came from classic register.
-                Bundle currentArgs = getArguments();
-                if (currentArgs != null) {
-                    args.putString("password", currentArgs.getString("password"));
-                    args.putString("firstName", currentArgs.getString("firstName"));
-                    args.putString("lastName", currentArgs.getString("lastName"));
-                    args.putString("dni", currentArgs.getString("dni"));
-                }
-                navController.navigate(R.id.action_otpSignupCodeFragment_to_otpSignupCompleteFragment, args);
+            if (state.navigateToHome) {
+                navigateToHome();
                 viewModel.otpCodeNavigationConsumed();
             }
         });
@@ -156,6 +151,11 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         if (email == null || email.isEmpty()) {
             navController.navigateUp();
         }
+    }
+
+    @Override
+    protected void navigateToHome() {
+        navController.navigate(R.id.action_otpSignupCodeFragment_to_homeFragment);
     }
 
     private void verifyCode() {
@@ -171,14 +171,21 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
             showOtpError(codeError);
             return;
         }
-        viewModel.verifySignupOtp(email, code);
+
+        if (SOURCE_OTP_LOGIN.equals(source)) {
+            viewModel.verifyLoginOtp(email, code);
+        } else {
+            viewModel.verifySignupOtp(email, code);
+        }
     }
 
     private void resendCode() {
-        if (resendSecondsLeft > 0L) {
-            return;
+        if (resendSecondsLeft > 0L) return;
+        if (SOURCE_OTP_LOGIN.equals(source)) {
+            viewModel.resendLoginOtp(email);
+        } else {
+            viewModel.resendSignupOtp(email);
         }
-        viewModel.resendSignupOtp(email);
     }
 
     private void setupOtpInputUx() {
@@ -259,21 +266,15 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     private boolean isInvalidOtpBackendMessage(String message) {
         if (message == null) return false;
-        String normalized = message.toLowerCase();
-        return normalized.contains("invalid")
-                || normalized.contains("incorrect")
-                || normalized.contains("inválid")
-                || normalized.contains("incorrect")
-                || normalized.contains("código inválido")
-                || normalized.contains("codigo invalido");
+        String n = message.toLowerCase();
+        return n.contains("invalid") || n.contains("incorrect") || n.contains("inválid")
+                || n.contains("código inválido") || n.contains("codigo invalido");
     }
 
     private boolean isExpiredOtpBackendMessage(String message) {
         if (message == null) return false;
-        String normalized = message.toLowerCase();
-        return normalized.contains("expired")
-                || normalized.contains("expir")
-                || normalized.contains("vencid");
+        String n = message.toLowerCase();
+        return n.contains("expired") || n.contains("expir") || n.contains("vencid");
     }
 
     private void cancelCooldownAndEnableResend() {
@@ -296,9 +297,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     }
 
     private void startResendCooldown(long seconds) {
-        if (resendTimer != null) {
-            resendTimer.cancel();
-        }
+        if (resendTimer != null) resendTimer.cancel();
         resendSecondsLeft = seconds;
         resendButton.setEnabled(false);
         updateResendTimerText();
@@ -321,8 +320,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     }
 
     private void updateVerifyButtonState(boolean notLoading) {
-        boolean canVerify = notLoading && isOtpComplete() && !requiresResend && !lockedByAttempts;
-        verifyButton.setEnabled(canVerify);
+        verifyButton.setEnabled(notLoading && isOtpComplete() && !requiresResend && !lockedByAttempts);
     }
 
     private void updateResendTimerText() {
@@ -331,9 +329,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     private void showKeyboard() {
         InputMethodManager imm = requireContext().getSystemService(InputMethodManager.class);
-        if (imm != null) {
-            imm.showSoftInput(codeEditText, InputMethodManager.SHOW_IMPLICIT);
-        }
+        if (imm != null) imm.showSoftInput(codeEditText, InputMethodManager.SHOW_IMPLICIT);
     }
 
     @Override
@@ -351,6 +347,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         resendButton = null;
         progressIndicator = null;
         resendTimerText = null;
+        subtitleText = null;
         otpDigitViews = null;
         codeWatcher = null;
         super.onDestroyView();

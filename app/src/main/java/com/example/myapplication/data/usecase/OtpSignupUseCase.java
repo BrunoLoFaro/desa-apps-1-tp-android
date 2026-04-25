@@ -11,8 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Orchestrates the OTP-based registration flow:
- * request → resend → verify → complete (with session persistence).
+ * Maneja el flujo OTP compartido entre registro y login con código de un solo uso.
  */
 @Singleton
 public class OtpSignupUseCase {
@@ -30,39 +29,58 @@ public class OtpSignupUseCase {
         authRepository.cancelAll();
     }
 
-    public void requestOtp(String email, RepositoryCallback<OtpResponse> callback) {
-        authRepository.requestSignupOtp(email, callback);
+    /** Envía OTP para login (usuario ya registrado y activo). */
+    public void sendLoginOtp(String email, RepositoryCallback<OtpResponse> callback) {
+        authRepository.sendLoginOtp(email, callback);
     }
 
     public void resendOtp(String email, RepositoryCallback<OtpResponse> callback) {
         authRepository.resendSignupOtp(email, callback);
     }
 
-    public void verifyOtp(String email, String code, RepositoryCallback<OtpResponse> callback) {
-        authRepository.verifySignupOtp(email, code, callback);
+    public void resendLoginOtp(String email, RepositoryCallback<OtpResponse> callback) {
+        authRepository.resendLoginOtp(email, callback);
     }
 
-    public void completeSignup(String email, String code, String password,
-                               String firstName, String lastName, String dni,
-                               RepositoryCallback<LoginResponse> callback) {
-        authRepository.completeSignupWithOtp(email, code, password, firstName, lastName, dni,
-                new RepositoryCallback<LoginResponse>() {
-                    @Override
-                    public void onSuccess(LoginResponse data) {
-                        if (data.token != null && !data.token.trim().isEmpty()) {
-                            User user = new User(
-                                    data.userId != null ? data.userId : -1L,
-                                    data.email, data.firstName, data.lastName
-                            );
-                            sessionRepository.saveSession(data.token, data.refreshToken, user);
-                        }
-                        callback.onSuccess(data);
-                    }
+    /** Verifica OTP de registro y crea sesión (el backend activa el usuario). */
+    public void verifySignupOtp(String email, String code, RepositoryCallback<LoginResponse> callback) {
+        authRepository.verifySignupOtp(email, code, new RepositoryCallback<LoginResponse>() {
+            @Override
+            public void onSuccess(LoginResponse data) {
+                saveSession(data);
+                callback.onSuccess(data);
+            }
 
-                    @Override
-                    public void onError(UiMessage error) {
-                        callback.onError(error);
-                    }
-                });
+            @Override
+            public void onError(UiMessage error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    /** Verifica OTP de login y crea sesión. */
+    public void verifyLoginOtp(String email, String code, RepositoryCallback<LoginResponse> callback) {
+        authRepository.verifyLoginOtp(email, code, new RepositoryCallback<LoginResponse>() {
+            @Override
+            public void onSuccess(LoginResponse data) {
+                saveSession(data);
+                callback.onSuccess(data);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    private void saveSession(LoginResponse data) {
+        if (data.token != null && !data.token.trim().isEmpty()) {
+            User user = new User(
+                    data.userId != null ? data.userId : -1L,
+                    data.email, data.firstName, data.lastName
+            );
+            sessionRepository.saveSession(data.token, data.refreshToken, user);
+        }
     }
 }

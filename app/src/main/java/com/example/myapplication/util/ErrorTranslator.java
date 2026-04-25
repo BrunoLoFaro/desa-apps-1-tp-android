@@ -48,22 +48,17 @@ public class ErrorTranslator {
         // Note: You can also add URL-specific logic here if needed
         // e.g., if (url.contains("/bookings")) { ... }
 
-        for (TranslationRule rule : rules) {
-            if (rule.pattern.matcher(serverMessage).matches()) {
-                return rule.resId;
+        String normalizedMsg = serverMessage.trim().toLowerCase();
+
+        if (url.contains("auth/login")) {
+            if (normalizedMsg.contains("formato válido") || normalizedMsg.contains("correo electrónico no tiene")) {
+                return R.string.error_invalid_email;
+            }
+            if (normalizedMsg.contains("credenciales inválidas")) {
+                return R.string.error_invalid_credentials;
             }
         }
 
-        return -1; // No translation found
-    }
-
-    private static class TranslationRule {
-        final Pattern pattern;
-        final int resId;
-
-        TranslationRule(Pattern pattern, int resId) {
-            this.pattern = pattern;
-            this.resId = resId;
-        }
+        return -1;
     }
 }
