@@ -65,7 +65,13 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.destination.setText(activity.getDestination());
         holder.category.setText(activity.getCategory().toUpperCase());
         holder.duration.setText(activity.getDuration());
-        holder.price.setText(activity.getPrice());
+        String price = activity.getPrice();
+        if (price != null && !price.isEmpty()) {
+            holder.price.setText(price);
+            holder.price.setVisibility(View.VISIBLE);
+        } else {
+            holder.price.setVisibility(View.GONE);
+        }
         boolean soldOut = activity.getAvailableSlots() <= 0;
         holder.slots.setText(soldOut
                 ? holder.itemView.getContext().getString(R.string.sold_out)

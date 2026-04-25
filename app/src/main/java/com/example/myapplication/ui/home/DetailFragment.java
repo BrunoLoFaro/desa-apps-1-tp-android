@@ -1,11 +1,15 @@
 package com.example.myapplication.ui.home;
 
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -26,7 +30,6 @@ import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.List;
 
@@ -39,6 +42,7 @@ public class DetailFragment extends Fragment {
     private boolean fromHistory;
     private String bookingStatus;
     private Long bookingId;
+    private String bookingDate;
     private DetailViewModel detailViewModel;
     private CreateBookingViewModel createBookingViewModel;
     private HistoryReviewViewModel historyReviewViewModel;
@@ -52,6 +56,7 @@ public class DetailFragment extends Fragment {
             tourActivity = (TourActivity) getArguments().getSerializable("activity_data");
             fromHistory = getArguments().getBoolean("from_history", false);
             bookingStatus = getArguments().getString("booking_status");
+            bookingDate = getArguments().getString("booking_date");
             if (getArguments().containsKey("booking_id")) {
                 bookingId = getArguments().getLong("booking_id");
             }
@@ -70,13 +75,37 @@ public class DetailFragment extends Fragment {
         rootView = view;
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
         RecyclerView sessionsRecycler = view.findViewById(R.id.sessions_recycler_view);
         sessionsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         View bookingCard = view.findViewById(R.id.booking_card);
-        TextInputEditText participantsInput = view.findViewById(R.id.participants_input);
         MaterialButton bookButton = view.findViewById(R.id.book_button);
+        TextView participantsCountView = view.findViewById(R.id.participants_count);
+        MaterialButton btnDecrease = view.findViewById(R.id.btn_decrease);
+        MaterialButton btnIncrease = view.findViewById(R.id.btn_increase);
+        final int[] count = {1};
+
+        if (btnDecrease != null) {
+            btnDecrease.setOnClickListener(v -> {
+                if (count[0] > 1) {
+                    count[0]--;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                }
+            });
+        }
+
+        if (btnIncrease != null) {
+            btnIncrease.setOnClickListener(v -> {
+                int max = selectedSession != null && selectedSession.availableSpots > 0
+                        ? selectedSession.availableSpots : Integer.MAX_VALUE;
+                if (count[0] < max) {
+                    count[0]++;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                }
+            });
+        }
 
         sessionAdapter = new SessionAdapter(session -> {
             selectedSession = session;
@@ -101,17 +130,7 @@ public class DetailFragment extends Fragment {
                     return;
                 }
 
-                int participants = 1;
-                if (participantsInput != null && participantsInput.getText() != null) {
-                    String value = participantsInput.getText().toString().trim();
-                    if (!value.isEmpty()) {
-                        try {
-                            participants = Integer.parseInt(value);
-                        } catch (NumberFormatException ignored) {
-                            participants = 1;
-                        }
-                    }
-                }
+                int participants = count[0];
                 if (participants < 1) {
                     android.widget.Toast.makeText(requireContext(), "Participantes invalidos", android.widget.Toast.LENGTH_SHORT).show();
                     return;
@@ -143,35 +162,41 @@ public class DetailFragment extends Fragment {
                 if (tourActivity != null && tourActivity.getId() != null) {
                     detailViewModel.load(tourActivity.getId());
                 }
-                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
                 selectedSession = null;
+                count[0] = 1;
+                if (participantsCountView != null) participantsCountView.setText("1");
                 if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                 createBookingViewModel.clearBooking();
             }
         });
 
         View experienceSection = view.findViewById(R.id.experience_section);
+        View historyContent = view.findViewById(R.id.history_content);
 
         if (fromHistory) {
             if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
             sessionsRecycler.setVisibility(View.GONE);
-            boolean isCompleted = "COMPLETED".equals(bookingStatus);
-            if (experienceSection != null) {
-                experienceSection.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
-            }
-            if (isCompleted && bookingId != null) {
+            if (experienceSection != null) experienceSection.setVisibility(View.GONE);
+            if (bookingCard != null) bookingCard.setVisibility(View.GONE);
+
+            View detailContent = view.findViewById(R.id.detail_content);
+            if (detailContent != null) detailContent.setVisibility(View.GONE);
+            if (historyContent != null) historyContent.setVisibility(View.VISIBLE);
+
+            if (bookingId != null) {
                 historyReviewViewModel.loadReview(bookingId);
                 historyReviewViewModel.getReview().observe(getViewLifecycleOwner(),
-                        review -> populateExperienceSection(experienceSection, review));
+                        review -> populateHistoryReview(historyContent, review));
             }
         }
 
         if (tourActivity != null) {
-            toolbar.setTitle(tourActivity.getName());
+            toolbar.setTitle("");
 
-            // Buscamos la vista incluida
             View content = view.findViewById(R.id.detail_content);
-            if (content != null) {
+            if (fromHistory) {
+                populateHistoryDetails(historyContent);
+            } else if (content != null) {
                 populateDetails(content);
             }
 
@@ -191,8 +216,10 @@ public class DetailFragment extends Fragment {
                 detailViewModel.getActivity().observe(getViewLifecycleOwner(), activity -> {
                     if (activity != null) {
                         tourActivity = activity;
-                        toolbar.setTitle(activity.getName());
-                        if (content != null) {
+                        toolbar.setTitle("");
+                        if (fromHistory) {
+                            populateHistoryDetails(historyContent);
+                        } else if (content != null) {
                             populateDetails(content);
                         }
                     }
@@ -201,6 +228,8 @@ public class DetailFragment extends Fragment {
                     if (fromHistory) return;
                     populateSessions(sessions);
                     selectedSession = null;
+                    count[0] = 1;
+                    if (participantsCountView != null) participantsCountView.setText("1");
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                     boolean hasSessions = sessions != null && !sessions.isEmpty();
                     boolean hasAvailableSpots = false;
@@ -332,6 +361,97 @@ public class DetailFragment extends Fragment {
                 } else {
                     commentView.setVisibility(View.GONE);
                 }
+            }
+        }
+    }
+
+    private void populateHistoryDetails(View root) {
+        if (root == null || tourActivity == null) return;
+
+        TextView histTitle = root.findViewById(R.id.hist_title);
+        TextView histDate = root.findViewById(R.id.hist_date);
+        TextView histDuration = root.findViewById(R.id.hist_duration);
+        TextView histPrice = root.findViewById(R.id.hist_price);
+        TextView histDescription = root.findViewById(R.id.hist_description);
+        View histGalleryBtn = root.findViewById(R.id.hist_gallery_btn);
+        com.google.android.material.chip.Chip histStatusChip = root.findViewById(R.id.hist_status_chip);
+        com.google.android.material.chip.Chip histCompletedChip = root.findViewById(R.id.hist_completed_chip);
+        ImageView histImage = root.findViewById(R.id.hist_image);
+
+        if (histTitle != null) histTitle.setText(tourActivity.getName());
+        if (histDuration != null && tourActivity.getDuration() != null) {
+            histDuration.setText("Duración: " + tourActivity.getDuration());
+        }
+        if (histPrice != null && tourActivity.getPrice() != null) {
+            histPrice.setText(tourActivity.getPrice() + " por persona");
+        }
+        if (histDescription != null) histDescription.setText(tourActivity.getDescription());
+
+        if (histDate != null) {
+            if (bookingDate != null && !bookingDate.isEmpty()) {
+                histDate.setText(bookingDate);
+                histDate.setVisibility(View.VISIBLE);
+            } else {
+                histDate.setVisibility(View.GONE);
+            }
+        }
+
+        if (histStatusChip != null) {
+            if ("CANCELLED".equals(bookingStatus)) {
+                histStatusChip.setText("✗ ACTIVIDAD CANCELADA");
+            } else {
+                histStatusChip.setText("✓ ACTIVIDAD FINALIZADA");
+            }
+        }
+        if (histCompletedChip != null) {
+            histCompletedChip.setVisibility("COMPLETED".equals(bookingStatus) ? View.VISIBLE : View.GONE);
+        }
+
+        if (histGalleryBtn != null) {
+            boolean hasGallery = tourActivity.getGalleryUrls() != null && !tourActivity.getGalleryUrls().isEmpty();
+            histGalleryBtn.setVisibility(hasGallery ? View.VISIBLE : View.GONE);
+        }
+
+        if (histImage != null) {
+            Glide.with(this)
+                    .load(tourActivity.getImageUrl())
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .centerCrop()
+                    .into(histImage);
+        }
+    }
+
+    private void populateHistoryReview(View root, ReviewResponse review) {
+        if (root == null) return;
+        View histReviewCard = root.findViewById(R.id.hist_review_card);
+        View histNoReview = root.findViewById(R.id.hist_no_review);
+        TextView histComment = root.findViewById(R.id.hist_review_comment);
+        RatingBar histRating = root.findViewById(R.id.hist_review_rating);
+
+        if (review == null || review.activityRating == null) {
+            if (histReviewCard != null) histReviewCard.setVisibility(View.GONE);
+            if (histNoReview != null) histNoReview.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        if (histReviewCard != null) histReviewCard.setVisibility(View.VISIBLE);
+        if (histNoReview != null) histNoReview.setVisibility(View.GONE);
+
+        if (histRating != null) histRating.setRating(review.activityRating);
+
+        if (histComment != null) {
+            String comment = review.comment != null ? review.comment.trim() : "";
+            if (review.activityRating >= 4) {
+                String suffix = "¡Recomendado!";
+                String full = comment.isEmpty() ? suffix : comment + " " + suffix;
+                SpannableString span = new SpannableString(full);
+                int start = full.lastIndexOf(suffix);
+                span.setSpan(
+                        new ForegroundColorSpan(requireContext().getColor(R.color.md_theme_primary)),
+                        start, full.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                histComment.setText(span);
+            } else {
+                histComment.setText(comment.isEmpty() ? getString(R.string.experience_no_rating) : comment);
             }
         }
     }

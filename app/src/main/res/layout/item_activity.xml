@@ -1,310 +1,331 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Envolvemos todo en un FrameLayout para garantizar que el margen vertical se respete -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="16dp">
+    android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView
+    <!-- Full-bleed image -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="260dp">
+
+        <ImageView
+            android:id="@+id/activity_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+        <!-- Gradient scrim for back arrow readability -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@drawable/bg_image_scrim_top" />
+
+        <!-- Favorite FAB at top-right -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/favorite_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/favorite_desc"
+            app:backgroundTint="@android:color/white"
+            app:fabSize="normal"
+            app:srcCompat="@drawable/ic_favorite_border"
+            app:tint="?attr/colorPrimary" />
+
+        <!-- "Actualizada" badge (rarely visible, below toolbar area) -->
+        <TextView
+            android:id="@+id/favorite_update_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="64dp"
+            android:background="@android:color/holo_orange_dark"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="@string/favorite_update_badge"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- White content card overlapping image bottom -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="4dp"
-        app:strokeWidth="0dp">
+        android:layout_marginTop="-24dp"
+        android:background="@drawable/bg_detail_sheet"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/main_content_layout"
+        <!-- Category + Rating row -->
+        <LinearLayout
+            android:id="@+id/category_rating_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="20dp">
-
-            <!-- Imagen principal -->
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/activity_image"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:scaleType="centerCrop"
-                app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.LargeComponent"
-                tools:srcCompat="@tools:sample/backgrounds/scenic" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/favorite_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:contentDescription="@string/favorite_desc"
-                app:backgroundTint="@android:color/white"
-                app:fabSize="mini"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@android:drawable/btn_star_big_off"
-                app:tint="?attr/colorPrimary" />
+            android:layout_marginHorizontal="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/favorite_update_badge"
+                android:id="@+id/activity_category"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="AVENTURA" />
+
+            <LinearLayout
+                android:id="@+id/rating_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:background="@android:color/holo_orange_dark"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:text="@string/favorite_update_badge"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:visibility="gone"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <!-- Fila de Categoría y Rating -->
-            <LinearLayout
-                android:id="@+id/category_rating_row"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="20dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/activity_image">
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/btn_star_big_on"
+                    app:tint="#FFC107" />
 
                 <TextView
-                    android:id="@+id/activity_category"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:letterSpacing="0.1"
-                    android:textAllCaps="true"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    tools:text="AVENTURA" />
-
-                <LinearLayout
-                    android:id="@+id/rating_layout"
+                    android:id="@+id/activity_rating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@android:drawable/btn_star_big_on"
-                        app:tint="#FFC107" />
-
-                    <TextView
-                        android:id="@+id/activity_rating"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        tools:text="4.9" />
-                </LinearLayout>
+                    android:layout_marginStart="4dp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    tools:text="Sin reseñas" />
             </LinearLayout>
+        </LinearLayout>
 
-            <!-- Título -->
-            <TextView
-                android:id="@+id/activity_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="6dp"
-                android:textAppearance="@style/TextAppearance.XploreNow.H2"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@id/category_rating_row"
-                tools:text="Navegación por el Delta" />
+        <!-- Title -->
+        <TextView
+            android:id="@+id/activity_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="6dp"
+            android:textColor="?attr/colorOnBackground"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="Circuito Chico en bici" />
 
-            <!-- Ubicación -->
-            <TextView
-                android:id="@+id/activity_destination"
+        <!-- Location -->
+        <TextView
+            android:id="@+id/activity_destination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="14dp"
+            android:drawablePadding="10dp"
+            android:gravity="center_vertical"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="15sp"
+            app:drawableStartCompat="@drawable/ic_location"
+            app:drawableTint="?attr/colorPrimary"
+            tools:text="Bariloche" />
+
+        <!-- Duration -->
+        <TextView
+            android:id="@+id/activity_duration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="8dp"
+            android:drawablePadding="10dp"
+            android:gravity="center_vertical"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="15sp"
+            app:drawableStartCompat="@drawable/ic_clock"
+            app:drawableTint="?attr/colorPrimary"
+            tools:text="4 horas" />
+
+        <!-- Detailed info (always visible in detail screen) -->
+        <LinearLayout
+            android:id="@+id/detailed_info_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Language / Guide / Meeting point -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="8dp"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="16sp"
-                app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
-                app:drawableTint="?attr/colorPrimary"
-                app:layout_constraintTop_toBottomOf="@id/activity_name"
-                tools:text="Tigre, Buenos Aires" />
-
-            <!-- Duración -->
-            <TextView
-                android:id="@+id/activity_duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="6dp"
-                android:drawablePadding="10dp"
-                android:gravity="center_vertical"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="15sp"
-                app:drawableStartCompat="@android:drawable/ic_menu_recent_history"
-                app:drawableTint="?attr/colorPrimary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/activity_destination"
-                tools:text="6 horas" />
-
-            <!-- CONTENEDOR DE DETALLES EXTRA (OCULTO EN COMPACTO) -->
-            <LinearLayout
-                android:id="@+id/detailed_info_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/activity_duration">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="20dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="16dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/activity_language"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:drawablePadding="10dp"
-                        android:gravity="center_vertical"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="15sp"
-                        app:drawableStartCompat="@android:drawable/ic_menu_search"
-                        app:drawableTint="?attr/colorPrimary"
-                        tools:text="Idioma: Español e Inglés" />
-
-                    <TextView
-                        android:id="@+id/activity_guide"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:drawablePadding="10dp"
-                        android:gravity="center_vertical"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="15sp"
-                        app:drawableStartCompat="@android:drawable/ic_menu_info_details"
-                        app:drawableTint="?attr/colorPrimary"
-                        tools:text="Guía: Juan Pérez" />
-
-                    <TextView
-                        android:id="@+id/activity_meeting_point"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:drawablePadding="10dp"
-                        android:gravity="center_vertical"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="15sp"
-                        app:drawableStartCompat="@android:drawable/ic_dialog_map"
-                        app:drawableTint="?attr/colorPrimary"
-                        tools:text="Encuentro: Muelle Principal" />
-                </LinearLayout>
+                android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/activity_language"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="20dp"
-                    android:text="Descripción"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/activity_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="6dp"
-                    android:lineSpacingExtra="4dp"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="15sp"
-                    tools:text="Descripción completa de la actividad..." />
+                    app:drawableStartCompat="@android:drawable/ic_menu_search"
+                    app:drawableTint="?attr/colorPrimary"
+                    tools:text="Idioma: ES" />
 
                 <TextView
+                    android:id="@+id/activity_guide"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="20dp"
-                    android:text="Qué incluye"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/activity_includes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="8dp"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="15sp"
-                    tools:text="- Equipos de seguridad\n- Guía certificado" />
+                    app:drawableStartCompat="@android:drawable/ic_menu_info_details"
+                    app:drawableTint="?attr/colorPrimary"
+                    tools:text="Guía: Valentina Ruiz" />
 
-                <com.google.android.material.card.MaterialCardView
+                <TextView
+                    android:id="@+id/activity_meeting_point"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="24dp"
-                    app:cardBackgroundColor="?attr/colorErrorContainer"
-                    app:cardCornerRadius="12dp"
-                    app:strokeWidth="0dp">
-
-                    <TextView
-                        android:id="@+id/activity_cancellation"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:textColor="?attr/colorOnErrorContainer"
-                        android:textSize="13sp"
-                        android:textStyle="italic"
-                        tools:text="Cancelación gratuita hasta 24hs antes." />
-                </com.google.android.material.card.MaterialCardView>
+                    android:layout_marginTop="8dp"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="15sp"
+                    app:drawableStartCompat="@android:drawable/ic_dialog_map"
+                    app:drawableTint="?attr/colorPrimary"
+                    tools:text="Encuentro: Base Cerro Campanario" />
             </LinearLayout>
 
-            <!-- FOOTER: CUPOS Y PRECIO -->
-            <LinearLayout
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- Description -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="16dp"
-                android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/detailed_info_container">
+                android:text="Descripción"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/activity_slots"
-                    android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/activity_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="15sp"
+                tools:text="Descripción completa de la actividad..." />
+
+            <!-- Includes -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:text="Qué incluye"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/activity_includes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="8dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="15sp"
+                tools:text="- Equipos de seguridad\n- Guía certificado" />
+
+            <!-- Cancellation policy card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="#FFF3E8"
+                app:cardCornerRadius="12dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorError"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    tools:text="¡Solo quedan 2 cupos!" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
 
-                <TextView
-                    android:id="@+id/activity_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="?attr/colorTertiary"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    tools:text="$85.00" />
-            </LinearLayout>
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="10dp"
+                        android:src="@drawable/ic_check"
+                        app:tint="@color/success" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
-</FrameLayout>
+                    <TextView
+                        android:id="@+id/activity_cancellation"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp"
+                        android:textStyle="italic"
+                        tools:text="Cancelación gratuita hasta 24hs antes." />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Footer: slots + price (managed by fragment) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/activity_slots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorError"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="¡Solo quedan 2 cupos!" />
+
+            <TextView
+                android:id="@+id/activity_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="?attr/colorTertiary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="$85.00" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

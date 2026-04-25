@@ -146,11 +146,13 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/explore_filters_clear" />
+                    android:text="@string/explore_filters_clear"
+                    android:visibility="gone" />
 
                 <Space
                     android:layout_width="12dp"
-                    android:layout_height="1dp" />
+                    android:layout_height="1dp"
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/apply_filters_button"
