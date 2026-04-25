@@ -51,6 +51,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
 
         View searchBarCard = view.findViewById(R.id.search_bar_card);
         EditText searchEditText = view.findViewById(R.id.search_edit_text);
+        View exploreButton = view.findViewById(R.id.explore_button);
         View.OnClickListener openExplore = v -> {
             if (navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getId() == R.id.exploreFragment) {
@@ -65,6 +66,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
                 if (hasFocus) openExplore.onClick(v);
             });
         }
+        if (exploreButton != null) exploreButton.setOnClickListener(openExplore);
 
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(

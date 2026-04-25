@@ -123,16 +123,4 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.home_menu, menu);
         return true;
     }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_search) {
-            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.nav_host_fragment);
-            NavController navController = navHostFragment.getNavController();
-            navController.navigate(R.id.exploreFragment);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }
