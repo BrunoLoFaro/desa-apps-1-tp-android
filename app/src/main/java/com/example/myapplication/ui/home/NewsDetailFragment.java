@@ -129,11 +129,15 @@ public class NewsDetailFragment extends Fragment {
 
         // Load image
         String imageUrl = news.imageUrl;
-        Glide.with(requireContext())
-                .load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
-                .placeholder(android.R.drawable.ic_menu_gallery)
-                .centerCrop()
-                .into(newsImage);
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(requireContext())
+                    .load(imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .centerCrop()
+                    .into(newsImage);
+        } else {
+            newsImage.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
 
         // Related activity
         if (news.relatedActivityId != null && news.relatedActivityName != null) {

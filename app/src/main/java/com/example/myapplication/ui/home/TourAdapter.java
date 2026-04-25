@@ -96,11 +96,15 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
         String imageUrl = activity.getImageUrl();
 
-        Glide.with(holder.itemView.getContext())
-                .load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
-                .placeholder(android.R.drawable.ic_menu_gallery)
-                .centerCrop()
-                .into(holder.image);
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .centerCrop()
+                    .into(holder.image);
+        } else {
+            holder.image.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
 
         if (holder.favoriteBtn != null) {
             holder.favoriteBtn.setImageResource(activity.isFavorite() ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
