@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Cierre de sesión forzado al recibir 401 del servidor
-        sessionManager.getForceLogout().observe(this, shouldLogout -> {
+        sessionManager.getForceLogoutEvent().observe(this, shouldLogout -> {
             if (shouldLogout) {
                 sessionManager.clearSession();
                 navController.navigate(R.id.loginFragment);
