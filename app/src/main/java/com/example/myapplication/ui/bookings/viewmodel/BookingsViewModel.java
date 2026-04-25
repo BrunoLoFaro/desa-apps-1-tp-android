@@ -37,6 +37,7 @@ public class BookingsViewModel extends ViewModel {
     private final MutableLiveData<UiMessage> _message = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isOffline = new MutableLiveData<>(false);
+    private boolean offline = false;
     private String currentFilter = null;
 
     // ── Historial ────────────────────────────────────────────────────────────
@@ -61,6 +62,8 @@ public class BookingsViewModel extends ViewModel {
         this.profileRepository = profileRepository;
         this.reviewRepository = reviewRepository;
         this.context = context;
+        this.offline = !isOnline();
+        if (this.offline) _isOffline.setValue(true);
     }
 
     // ── Getters ──────────────────────────────────────────────────────────────
@@ -81,54 +84,60 @@ public class BookingsViewModel extends ViewModel {
 
     // ── Activas actions ──────────────────────────────────────────────────────
 
+    public void onConnectivityChanged(boolean isOnline) {
+        offline = !isOnline;
+        _isOffline.setValue(offline);
+        if (isOnline) {
+            bookingRepository.syncPendingCancellations(() ->
+                    loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED"));
+        } else {
+            loadCachedBookings();
+        }
+    }
+
     public void loadMyBookings(String statusFilter) {
         currentFilter = statusFilter;
         _loading.setValue(true);
 
+        if (offline) {
+            loadCachedBookings();
+            return;
+        }
+
         bookingRepository.listMyBookings(statusFilter, new RepositoryCallback<List<BookingResponse>>() {
             @Override
             public void onSuccess(List<BookingResponse> data) {
-                _isOffline.setValue(false);
                 _loading.setValue(false);
                 _bookings.setValue(data != null ? data : Collections.emptyList());
             }
 
             @Override
             public void onError(UiMessage error) {
-                if (!isOnline()) {
-                    _isOffline.setValue(true);
-                    bookingRepository.loadCachedConfirmedBookings(new RepositoryCallback<List<BookingResponse>>() {
-                        @Override
-                        public void onSuccess(List<BookingResponse> cached) {
-                            _loading.setValue(false);
-                            _bookings.setValue(cached != null ? cached : Collections.emptyList());
-                        }
-
-                        @Override
-                        public void onError(UiMessage e) {
-                            _loading.setValue(false);
-                        }
-                    });
-                } else {
-                    _isOffline.setValue(false);
-                    _loading.setValue(false);
-                    _error.setValue(error);
-                }
+                _loading.setValue(false);
+                _error.setValue(error);
             }
         });
     }
 
-    public void syncBookings() {
-        if (!isOnline()) return;
-        _isOffline.setValue(false);
-        bookingRepository.syncPendingCancellations(() ->
-                loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED"));
+    private void loadCachedBookings() {
+        bookingRepository.loadCachedConfirmedBookings(new RepositoryCallback<List<BookingResponse>>() {
+            @Override
+            public void onSuccess(List<BookingResponse> cached) {
+                _loading.setValue(false);
+                _bookings.setValue(cached != null ? cached : Collections.emptyList());
+            }
+
+            @Override
+            public void onError(UiMessage e) {
+                _loading.setValue(false);
+            }
+        });
     }
 
     public void cancelBooking(Long bookingId) {
         if (bookingId == null) return;
 
-        if (!isOnline()) {
+        if (offline) {
             bookingRepository.cancelBookingLocally(bookingId,
                     () -> loadMyBookings(currentFilter));
             return;

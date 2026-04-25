@@ -263,7 +263,14 @@ public class BookingsFragment extends Fragment {
             @Override
             public void onAvailable(Network network) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    if (isAdded()) viewModel.syncBookings();
+                    if (isAdded()) viewModel.onConnectivityChanged(true);
+                });
+            }
+
+            @Override
+            public void onLost(Network network) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (isAdded()) viewModel.onConnectivityChanged(false);
                 });
             }
         };
