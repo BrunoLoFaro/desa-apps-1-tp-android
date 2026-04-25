@@ -48,6 +48,8 @@ public class ErrorTranslator {
         // Note: You can also add URL-specific logic here if needed
         // e.g., if (url.contains("/bookings")) { ... }
 
+        String normalizedMsg = serverMessage.trim().toLowerCase();
+
         if (url.contains("auth/login")) {
             if (normalizedMsg.contains("formato válido") || normalizedMsg.contains("correo electrónico no tiene")) {
                 return R.string.error_invalid_email;

@@ -22,6 +22,7 @@
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
+    <string name="error_invalid_credentials">Las credenciales son incorrectas. Verificá tu correo y contraseña.</string>
 
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
