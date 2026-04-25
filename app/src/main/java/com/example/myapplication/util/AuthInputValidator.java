@@ -58,13 +58,6 @@ public final class AuthInputValidator {
         return null;
     }
 
-    public static String validateDni(Context context, String dni) {
-        if (dni == null || !dni.trim().matches("^[0-9]{7,10}$")) {
-            return context.getString(R.string.error_invalid_dni);
-        }
-        return null;
-    }
-
     public static String validateOtp(Context context, String code) {
         if (code == null || !code.trim().matches("^\\d{6}$")) {
             return context.getString(R.string.error_invalid_otp);

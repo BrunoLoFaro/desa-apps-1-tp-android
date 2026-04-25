@@ -1,9 +1,11 @@
 package com.example.myapplication.ui.auth;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
@@ -124,7 +126,18 @@ public class LoginFragment extends BaseAuthFragment {
             return;
         }
 
+        // Cerrar el teclado antes de hacer la llamada para que el Snackbar de error sea visible
+        hideKeyboard();
         viewModel.login(email, password);
+    }
+
+    private void hideKeyboard() {
+        View focused = requireActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager)
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+        }
     }
 
     @Override

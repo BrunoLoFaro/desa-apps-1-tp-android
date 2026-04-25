@@ -26,22 +26,13 @@ public class ErrorTranslator {
 
         String normalizedMsg = serverMessage.toLowerCase().trim();
 
-        // Specific mapping for Login errors
         if (url.contains("auth/login")) {
-            // Validation errors (DTO)
-            if (normalizedMsg.contains("loginrequestdto") && normalizedMsg.contains("field 'email'")) {
+            if (normalizedMsg.contains("formato válido") || normalizedMsg.contains("correo electrónico no tiene")) {
                 return R.string.error_invalid_email;
             }
-            
-            // Authentication errors
-            if (normalizedMsg.contains("invalid credentials")) {
+            if (normalizedMsg.contains("credenciales inválidas")) {
                 return R.string.error_invalid_credentials;
             }
-        }
-
-        // Generic Micronaut/Spring validation fallback
-        if (normalizedMsg.contains("validation error for argument [0]")) {
-            return R.string.error_invalid_email;
         }
 
         return -1;
