@@ -222,6 +222,8 @@
     <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
     <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
 
+    <string name="profile_preferences_hint">Seleccioná los tipos de actividades que más te interesan</string>
+
     <!-- Offline -->
     <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
 </resources>
