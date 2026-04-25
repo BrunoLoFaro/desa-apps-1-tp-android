@@ -57,11 +57,15 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         
         // Load image
         String imageUrl = news.imageUrl;
-        Glide.with(holder.itemView.getContext())
-                .load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
-                .placeholder(android.R.drawable.ic_menu_gallery)
-                .centerCrop()
-                .into(holder.image);
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .centerCrop()
+                    .into(holder.image);
+        } else {
+            holder.image.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
         
         // Click listener
         holder.itemView.setOnClickListener(v -> {
