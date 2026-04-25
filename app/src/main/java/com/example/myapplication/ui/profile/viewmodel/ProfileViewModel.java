@@ -3,13 +3,11 @@ package com.example.myapplication.ui.profile.viewmodel;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
-import android.net.Uri;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
-import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
@@ -19,12 +17,9 @@ import com.example.myapplication.data.repository.TourRepository;
 import com.example.myapplication.data.session.SessionManager;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import javax.inject.Inject;
 
 @HiltViewModel
@@ -34,9 +29,7 @@ public class ProfileViewModel extends ViewModel {
     private final TourRepository tourRepository;
     private final BookingRepository bookingRepository;
     private final SessionManager sessionManager;
-    private final ProfileImageManager profileImageManager;
     private final Context context;
-    private final Executor ioExecutor = Executors.newSingleThreadExecutor();
 
     private final MutableLiveData<UserProfileData> _profile = new MutableLiveData<>();
     private final MutableLiveData<List<String>> _preferences = new MutableLiveData<>();
@@ -44,7 +37,6 @@ public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _saveSuccess = new MutableLiveData<>(false);
-    private final MutableLiveData<Uri> _selectedPhotoUri = new MutableLiveData<>();
     private final MutableLiveData<Integer> _historialCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> _pendingCount = new MutableLiveData<>(0);
     private final MutableLiveData<List<BookingSummaryItem>> _recentActivities = new MutableLiveData<>();
@@ -53,13 +45,11 @@ public class ProfileViewModel extends ViewModel {
     public ProfileViewModel(ProfileRepository profileRepository, TourRepository tourRepository,
                             BookingRepository bookingRepository,
                             SessionManager sessionManager,
-                            ProfileImageManager profileImageManager,
                             @ApplicationContext Context context) {
         this.profileRepository = profileRepository;
         this.tourRepository = tourRepository;
         this.bookingRepository = bookingRepository;
         this.sessionManager = sessionManager;
-        this.profileImageManager = profileImageManager;
         this.context = context;
         trySyncPendingProfile();
         loadAll();
@@ -71,7 +61,6 @@ public class ProfileViewModel extends ViewModel {
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<Boolean> isLoading() { return _loading; }
     public LiveData<Boolean> isSaveSuccess() { return _saveSuccess; }
-    public LiveData<Uri> getSelectedPhotoUri() { return _selectedPhotoUri; }
     public LiveData<Integer> getHistorialCount() { return _historialCount; }
     public LiveData<Integer> getPendingCount() { return _pendingCount; }
     public LiveData<List<BookingSummaryItem>> getRecentActivities() { return _recentActivities; }
@@ -81,18 +70,13 @@ public class ProfileViewModel extends ViewModel {
         return prefs != null ? prefs : Collections.emptyList();
     }
 
-    public File getLocalProfileImage() {
-        return profileImageManager.getLocalFile(sessionManager.getUserId());
+    public void saveProfileImageUri(android.net.Uri uri) {
+        sessionManager.saveProfilePhotoUri(uri.toString());
     }
 
-    public void setSelectedPhotoUri(Uri uri) {
-        _selectedPhotoUri.setValue(uri);
-        ioExecutor.execute(() -> {
-            try {
-                profileImageManager.saveFromUri(
-                        sessionManager.getUserId(), uri, context.getContentResolver());
-            } catch (Exception ignored) { }
-        });
+    public android.net.Uri getSavedProfileImageUri() {
+        String raw = sessionManager.getProfilePhotoUri();
+        return raw != null ? android.net.Uri.parse(raw) : null;
     }
 
     public void loadAll() {
