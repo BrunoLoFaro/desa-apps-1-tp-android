@@ -104,8 +104,8 @@ public class NewsDetailFragment extends Fragment {
         if (news == null) return;
 
         // Set type badge
-        String typeText = getNewsTypeText(news.type);
-        typeText.setText(typeText);
+        String typeLabelText = getNewsTypeText(news.type);
+        typeText.setText(typeLabelText);
 
         // Set title
         titleText.setText(news.title);
