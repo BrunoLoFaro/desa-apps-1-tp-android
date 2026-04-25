@@ -85,36 +85,35 @@ public class BookingsViewModel extends ViewModel {
         currentFilter = statusFilter;
         _loading.setValue(true);
 
-        if (!isOnline()) {
-            _isOffline.setValue(true);
-            bookingRepository.loadCachedConfirmedBookings(new RepositoryCallback<List<BookingResponse>>() {
-                @Override
-                public void onSuccess(List<BookingResponse> data) {
-                    _loading.setValue(false);
-                    _bookings.setValue(data != null ? data : Collections.emptyList());
-                }
-
-                @Override
-                public void onError(UiMessage error) {
-                    _loading.setValue(false);
-                    _bookings.setValue(Collections.emptyList());
-                }
-            });
-            return;
-        }
-
-        _isOffline.setValue(false);
         bookingRepository.listMyBookings(statusFilter, new RepositoryCallback<List<BookingResponse>>() {
             @Override
             public void onSuccess(List<BookingResponse> data) {
+                _isOffline.setValue(false);
                 _loading.setValue(false);
                 _bookings.setValue(data != null ? data : Collections.emptyList());
             }
 
             @Override
             public void onError(UiMessage error) {
-                _loading.setValue(false);
-                _error.setValue(error);
+                if (!isOnline()) {
+                    _isOffline.setValue(true);
+                    bookingRepository.loadCachedConfirmedBookings(new RepositoryCallback<List<BookingResponse>>() {
+                        @Override
+                        public void onSuccess(List<BookingResponse> cached) {
+                            _loading.setValue(false);
+                            _bookings.setValue(cached != null ? cached : Collections.emptyList());
+                        }
+
+                        @Override
+                        public void onError(UiMessage e) {
+                            _loading.setValue(false);
+                        }
+                    });
+                } else {
+                    _isOffline.setValue(false);
+                    _loading.setValue(false);
+                    _error.setValue(error);
+                }
             }
         });
     }

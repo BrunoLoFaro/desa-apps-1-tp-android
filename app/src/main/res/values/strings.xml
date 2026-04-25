@@ -201,5 +201,5 @@
     <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
 
     <!-- Offline -->
-    <string name="offline_banner_message">Sin conexión — mostrando reservas guardadas</string>
+    <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
 </resources>
