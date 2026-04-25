@@ -23,11 +23,15 @@ public class TourActivity implements Serializable {
     private String language;
     private String cancellationPolicy;
     private List<String> galleryUrls;
+    private boolean isFavorite;
+    private boolean favoriteUpdate;
+    private boolean priceChanged;
+    private boolean slotsChanged;
 
     public TourActivity(String name, String destination, String category, String duration,
                         String price, int availableSlots, String imageUrl) {
         this(name, destination, category, duration, price, availableSlots, imageUrl,
-             null, 0f, 0, null, null, null, null, null, null);
+             null, 0f, 0, null, null, null, null, null, null, false);
     }
 
     public TourActivity(String name, String destination, String category, String duration, String price, 
@@ -35,6 +39,16 @@ public class TourActivity implements Serializable {
                         int reviewsCount, String whatIncluded, String meetingPoint, 
                         String guideName, String language, String cancellationPolicy, 
                         List<String> galleryUrls) {
+        this(name, destination, category, duration, price, availableSlots, imageUrl,
+                description, rating, reviewsCount, whatIncluded, meetingPoint,
+                guideName, language, cancellationPolicy, galleryUrls, false);
+    }
+
+    public TourActivity(String name, String destination, String category, String duration, String price,
+                        int availableSlots, String imageUrl, String description, float rating,
+                        int reviewsCount, String whatIncluded, String meetingPoint,
+                        String guideName, String language, String cancellationPolicy,
+                        List<String> galleryUrls, boolean isFavorite) {
         this.name = name;
         this.destination = destination;
         this.category = category;
@@ -51,6 +65,10 @@ public class TourActivity implements Serializable {
         this.language = language;
         this.cancellationPolicy = cancellationPolicy;
         this.galleryUrls = galleryUrls;
+        this.isFavorite = isFavorite;
+        this.favoriteUpdate = false;
+        this.priceChanged = false;
+        this.slotsChanged = false;
     }
 
     public Long getId() { return id; }
@@ -73,4 +91,12 @@ public class TourActivity implements Serializable {
     public String getLanguage() { return language; }
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGalleryUrls() { return galleryUrls; }
+    public boolean isFavorite() { return isFavorite; }
+    public void setFavorite(boolean favorite) { isFavorite = favorite; }
+    public boolean hasFavoriteUpdate() { return favoriteUpdate; }
+    public void setFavoriteUpdate(boolean favoriteUpdate) { this.favoriteUpdate = favoriteUpdate; }
+    public boolean isPriceChanged() { return priceChanged; }
+    public void setPriceChanged(boolean priceChanged) { this.priceChanged = priceChanged; }
+    public boolean isSlotsChanged() { return slotsChanged; }
+    public void setSlotsChanged(boolean slotsChanged) { this.slotsChanged = slotsChanged; }
 }

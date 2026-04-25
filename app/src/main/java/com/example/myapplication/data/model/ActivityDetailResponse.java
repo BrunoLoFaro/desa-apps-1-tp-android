@@ -10,6 +10,9 @@ public class ActivityDetailResponse {
     @Json(name = "name")
     public String name;
 
+    @Json(name = "imageUrl")
+    public String imageUrl;
+
     @Json(name = "destination")
     public DestinationResponse destination;
 
@@ -54,4 +57,7 @@ public class ActivityDetailResponse {
 
     @Json(name = "reviewCount")
     public Long reviewCount;
+
+    @Json(name = "isFavorite")
+    public boolean isFavorite;
 }

@@ -101,8 +101,9 @@ public class ExploreRepository extends BaseRepository {
             String price = FormatUtils.formatPrice(item.price, item.currency);
 
             TourActivity activity = new TourActivity(item.name, destination, normalizedCategory, duration, price,
-                    item.availableSpots, null);
+                    item.availableSpots, item.imageUrl);
             activity.setId(item.id);
+            activity.setFavorite(item.isFavorite);
             if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
             if (item.reviewCount != null) activity.setReviewsCount(item.reviewCount.intValue());
 
@@ -151,7 +152,7 @@ public class ExploreRepository extends BaseRepository {
             @Override
             public void onResponse(Call<T> c, Response<T> response) {
                 activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful()) {
                     callback.onSuccess(response.body());
                 } else {
                     if (response.code() == 401) {

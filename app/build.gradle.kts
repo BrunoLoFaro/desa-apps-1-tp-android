@@ -41,6 +41,11 @@ android {
         viewBinding = false
         buildConfig = true
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
     configurations.all {
         resolutionStrategy {
             force("org.slf4j:slf4j-api:1.7.36")
@@ -78,6 +83,11 @@ dependencies {
     implementation(libs.glide)
     kapt(libs.glide.compiler)
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
+
+    // Room — offline cache
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
 
     // Hilt Dependency Injection
     implementation(libs.hilt.android)

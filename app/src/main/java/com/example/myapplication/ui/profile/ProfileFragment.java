@@ -22,7 +22,6 @@ import androidx.navigation.Navigation;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
@@ -35,18 +34,18 @@ import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
-import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 
 @AndroidEntryPoint
 public class ProfileFragment extends Fragment {
 
+
     private ProfileViewModel viewModel;
     private NavController navController;
 
-    private ActivityResultLauncher<String> pickImageLauncher;
-    private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<String> permissionLauncher;
+    private ActivityResultLauncher<String> galleryLauncher;
 
     private ShapeableImageView profilePhoto;
     private TextView emailText;
@@ -88,14 +87,7 @@ public class ProfileFragment extends Fragment {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
-        pickImageLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                    if (uri != null) viewModel.setSelectedPhotoUri(uri);
-                }
-        );
-
-        requestPermissionLauncher = registerForActivityResult(
+        permissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (Boolean.TRUE.equals(isGranted)) {
@@ -104,8 +96,13 @@ public class ProfileFragment extends Fragment {
                         Toast.makeText(requireContext(),
                                 R.string.error_permission_denied, Toast.LENGTH_SHORT).show();
                     }
-                }
-        );
+                });
+
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) saveAndDisplay(uri);
+                });
     }
 
     @Nullable
@@ -122,6 +119,8 @@ public class ProfileFragment extends Fragment {
         navController = Navigation.findNavController(view);
 
         bindViews(view);
+
+        loadSavedImage();
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
@@ -193,16 +192,6 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        viewModel.getSelectedPhotoUri().observe(getViewLifecycleOwner(), uri -> {
-            if (uri != null) {
-                Glide.with(this)
-                        .load(uri)
-                        .placeholder(android.R.drawable.ic_menu_camera)
-                        .circleCrop()
-                        .into(profilePhoto);
-            }
-        });
-
         viewModel.getHistorialCount().observe(getViewLifecycleOwner(), count -> {
             if (statCompleted != null) statCompleted.setText(String.valueOf(count != null ? count : 0));
         });
@@ -227,22 +216,6 @@ public class ProfileFragment extends Fragment {
         }
         if (editPhone.getText() == null || editPhone.getText().toString().isEmpty()) {
             editPhone.setText(profile.getPhone());
-        }
-
-        Uri selectedUri = viewModel.getSelectedPhotoUri().getValue();
-        if (selectedUri != null && "content".equals(selectedUri.getScheme())) return;
-
-        File localFile = viewModel.getLocalProfileImage();
-        if (localFile.exists() && localFile.length() > 0) {
-            Glide.with(this)
-                    .load(localFile)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
-                    .placeholder(android.R.drawable.ic_menu_camera)
-                    .circleCrop()
-                    .into(profilePhoto);
-        } else {
-            profilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
         }
     }
 
@@ -336,6 +309,25 @@ public class ProfileFragment extends Fragment {
         return field.getText() != null ? field.getText().toString().trim() : "";
     }
 
+    private void saveAndDisplay(Uri uri) {
+        viewModel.saveProfileImageUri(uri);
+        displayImage(uri);
+    }
+
+    private void loadSavedImage() {
+        Uri saved = viewModel.getSavedProfileImageUri();
+        if (saved != null) {
+            displayImage(saved);
+        }
+    }
+
+    private void displayImage(Uri uri) {
+        Glide.with(this)
+                .load(uri)
+                .circleCrop()
+                .into(profilePhoto);
+    }
+
     private void checkPermissionAndOpenGallery() {
         String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 ? Manifest.permission.READ_MEDIA_IMAGES
@@ -344,12 +336,12 @@ public class ProfileFragment extends Fragment {
                 == PackageManager.PERMISSION_GRANTED) {
             openGallery();
         } else {
-            requestPermissionLauncher.launch(permission);
+            permissionLauncher.launch(permission);
         }
     }
 
     private void openGallery() {
-        pickImageLauncher.launch("image/*");
+        galleryLauncher.launch("image/*");
     }
 
     @Override
