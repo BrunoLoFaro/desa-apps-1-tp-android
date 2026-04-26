@@ -174,14 +174,16 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.detailButton.setOnClickListener(v -> {
             if (detailClickListener != null) detailClickListener.onDetail(booking);
         });
-        /**
-         * Configura visibilidad, habilitación y alpha de un botón de forma DRY.
-         */
-        private void setButtonState(View button, boolean visible, boolean enabled, float alpha) {
-            button.setVisibility(visible ? View.VISIBLE : View.GONE);
-            button.setEnabled(enabled);
-            button.setAlpha(alpha);
-        }
+    }
+
+    /**
+     * Configura visibilidad, habilitación y alpha de un botón de forma DRY.
+     */
+    private void setButtonState(View button, boolean visible, boolean enabled, float alpha) {
+        button.setVisibility(visible ? View.VISIBLE : View.GONE);
+        button.setEnabled(enabled);
+        button.setAlpha(alpha);
+    }
     }
 
     @Override
