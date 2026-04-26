@@ -285,6 +285,16 @@ public class BookingsFragment extends Fragment {
             }
         });
 
+        viewModel.isShowOfflineCancelModal().observe(getViewLifecycleOwner(), show -> {
+            if (Boolean.TRUE.equals(show)) {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setMessage(R.string.cancel_booking_offline_modal)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                viewModel.clearOfflineCancelModal();
+            }
+        });
+
         viewModel.isOffline().observe(getViewLifecycleOwner(), offline -> {
             boolean isOffline = Boolean.TRUE.equals(offline);
             if (offlineBanner != null) {
@@ -380,14 +390,23 @@ public class BookingsFragment extends Fragment {
     // ── Navigation ────────────────────────────────────────────────────────────
 
     private void navigateToDetail(BookingResponse booking) {
-        if (booking.activityId == null) return;
+        // Sin conexión: el detalle de la actividad requiere red. Mostrar el voucher que está cacheado.
+        if (Boolean.TRUE.equals(viewModel.isOffline().getValue())) {
+            navigateToVoucher(booking);
+            return;
+        }
+        // Si por algún motivo no hay activityId, caer al voucher en lugar de silenciar.
+        if (booking.activityId == null) {
+            navigateToVoucher(booking);
+            return;
+        }
         String destination = booking.destination != null ? booking.destination.name : "";
         String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
         String price = booking.currency != null
                 ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
         TourActivity activity = new TourActivity(
                 booking.activityName != null ? booking.activityName : "",
-                destination, "", duration, price, 0, null,
+                destination, "", duration, price, -1, null,
                 null, 0f, 0, null, booking.meetingPoint,
                 booking.guideName, null, booking.cancellationPolicy, null);
         activity.setId(booking.activityId);

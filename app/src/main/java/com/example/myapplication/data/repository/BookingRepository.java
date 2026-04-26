@@ -9,8 +9,10 @@ import com.example.myapplication.data.local.OfflineBookingDao;
 import com.example.myapplication.data.local.OfflineBookingEntity;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.data.model.BookingsPageResponse;
+import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.CreateBookingRequest;
 import com.example.myapplication.data.model.DestinationResponse;
+import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
@@ -101,6 +103,30 @@ public class BookingRepository extends BaseRepository {
             List<OfflineBookingEntity> entities = offlineBookingDao.getConfirmedByUser(userId);
             List<BookingResponse> result = new ArrayList<>();
             for (OfflineBookingEntity e : entities) result.add(fromEntity(e));
+            new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(result));
+        });
+    }
+
+    public void loadCachedHistorial(RepositoryCallback<List<BookingSummaryItem>> callback) {
+        long userId = sessionRepository.getUserId();
+        dbExecutor.execute(() -> {
+            List<OfflineBookingEntity> entities = offlineBookingDao.getHistorialByUser(userId);
+            List<BookingSummaryItem> result = new ArrayList<>(entities.size());
+            for (OfflineBookingEntity e : entities) {
+                String date = FormatUtils.formatDate(e.sessionStartTime);
+                String time = "";
+                if (e.sessionStartTime != null) {
+                    String formatted = FormatUtils.formatStartTime(e.sessionStartTime);
+                    if (formatted.length() >= 16) time = formatted.substring(11, 16);
+                }
+                String price = FormatUtils.formatPrice(e.totalPrice, e.currency);
+                result.add(new BookingSummaryItem(
+                        e.id > 0 ? e.id : null, e.activityId, e.activityName, e.status,
+                        date, price,
+                        e.destinationName != null ? e.destinationName : "",
+                        e.guideName != null ? e.guideName : "",
+                        e.durationMinutes, null, time));
+            }
             new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(result));
         });
     }
@@ -206,7 +232,7 @@ public class BookingRepository extends BaseRepository {
         b.participants = e.participants;
         b.totalPrice = e.totalPrice;
         b.currency = e.currency;
-        b.status = e.status;
+        b.status = e.pendingCancel ? "PENDING_CANCEL" : e.status;
         b.cancellationPolicy = e.cancellationPolicy;
         b.createdAt = e.createdAt;
         b.cancelledAt = e.cancelledAt;

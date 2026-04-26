@@ -5,12 +5,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
-import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
@@ -21,6 +18,11 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import com.example.myapplication.data.work.SyncCancellationsWorker;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ public class BookingsViewModel extends ViewModel {
     private final MutableLiveData<UiMessage> _message = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> _isOffline = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _showOfflineCancelModal = new MutableLiveData<>(false);
     private boolean offline = false;
     private String currentFilter = null;
 
@@ -60,11 +63,13 @@ public class BookingsViewModel extends ViewModel {
     private String filterTo = "";
     private boolean historialLoaded = false;
     private List<BookingSummaryItem> cachedServerHistorialItems = Collections.emptyList();
-    private List<BookingResponse> reconnectPendingSnapshot = null;
     private int selectedTab = 0;
 
-    // Nuevo: flag para historial nunca sincronizado
     private final MutableLiveData<Boolean> _historialNeverSynced = new MutableLiveData<>(false);
+
+    // WorkManager sync observation
+    private LiveData<List<WorkInfo>> syncWorkInfoLiveData;
+    private Observer<List<WorkInfo>> syncWorkObserver;
 
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository,
@@ -85,18 +90,18 @@ public class BookingsViewModel extends ViewModel {
     public LiveData<UiMessage> getMessage() { return _message; }
     public LiveData<Boolean> isLoading() { return _loading; }
     public LiveData<Boolean> isOffline() { return _isOffline; }
+    public LiveData<Boolean> isShowOfflineCancelModal() { return _showOfflineCancelModal; }
 
     public int getSelectedTab() { return selectedTab; }
     public void setSelectedTab(int tab) { selectedTab = tab; }
 
     public LiveData<List<BookingSummaryItem>> getHistorial() { return _historial; }
     public LiveData<Boolean> isHistorialLoading() { return _historialLoading; }
-
-    // Nuevo getter
     public LiveData<Boolean> isHistorialNeverSynced() { return _historialNeverSynced; }
     public LiveData<List<String>> getAvailableDestinations() { return _availableDestinations; }
 
     public void clearMessage() { _message.setValue(null); }
+    public void clearOfflineCancelModal() { _showOfflineCancelModal.setValue(false); }
 
     // ── Activas actions ──────────────────────────────────────────────────────
 
@@ -104,26 +109,11 @@ public class BookingsViewModel extends ViewModel {
         offline = !isOnline;
         _isOffline.setValue(offline);
         if (isOnline) {
-            // Leer el snapshot de Room ANTES de encolar el WorkManager para evitar la race condition
-            // donde el worker borra la fila de pendingCancel antes de que loadHistorial pueda leerla.
-            bookingRepository.loadCachedPendingCancellations(new RepositoryCallback<List<BookingResponse>>() {
-                @Override
-                public void onSuccess(List<BookingResponse> snapshot) {
-                    reconnectPendingSnapshot = snapshot != null ? snapshot : Collections.emptyList();
-                    enqueueSyncWorker();
-                    loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED");
-                    historialLoaded = false;
-                    if (selectedTab == 1) loadHistorial();
-                }
-                @Override
-                public void onError(UiMessage e) {
-                    reconnectPendingSnapshot = Collections.emptyList();
-                    enqueueSyncWorker();
-                    loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED");
-                    historialLoaded = false;
-                    if (selectedTab == 1) loadHistorial();
-                }
-            });
+            enqueueSyncWorker();
+            observeSyncWorker();
+            loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED");
+            historialLoaded = false;
+            if (selectedTab == 1) loadHistorial();
         } else {
             loadCachedBookings();
         }
@@ -141,9 +131,35 @@ public class BookingsViewModel extends ViewModel {
                 "sync_cancellations", ExistingWorkPolicy.KEEP, syncWork);
     }
 
+    private void observeSyncWorker() {
+        if (syncWorkObserver != null && syncWorkInfoLiveData != null) {
+            syncWorkInfoLiveData.removeObserver(syncWorkObserver);
+        }
+        syncWorkInfoLiveData = WorkManager.getInstance(context)
+                .getWorkInfosForUniqueWorkLiveData("sync_cancellations");
+        syncWorkObserver = workInfos -> {
+            if (workInfos == null || workInfos.isEmpty()) return;
+            WorkInfo info = workInfos.get(0);
+            if (info.getState().isFinished()) {
+                if (info.getState() == WorkInfo.State.SUCCEEDED) {
+                    int failedCount = info.getOutputData().getInt("failed_count", 0);
+                    if (failedCount > 0) {
+                        _message.postValue(UiMessage.from(R.string.cancel_sync_error));
+                        loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED");
+                    }
+                }
+                if (syncWorkInfoLiveData != null && syncWorkObserver != null) {
+                    syncWorkInfoLiveData.removeObserver(syncWorkObserver);
+                    syncWorkObserver = null;
+                    syncWorkInfoLiveData = null;
+                }
+            }
+        };
+        syncWorkInfoLiveData.observeForever(syncWorkObserver);
+    }
+
     public void loadMyBookings(String statusFilter) {
         currentFilter = statusFilter;
-        // Capturar IDs actuales antes del refresh para detectar cancelaciones del servidor (O17)
         final Set<Long> prevIds = new HashSet<>();
         if ("CONFIRMED".equals(statusFilter)) {
             List<BookingResponse> cur = _bookings.getValue();
@@ -203,9 +219,8 @@ public class BookingsViewModel extends ViewModel {
         if (offline) {
             bookingRepository.cancelBookingLocally(bookingId, () -> {
                 _message.setValue(UiMessage.from(R.string.cancel_booking_offline_queued));
+                _showOfflineCancelModal.setValue(true);
                 loadMyBookings(currentFilter);
-                historialLoaded = false;
-                if (selectedTab == 1) loadHistorial();
             });
             return;
         }
@@ -237,51 +252,33 @@ public class BookingsViewModel extends ViewModel {
 
     public void loadHistorial() {
         _historialLoading.setValue(true);
-        if (reconnectPendingSnapshot != null) {
-            List<BookingResponse> snapshot = reconnectPendingSnapshot;
-            reconnectPendingSnapshot = null;
-            fetchHistorialWithPending(snapshot);
-            return;
-        }
-        bookingRepository.loadCachedPendingCancellations(new RepositoryCallback<List<BookingResponse>>() {
-            @Override
-            public void onSuccess(List<BookingResponse> pending) {
-                fetchHistorialWithPending(pending);
-            }
-            @Override
-            public void onError(UiMessage e) {
-                fetchHistorialWithPending(null);
-            }
-        });
+        fetchHistorial();
     }
 
-    // pending == null indica fallo de DB: se omite el merge y se usa solo el servidor.
-    private void fetchHistorialWithPending(List<BookingResponse> pending) {
-        List<BookingSummaryItem> pendingItems = new ArrayList<>();
-        Set<Long> pendingIds = new java.util.HashSet<>();
-        if (pending != null) {
-            for (BookingResponse p : pending) {
-                BookingSummaryItem item = toSummaryItem(p);
-                pendingItems.add(item);
-                if (p.id != null) pendingIds.add(p.id);
-            }
-        }
-
-        // Sin red: usar datos locales directamente sin esperar timeout de red
+    private void fetchHistorial() {
         if (offline) {
-            historialLoaded = true;
-            List<BookingSummaryItem> all = new ArrayList<>(pendingItems);
-            for (BookingSummaryItem cached : cachedServerHistorialItems) {
-                if (cached.getId() == null || !pendingIds.contains(cached.getId())) all.add(cached);
-            }
-            allHistorialItems = all;
-            updateDestinationSuggestions();
-            applyFilters();
-            _historialLoading.setValue(false);
+            bookingRepository.loadCachedHistorial(new RepositoryCallback<List<BookingSummaryItem>>() {
+                @Override
+                public void onSuccess(List<BookingSummaryItem> roomItems) {
+                    cachedServerHistorialItems = roomItems != null ? roomItems : Collections.emptyList();
+                    historialLoaded = true;
+                    allHistorialItems = new ArrayList<>(cachedServerHistorialItems);
+                    updateDestinationSuggestions();
+                    applyFilters();
+                    _historialLoading.setValue(false);
+                    _historialNeverSynced.setValue(cachedServerHistorialItems.isEmpty());
+                }
 
-            // Nuevo: si nunca hubo datos sincronizados
-            boolean neverSynced = (cachedServerHistorialItems == null || cachedServerHistorialItems.isEmpty());
-            _historialNeverSynced.setValue(neverSynced);
+                @Override
+                public void onError(UiMessage e) {
+                    historialLoaded = true;
+                    allHistorialItems = Collections.emptyList();
+                    updateDestinationSuggestions();
+                    applyFilters();
+                    _historialLoading.setValue(false);
+                    _historialNeverSynced.setValue(true);
+                }
+            });
             return;
         }
 
@@ -291,62 +288,25 @@ public class BookingsViewModel extends ViewModel {
                 List<BookingSummaryItem> serverItems = data != null ? data : Collections.emptyList();
                 cachedServerHistorialItems = serverItems;
                 historialLoaded = true;
-                List<BookingSummaryItem> all = new ArrayList<>();
-                for (BookingSummaryItem p : pendingItems) {
-                    if (p.getId() == null || !containsId(serverItems, p.getId())) all.add(p);
-                }
-                all.addAll(serverItems);
-                allHistorialItems = all;
+                allHistorialItems = new ArrayList<>(serverItems);
                 updateDestinationSuggestions();
                 applyFilters();
                 _historialLoading.setValue(false);
-
-                // Nuevo: si hubo datos sincronizados, nuncaSynced = false
                 _historialNeverSynced.setValue(false);
             }
 
             @Override
             public void onError(UiMessage error) {
                 historialLoaded = true;
-                List<BookingSummaryItem> all = new ArrayList<>();
-                if (pending == null) {
-                    // DB también falló: usar solo caché del servidor anterior
-                    all.addAll(cachedServerHistorialItems);
-                } else {
-                    all.addAll(pendingItems);
-                    for (BookingSummaryItem cached : cachedServerHistorialItems) {
-                        if (cached.getId() == null || !pendingIds.contains(cached.getId())) all.add(cached);
-                    }
-                    updateDestinationSuggestions();
-                }
-                allHistorialItems = all;
+                allHistorialItems = new ArrayList<>(cachedServerHistorialItems);
+                updateDestinationSuggestions();
                 applyFilters();
                 _historialLoading.setValue(false);
-                boolean neverSynced = (cachedServerHistorialItems == null || cachedServerHistorialItems.isEmpty());
+                boolean neverSynced = cachedServerHistorialItems.isEmpty();
                 _historialNeverSynced.setValue(neverSynced);
-                if (all.isEmpty()) _error.setValue(error);
+                if (allHistorialItems.isEmpty()) _error.setValue(error);
             }
         });
-    }
-
-    private static boolean containsId(List<BookingSummaryItem> items, Long id) {
-        for (BookingSummaryItem item : items) {
-            if (id.equals(item.getId())) return true;
-        }
-        return false;
-    }
-
-    private BookingSummaryItem toSummaryItem(BookingResponse b) {
-        String date = "";
-        String time = "";
-        if (b.sessionStartTime != null && b.sessionStartTime.length() >= 10) {
-            date = b.sessionStartTime.substring(0, 10);
-            if (b.sessionStartTime.length() >= 16) time = b.sessionStartTime.substring(11, 16);
-        }
-        String price = b.currency != null ? b.totalPrice + " " + b.currency : "";
-        String destination = b.destination != null ? b.destination.name : "";
-        return new BookingSummaryItem(b.id, b.activityId, b.activityName,
-                b.status, date, price, destination, b.guideName, b.durationMinutes, null, time);
     }
 
     public void setFilterDestination(String destination) {
@@ -425,6 +385,9 @@ public class BookingsViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
+        if (syncWorkInfoLiveData != null && syncWorkObserver != null) {
+            syncWorkInfoLiveData.removeObserver(syncWorkObserver);
+        }
         bookingRepository.cancelAll();
         profileRepository.cancelAll();
         reviewRepository.cancelAll();

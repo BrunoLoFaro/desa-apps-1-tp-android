@@ -184,7 +184,6 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         button.setEnabled(enabled);
         button.setAlpha(alpha);
     }
-    }
 
     @Override
     public int getItemCount() {
