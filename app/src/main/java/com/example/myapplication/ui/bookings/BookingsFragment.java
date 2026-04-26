@@ -117,12 +117,13 @@ public class BookingsFragment extends Fragment {
     }
 
     private void setupAdapters(@NonNull View view) {
-        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialog);
+        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialogForBooking);
         bookingAdapter.setOnDetailClickListener(this::navigateToDetail);
         activasRecycler.setAdapter(bookingAdapter);
 
         summaryAdapter = new ActivitySummaryAdapter();
         summaryAdapter.setOnItemClickListener(this::navigateToHistoryDetail);
+        summaryAdapter.setOnReviewClickListener(this::showReviewDialogForSummary);
         historialRecycler.setAdapter(summaryAdapter);
     }
 
@@ -403,8 +404,18 @@ public class BookingsFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void showReviewDialog(BookingResponse booking) {
-        if (booking == null || booking.id == null) return;
+    private void showReviewDialogForBooking(BookingResponse booking) {
+        if (booking == null) return;
+        showReviewDialog(booking.id, booking.activityName);
+    }
+
+    private void showReviewDialogForSummary(BookingSummaryItem item) {
+        if (item == null) return;
+        showReviewDialog(item.getId(), item.getActivityName());
+    }
+
+    private void showReviewDialog(Long bookingId, String name) {
+        if (bookingId == null) return;
 
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_review, null);
         RatingBar activityRating = dialogView.findViewById(R.id.review_activity_rating);
@@ -412,7 +423,7 @@ public class BookingsFragment extends Fragment {
         TextInputEditText commentInput = dialogView.findViewById(R.id.review_comment_input);
 
         String title = getString(R.string.review_title);
-        String activityName = booking.activityName != null ? booking.activityName.trim() : "";
+        String activityName = name != null ? name.trim() : "";
         if (!activityName.isEmpty()) title = activityName;
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
@@ -438,7 +449,7 @@ public class BookingsFragment extends Fragment {
                 if (!raw.isEmpty()) comment = raw;
             }
 
-            viewModel.submitReview(booking.id, a, guide, comment);
+            viewModel.submitReview(bookingId, a, guide, comment);
             dialog.dismiss();
         });
     }

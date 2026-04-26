@@ -244,6 +244,7 @@ public class BookingsViewModel extends ViewModel {
                     public void onSuccess(com.example.myapplication.data.model.ReviewSummaryResponse data) {
                         _loading.setValue(false);
                         _message.setValue(UiMessage.from(R.string.review_thanks));
+                        updateLocalReviewStatus(bookingId);
                         loadMyBookings(currentFilter);
                     }
 
@@ -251,8 +252,42 @@ public class BookingsViewModel extends ViewModel {
                     public void onError(UiMessage error) {
                         _loading.setValue(false);
                         _error.setValue(error);
+                        // Si el error es que ya existe la reseña, también bloqueamos el botón localmente
+                        if (isAlreadyExistsError(error)) {
+                            updateLocalReviewStatus(bookingId);
+                        }
                     }
                 });
+    }
+
+    private void updateLocalReviewStatus(Long bookingId) {
+        List<BookingSummaryItem> newList = new ArrayList<>();
+        boolean changed = false;
+        for (BookingSummaryItem item : allHistorialItems) {
+            if (item.getId().equals(bookingId)) {
+                newList.add(new BookingSummaryItem(
+                        item.getId(), item.getActivityId(), item.getActivityName(),
+                        item.getStatus(), item.getDate(), item.getPrice(),
+                        item.getDestination(), item.getGuideName(),
+                        item.getDurationMinutes(), item.getImageUrl(),
+                        item.getTime(), false, item.getSessionStartTime()
+                ));
+                changed = true;
+            } else {
+                newList.add(item);
+            }
+        }
+        if (changed) {
+            allHistorialItems = newList;
+            applyFilters();
+        }
+    }
+
+    private boolean isAlreadyExistsError(UiMessage error) {
+        if (error instanceof UiMessage.ResMessage) {
+            return ((UiMessage.ResMessage) error).resId == R.string.error_review_already_exists;
+        }
+        return false;
     }
 
     private boolean isOnline() {

@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository;
 
+import android.util.Log;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
@@ -15,6 +16,8 @@ import com.example.myapplication.data.model.UserProfileResponse;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,15 +34,18 @@ public class ProfileRepository extends BaseRepository {
     private final ProfileService profileService;
     private final ConfigLoader configLoader;
     private final com.example.myapplication.data.session.SessionManager sessionManager;
+    private final Moshi moshi;
 
     @Inject
     public ProfileRepository(ProfileService profileService, ConfigLoader configLoader,
                              NetworkErrorParser errorParser,
-                             com.example.myapplication.data.session.SessionManager sessionManager) {
+                             com.example.myapplication.data.session.SessionManager sessionManager,
+                             Moshi moshi) {
         super(errorParser);
         this.profileService = profileService;
         this.configLoader = configLoader;
         this.sessionManager = sessionManager;
+        this.moshi = moshi;
     }
 
     public void getProfile(RepositoryCallback<UserProfileData> callback) {
@@ -140,9 +146,21 @@ public class ProfileRepository extends BaseRepository {
             public void onResponse(Call<BookingSummaryPageResponse> c,
                                    Response<BookingSummaryPageResponse> response) {
                 activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null
-                        && response.body().items != null) {
-                    callback.onSuccess(mapToSummaryItems(response.body().items));
+                if (response.isSuccessful() && response.body() != null) {
+                    // Logging the JSON response
+                    try {
+                        JsonAdapter<BookingSummaryPageResponse> adapter = moshi.adapter(BookingSummaryPageResponse.class);
+                        String json = adapter.toJson(response.body());
+                        Log.d("API_SUMMARY_JSON", json);
+                    } catch (Exception e) {
+                        Log.e("API_SUMMARY_JSON", "Error logging JSON", e);
+                    }
+
+                    if (response.body().items != null) {
+                        callback.onSuccess(mapToSummaryItems(response.body().items));
+                    } else {
+                        callback.onSuccess(Collections.emptyList());
+                    }
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
                 }
@@ -235,7 +253,7 @@ public class ProfileRepository extends BaseRepository {
                     item.destination != null ? item.destination : "",
                     item.guideName != null ? item.guideName : "",
                     item.durationMinutes,
-                    item.imageUrl, time));
+                    item.imageUrl, time, item.canReview, item.sessionStartTime));
         }
         return result;
     }
