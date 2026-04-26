@@ -73,27 +73,15 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        // Recomendados para ti (featured) -> Horizontal and Compact
         TourAdapter featuredAdapter = new TourAdapter(true, true);
         featuredRecycler.setAdapter(featuredAdapter);
-
-        RecyclerView activitiesRecycler = view.findViewById(R.id.activities_recycler_view);
-        activitiesRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-        // Explora actividades -> Vertical and Compact (Requirement 3)
-        TourAdapter activitiesAdapter = new TourAdapter(false, true);
-        activitiesRecycler.setAdapter(activitiesAdapter);
 
         featuredAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
             if (activity.getId() == null) return;
             homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
         });
-        activitiesAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
-            if (activity.getId() == null) return;
-            homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
-        });
 
         homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
-        homeViewModel.getAllTours().observe(getViewLifecycleOwner(), activitiesAdapter::updateData);
 
         RecyclerView newsRecycler = view.findViewById(R.id.news_recycler_view);
         newsRecycler.setLayoutManager(
