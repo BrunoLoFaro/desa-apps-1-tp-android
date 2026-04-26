@@ -5,12 +5,15 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.local.OfflineBookingDao;
 import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 
 @HiltViewModel
@@ -23,6 +26,8 @@ public class HomeViewModel extends ViewModel {
     private final SessionRepository sessionRepository;
     private final TourRepository tourRepository;
     private final ProfileImageManager profileImageManager;
+    private final OfflineBookingDao offlineBookingDao;
+    private final Executor dbExecutor = Executors.newSingleThreadExecutor();
 
     private final MutableLiveData<List<TourActivity>> _featuredTours = new MutableLiveData<>();
     private final MutableLiveData<List<TourActivity>> _allTours = new MutableLiveData<>();
@@ -32,10 +37,11 @@ public class HomeViewModel extends ViewModel {
 
     @Inject
     public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository,
-                         ProfileImageManager profileImageManager) {
+                         ProfileImageManager profileImageManager, OfflineBookingDao offlineBookingDao) {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
         this.profileImageManager = profileImageManager;
+        this.offlineBookingDao = offlineBookingDao;
         refreshTours();
     }
 
@@ -49,8 +55,10 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void logout() {
-        profileImageManager.delete(sessionRepository.getUserId());
+        long userId = sessionRepository.getUserId();
+        profileImageManager.delete(userId);
         sessionRepository.clearSession();
+        dbExecutor.execute(() -> offlineBookingDao.deleteAllByUser(userId));
     }
 
     public void reloadRecommended() {

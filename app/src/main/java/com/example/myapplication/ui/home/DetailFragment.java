@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.home;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -138,15 +141,21 @@ public class DetailFragment extends Fragment {
         });
         createBookingViewModel.getBooking().observe(getViewLifecycleOwner(), booking -> {
             if (booking != null) {
-                android.widget.Toast.makeText(requireContext(), "Reserva creada", android.widget.Toast.LENGTH_SHORT).show();
-                // refresca cupos/sesiones
-                if (tourActivity != null && tourActivity.getId() != null) {
-                    detailViewModel.load(tourActivity.getId());
-                }
-                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
                 selectedSession = null;
                 if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                 createBookingViewModel.clearBooking();
+                if (booking.id != null && booking.id > 0) {
+                    Bundle voucherArgs = new Bundle();
+                    voucherArgs.putLong("bookingId", booking.id);
+                    androidx.navigation.Navigation.findNavController(requireView())
+                            .navigate(R.id.action_detailFragment_to_voucherFragment, voucherArgs);
+                } else {
+                    android.widget.Toast.makeText(requireContext(),
+                            getString(R.string.voucher_confirmed), android.widget.Toast.LENGTH_SHORT).show();
+                    if (tourActivity != null && tourActivity.getId() != null) {
+                        detailViewModel.load(tourActivity.getId());
+                    }
+                }
             }
         });
 
@@ -219,7 +228,16 @@ public class DetailFragment extends Fragment {
                     sessionsRecycler.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
                 });
 
-                detailViewModel.load(id);
+                if (isOnline()) {
+                    detailViewModel.load(id);
+                } else {
+                    if (loading != null) loading.setVisibility(View.GONE);
+                    if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
+                    sessionsRecycler.setVisibility(View.GONE);
+                    if (bookingCard != null) bookingCard.setVisibility(View.GONE);
+                    android.widget.Toast.makeText(requireContext(),
+                            "Sin conexión. Mostrando datos guardados.", android.widget.Toast.LENGTH_SHORT).show();
+                }
             } else {
                 if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
                 sessionsRecycler.setVisibility(View.GONE);
@@ -334,6 +352,16 @@ public class DetailFragment extends Fragment {
                 }
             }
         }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) requireContext()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        android.net.Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     @Override

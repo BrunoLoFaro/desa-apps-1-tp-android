@@ -42,6 +42,20 @@
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
                 android:textStyle="bold" />
 
+            <!-- Status badge -->
+            <TextView
+                android:id="@+id/summary_status_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_badge_upcoming"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <!-- Destination -->
             <TextView
                 android:id="@+id/summary_destination"

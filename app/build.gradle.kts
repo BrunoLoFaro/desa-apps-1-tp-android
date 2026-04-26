@@ -89,6 +89,14 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
 
+    // WorkManager — sincronización en background
+    implementation("androidx.work:work-runtime:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
+    // Pull-to-refresh
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)

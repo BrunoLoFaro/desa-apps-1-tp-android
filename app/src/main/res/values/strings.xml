@@ -127,6 +127,23 @@
     <string name="bookings_filter_cancelled">Canceladas</string>
 
     <string name="review_button">Calificar</string>
+    <string name="voucher_title">Mi reserva</string>
+    <string name="voucher_confirmed">¡Reserva confirmada!</string>
+    <string name="voucher_confirmed_subtitle">Tu actividad está reservada.</string>
+    <string name="voucher_code_label">Código de reserva</string>
+    <string name="voucher_code_hint">Mostrá este código el día de la actividad</string>
+    <string name="voucher_save_title">Guardá este código</string>
+    <string name="voucher_save_subtitle">Lo vas a necesitar para el check-in.</string>
+    <string name="voucher_label_datetime">Fecha y hora</string>
+    <string name="voucher_label_duration">Duración</string>
+    <string name="voucher_label_guide">Guía</string>
+    <string name="voucher_label_participants">Participantes</string>
+    <string name="voucher_label_price">Precio total</string>
+    <string name="voucher_download_button">Descargar voucher</string>
+    <string name="voucher_button">Ver voucher</string>
+    <string name="voucher_participants">%d participante(s)</string>
+    <string name="voucher_pdf_saved">Voucher guardado en Descargas</string>
+    <string name="voucher_pdf_error">No se pudo generar el PDF</string>
     <string name="review_title">Calificar</string>
     <string name="review_send">Enviar</string>
     <string name="review_cancel">Cancelar</string>
@@ -181,6 +198,11 @@
     <string name="bookings_section_hoy">Hoy</string>
     <string name="bookings_section_proximas">Próximas</string>
     <string name="booking_badge_upcoming">Próximo</string>
+    <string name="status_confirmed">Confirmada</string>
+    <string name="status_completed">Finalizada</string>
+    <string name="status_cancelled">Cancelada</string>
+    <string name="status_pending">Pendiente</string>
+    <string name="status_pending_cancel">Cancelación pendiente</string>
 
     <!-- Profile activity summary -->
     <string name="profile_section_summary">Resumen de actividades</string>
@@ -224,4 +246,11 @@
 
     <!-- Offline -->
     <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+    <string name="bookings_empty_offline">Sin conexión. Mostrando últimos datos guardados.</string>
+    <string name="review_offline_error">Necesitás conexión para calificar esta actividad.</string>
+    <string name="booking_cancelled_by_server">Una o más reservas fueron canceladas. El listado fue actualizado.</string>
+    <string name="cancel_booking_offline_queued">Cancelación guardada. Se procesará cuando recuperes la conexión.</string>
+
+    <!-- Voucher -->
+    <string name="voucher_label_meeting_point">Punto de encuentro</string>
 </resources>
