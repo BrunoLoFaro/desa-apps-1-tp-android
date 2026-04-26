@@ -124,7 +124,9 @@ public class BookingRepository extends BaseRepository {
                         e.guideName != null ? e.guideName : "",
                         e.durationMinutes,
                         null,
-                        FormatUtils.extractTime(e.sessionStartTime)));
+                        FormatUtils.extractTime(e.sessionStartTime),
+                        false,
+                        e.sessionStartTime));
             }
             MainThreadUtils.post(() -> callback.onSuccess(result));
         });
