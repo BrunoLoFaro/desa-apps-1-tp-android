@@ -204,6 +204,8 @@
     <string name="status_confirmed">Confirmada</string>
     <string name="status_completed">Finalizada</string>
     <string name="status_cancelled">Cancelada</string>
+    <string name="status_pending_cancel">Cancelación pendiente</string>
+        <string name="cancel_booking_pending_alert">La cancelación está pendiente de sincronización. Se procesará cuando recuperes la conexión.</string>
     <string name="status_pending">Pendiente</string>
     <string name="status_pending_cancel">Cancelación pendiente</string>
 

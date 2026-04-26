@@ -133,10 +133,17 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             holder.guide.setVisibility(View.GONE);
         }
 
+
+        boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
         boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
-        holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
+        holder.cancelButton.setVisibility((canCancel && !isPendingCancel) ? View.VISIBLE : View.GONE);
+        holder.cancelButton.setEnabled(!isPendingCancel);
+        holder.cancelButton.setAlpha(isPendingCancel ? 0.5f : 1f);
         holder.cancelButton.setOnClickListener(v -> {
-            if (cancelClickListener != null) cancelClickListener.onCancel(booking);
+            if (!isPendingCancel && cancelClickListener != null) cancelClickListener.onCancel(booking);
+            else if (isPendingCancel) {
+                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
+            }
         });
 
         boolean canReview = booking.canReview
@@ -192,6 +199,11 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 label = ctx.getString(R.string.status_cancelled);
                 bgColor = 0xFFFFEBEE;
                 textColor = 0xFFB71C1C;
+                break;
+            case "PENDING_CANCEL":
+                label = ctx.getString(R.string.status_pending_cancel);
+                bgColor = 0xFFFFF8E1;
+                textColor = 0xFFE65100;
                 break;
             case "PENDING":
                 label = ctx.getString(R.string.status_pending);
