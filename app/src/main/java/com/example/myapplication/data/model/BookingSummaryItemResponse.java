@@ -35,4 +35,7 @@ public class BookingSummaryItemResponse {
 
     @Json(name = "imageUrl")
     public String imageUrl;
+
+    @Json(name = "canReview")
+    public boolean canReview;
 }

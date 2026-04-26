@@ -11,6 +11,7 @@ import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.model.BookingResponse;
 import com.example.myapplication.data.model.BookingSummaryItem;
+import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
@@ -40,7 +41,7 @@ public class BookingsViewModel extends ViewModel {
     private boolean offline = false;
     private String currentFilter = null;
 
-    // ── Historial ────────────────────────────────────────────────────────────
+    // ──────────────── Historial ────────────────────────────────────────────────────────────
     private final MutableLiveData<List<BookingSummaryItem>> _historial =
             new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Boolean> _historialLoading = new MutableLiveData<>(false);
@@ -52,6 +53,12 @@ public class BookingsViewModel extends ViewModel {
     private String filterTo = "";
     private boolean historialLoaded = false;
     private int selectedTab = 0;
+
+    // ──────────────── Mis Calificaciones ────────────────────────────────────────────────────────────
+    private final MutableLiveData<List<ReviewResponse>> _myReviews =
+            new MutableLiveData<>(Collections.emptyList());
+    private final MutableLiveData<Boolean> _myReviewsLoading = new MutableLiveData<>(false);
+    private boolean myReviewsLoaded = false;
 
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository,
@@ -66,7 +73,7 @@ public class BookingsViewModel extends ViewModel {
         if (this.offline) _isOffline.setValue(true);
     }
 
-    // ── Getters ──────────────────────────────────────────────────────────────
+    // ──────────────── Getters ────────────────────────────────────────────────────────────────
     public LiveData<List<BookingResponse>> getBookings() { return _bookings; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<UiMessage> getMessage() { return _message; }
@@ -80,9 +87,12 @@ public class BookingsViewModel extends ViewModel {
     public LiveData<Boolean> isHistorialLoading() { return _historialLoading; }
     public LiveData<List<String>> getAvailableDestinations() { return _availableDestinations; }
 
+    public LiveData<List<ReviewResponse>> getMyReviews() { return _myReviews; }
+    public LiveData<Boolean> isMyReviewsLoading() { return _myReviewsLoading; }
+
     public void clearMessage() { _message.setValue(null); }
 
-    // ── Activas actions ──────────────────────────────────────────────────────
+    // ──────────────── Activas actions ──────────────────────────────────────────────────────────
 
     public void onConnectivityChanged(boolean isOnline) {
         offline = !isOnline;
@@ -159,7 +169,7 @@ public class BookingsViewModel extends ViewModel {
         });
     }
 
-    // ── Historial actions ────────────────────────────────────────────────────
+    // ──────────────── Historial actions ───────────────────────────────────────────────────────────
 
     public void loadHistorialIfNeeded() {
         if (historialLoaded) return;
@@ -185,6 +195,31 @@ public class BookingsViewModel extends ViewModel {
                 _historial.setValue(Collections.emptyList());
                 _error.setValue(error);
                 _historialLoading.setValue(false);
+            }
+        });
+    }
+
+    public void loadMyReviewsIfNeeded() {
+        if (myReviewsLoaded) return;
+        loadMyReviews();
+    }
+
+    public void loadMyReviews() {
+        _myReviewsLoading.setValue(true);
+        profileRepository.getMyReviews(new RepositoryCallback<List<ReviewResponse>>() {
+            @Override
+            public void onSuccess(List<ReviewResponse> data) {
+                myReviewsLoaded = true;
+                _myReviews.setValue(data != null ? data : Collections.emptyList());
+                _myReviewsLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(UiMessage error) {
+                myReviewsLoaded = true;
+                _myReviews.setValue(Collections.emptyList());
+                _error.setValue(error);
+                _myReviewsLoading.setValue(false);
             }
         });
     }
@@ -244,6 +279,8 @@ public class BookingsViewModel extends ViewModel {
                     public void onSuccess(com.example.myapplication.data.model.ReviewSummaryResponse data) {
                         _loading.setValue(false);
                         _message.setValue(UiMessage.from(R.string.review_thanks));
+                        updateLocalReviewStatus(bookingId);
+                        myReviewsLoaded = false; // Force reload reviews tab
                         loadMyBookings(currentFilter);
                     }
 
@@ -251,8 +288,42 @@ public class BookingsViewModel extends ViewModel {
                     public void onError(UiMessage error) {
                         _loading.setValue(false);
                         _error.setValue(error);
+                        // Si el error es que ya existe la reseña, también bloqueamos el botón localmente
+                        if (isAlreadyExistsError(error)) {
+                            updateLocalReviewStatus(bookingId);
+                        }
                     }
                 });
+    }
+
+    private void updateLocalReviewStatus(Long bookingId) {
+        List<BookingSummaryItem> newList = new ArrayList<>();
+        boolean changed = false;
+        for (BookingSummaryItem item : allHistorialItems) {
+            if (item.getId().equals(bookingId)) {
+                newList.add(new BookingSummaryItem(
+                        item.getId(), item.getActivityId(), item.getActivityName(),
+                        item.getStatus(), item.getDate(), item.getPrice(),
+                        item.getDestination(), item.getGuideName(),
+                        item.getDurationMinutes(), item.getImageUrl(),
+                        item.getTime(), false, item.getSessionStartTime()
+                ));
+                changed = true;
+            } else {
+                newList.add(item);
+            }
+        }
+        if (changed) {
+            allHistorialItems = newList;
+            applyFilters();
+        }
+    }
+
+    private boolean isAlreadyExistsError(UiMessage error) {
+        if (error instanceof UiMessage.ResMessage) {
+            return ((UiMessage.ResMessage) error).resId == R.string.error_review_already_exists;
+        }
+        return false;
     }
 
     private boolean isOnline() {

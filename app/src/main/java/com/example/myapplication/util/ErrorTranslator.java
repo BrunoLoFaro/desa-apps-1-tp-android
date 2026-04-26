@@ -26,6 +26,9 @@ public class ErrorTranslator {
         addRule(".*invalid credentials.*|unauthorized|.*credenciales inválidas.*", R.string.error_invalid_credentials);
         addRule(".*token.*expired.*", R.string.error_invalid_config);
 
+        // --- Review Errors ---
+        addRule(".*review already exists.*|.*a view already exists for this booking.*", R.string.error_review_already_exists);
+
         // --- Validation Errors (Generic or Framework specific) ---
         // Matches common Micronaut/Spring validation patterns
         // Catching specific field errors and default messages from Spring

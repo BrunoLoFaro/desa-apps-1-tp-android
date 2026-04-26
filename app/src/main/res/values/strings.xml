@@ -31,7 +31,7 @@
     <string name="nav_home">Inicio</string>
     <string name="nav_explore">Explorar</string>
     <string name="nav_favorites">Favoritos</string>
-    <string name="nav_bookings">Mis Reservas</string>
+    <string name="nav_bookings">Mis Actividades</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
     <string name="sold_out">Sin cupos</string>
@@ -135,6 +135,7 @@
     <string name="review_comment_hint">Comentario (opcional)</string>
     <string name="review_error_activity_required">Seleccioná una calificación para la actividad.</string>
     <string name="review_thanks">¡Gracias por tu reseña!</string>
+    <string name="error_review_already_exists">Ya calificaste esta actividad.</string>
 
     <string name="no_reviews">Sin reseñas</string>
 

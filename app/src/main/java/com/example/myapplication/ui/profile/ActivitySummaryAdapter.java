@@ -12,6 +12,7 @@ import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -21,11 +22,20 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
         void onItemClick(BookingSummaryItem item);
     }
 
+    public interface OnReviewClickListener {
+        void onReview(BookingSummaryItem item);
+    }
+
     private List<BookingSummaryItem> items = Collections.emptyList();
     private OnItemClickListener listener;
+    private OnReviewClickListener reviewListener;
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setOnReviewClickListener(OnReviewClickListener listener) {
+        this.reviewListener = listener;
     }
 
     public void updateData(List<BookingSummaryItem> newItems) {
@@ -71,6 +81,19 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
 
         holder.detailButton.setOnClickListener(
                 listener != null ? v -> listener.onItemClick(item) : null);
+
+        // Eliminamos la validación de 48h del frontend para confiar plenamente en el flag 'canReview' del backend.
+        // Si el historial muestra el item, usualmente es porque está COMPLETED.
+        boolean canReview = item.isCanReview();
+
+        if (canReview) {
+            holder.reviewButton.setVisibility(View.VISIBLE);
+            holder.reviewButton.setOnClickListener(v -> {
+                if (reviewListener != null) reviewListener.onReview(item);
+            });
+        } else {
+            holder.reviewButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -83,6 +106,7 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
         TextView name, date, destination, guide, duration;
         View guideRow;
         MaterialButton detailButton;
+        MaterialButton reviewButton;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -94,6 +118,7 @@ public class ActivitySummaryAdapter extends RecyclerView.Adapter<ActivitySummary
             guideRow     = itemView.findViewById(R.id.summary_guide_row);
             duration     = itemView.findViewById(R.id.summary_duration);
             detailButton = itemView.findViewById(R.id.summary_detail_button);
+            reviewButton = itemView.findViewById(R.id.summary_review_button);
         }
     }
 }

@@ -71,6 +71,13 @@ public class BookingsFragment extends Fragment {
     private MaterialButton btnBuscar;
     private MaterialButton btnLimpiar;
 
+    // Mis Calificaciones views
+    private View sectionReviews;
+    private RecyclerView reviewsRecycler;
+    private ProgressBar reviewsLoading;
+    private TextView reviewsEmpty;
+    private ReviewAdapter reviewAdapter;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -114,16 +121,25 @@ public class BookingsFragment extends Fragment {
         filterToDate      = view.findViewById(R.id.filter_to_date);
         btnBuscar         = view.findViewById(R.id.btn_buscar);
         btnLimpiar        = view.findViewById(R.id.btn_limpiar);
+
+        sectionReviews    = view.findViewById(R.id.section_mis_calificaciones);
+        reviewsRecycler   = view.findViewById(R.id.reviews_recycler_view);
+        reviewsLoading    = view.findViewById(R.id.reviews_loading_spinner);
+        reviewsEmpty      = view.findViewById(R.id.reviews_empty_text);
     }
 
     private void setupAdapters(@NonNull View view) {
-        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialog);
+        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialogForBooking);
         bookingAdapter.setOnDetailClickListener(this::navigateToDetail);
         activasRecycler.setAdapter(bookingAdapter);
 
         summaryAdapter = new ActivitySummaryAdapter();
         summaryAdapter.setOnItemClickListener(this::navigateToHistoryDetail);
+        summaryAdapter.setOnReviewClickListener(this::showReviewDialogForSummary);
         historialRecycler.setAdapter(summaryAdapter);
+
+        reviewAdapter = new ReviewAdapter();
+        reviewsRecycler.setAdapter(reviewAdapter);
     }
 
     private void setupFilters() {
@@ -177,18 +193,22 @@ public class BookingsFragment extends Fragment {
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.bookings_tab_activas));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.bookings_tab_historial));
+        tabLayout.addTab(tabLayout.newTab().setText("Mis Calificaciones"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                viewModel.setSelectedTab(tab.getPosition());
-                if (tab.getPosition() == 0) {
-                    sectionActivas.setVisibility(View.VISIBLE);
-                    sectionHistorial.setVisibility(View.GONE);
-                } else {
-                    sectionActivas.setVisibility(View.GONE);
-                    sectionHistorial.setVisibility(View.VISIBLE);
+                int pos = tab.getPosition();
+                viewModel.setSelectedTab(pos);
+                
+                sectionActivas.setVisibility(pos == 0 ? View.VISIBLE : View.GONE);
+                sectionHistorial.setVisibility(pos == 1 ? View.VISIBLE : View.GONE);
+                sectionReviews.setVisibility(pos == 2 ? View.VISIBLE : View.GONE);
+
+                if (pos == 1) {
                     viewModel.loadHistorialIfNeeded();
+                } else if (pos == 2) {
+                    viewModel.loadMyReviewsIfNeeded();
                 }
             }
 
@@ -197,8 +217,8 @@ public class BookingsFragment extends Fragment {
         });
 
         int savedTab = viewModel.getSelectedTab();
-        if (savedTab == 1) {
-            TabLayout.Tab tab = tabLayout.getTabAt(1);
+        if (savedTab >= 0 && savedTab < tabLayout.getTabCount()) {
+            TabLayout.Tab tab = tabLayout.getTabAt(savedTab);
             if (tab != null) tab.select();
         }
     }
@@ -225,6 +245,17 @@ public class BookingsFragment extends Fragment {
             boolean empty = items == null || items.isEmpty();
             historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
             historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        });
+
+        viewModel.isMyReviewsLoading().observe(getViewLifecycleOwner(), loading -> {
+            reviewsLoading.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE);
+        });
+
+        viewModel.getMyReviews().observe(getViewLifecycleOwner(), reviews -> {
+            reviewAdapter.updateData(reviews);
+            boolean empty = reviews == null || reviews.isEmpty();
+            reviewsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+            reviewsRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
         });
 
         viewModel.getAvailableDestinations().observe(getViewLifecycleOwner(), destinations -> {
@@ -400,11 +431,26 @@ public class BookingsFragment extends Fragment {
         filterToDate      = null;
         btnBuscar         = null;
         btnLimpiar        = null;
+        sectionReviews    = null;
+        reviewsRecycler   = null;
+        reviewsLoading    = null;
+        reviewsEmpty      = null;
+        reviewAdapter     = null;
         super.onDestroyView();
     }
 
-    private void showReviewDialog(BookingResponse booking) {
-        if (booking == null || booking.id == null) return;
+    private void showReviewDialogForBooking(BookingResponse booking) {
+        if (booking == null) return;
+        showReviewDialog(booking.id, booking.activityName);
+    }
+
+    private void showReviewDialogForSummary(BookingSummaryItem item) {
+        if (item == null) return;
+        showReviewDialog(item.getId(), item.getActivityName());
+    }
+
+    private void showReviewDialog(Long bookingId, String name) {
+        if (bookingId == null) return;
 
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_review, null);
         RatingBar activityRating = dialogView.findViewById(R.id.review_activity_rating);
@@ -412,7 +458,7 @@ public class BookingsFragment extends Fragment {
         TextInputEditText commentInput = dialogView.findViewById(R.id.review_comment_input);
 
         String title = getString(R.string.review_title);
-        String activityName = booking.activityName != null ? booking.activityName.trim() : "";
+        String activityName = name != null ? name.trim() : "";
         if (!activityName.isEmpty()) title = activityName;
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
@@ -438,7 +484,7 @@ public class BookingsFragment extends Fragment {
                 if (!raw.isEmpty()) comment = raw;
             }
 
-            viewModel.submitReview(booking.id, a, guide, comment);
+            viewModel.submitReview(bookingId, a, guide, comment);
             dialog.dismiss();
         });
     }
