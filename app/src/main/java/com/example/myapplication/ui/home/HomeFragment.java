@@ -2,7 +2,6 @@ package com.example.myapplication.ui.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -10,7 +9,6 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import com.example.myapplication.ui.home.viewmodel.HomeViewModel;
@@ -19,8 +17,8 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
-import com.google.android.material.appbar.MaterialToolbar;
 import dagger.hilt.android.AndroidEntryPoint;
+import java.util.stream.Collectors;
 
 @AndroidEntryPoint
 public class HomeFragment extends androidx.fragment.app.Fragment {
@@ -28,6 +26,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
     private HomeViewModel homeViewModel;
     private NewsViewModel newsViewModel;
     private NewsAdapter newsAdapter;
+    private NewsAdapter promotionsAdapter;
     private NavController navController;
 
     @Nullable
@@ -49,9 +48,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
             navController.navigate(R.id.action_homeFragment_to_loginFragment);
             return;
         }
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
 
         View searchBarCard = view.findViewById(R.id.search_bar_card);
         EditText searchEditText = view.findViewById(R.id.search_edit_text);
@@ -89,7 +85,22 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         newsAdapter = new NewsAdapter();
         newsRecycler.setAdapter(newsAdapter);
 
-        newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsAdapter::updateData);
+        RecyclerView promotionsRecycler = view.findViewById(R.id.promotions_recycler_view);
+        promotionsRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        promotionsAdapter = new NewsAdapter();
+        promotionsRecycler.setAdapter(promotionsAdapter);
+
+        newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsList -> {
+            if (newsList != null) {
+                newsAdapter.updateData(newsList.stream()
+                        .filter(item -> "NEWS".equals(item.type))
+                        .toList());
+                promotionsAdapter.updateData(newsList.stream()
+                        .filter(item -> "OFFER".equals(item.type))
+                        .toList());
+            }
+        });
         newsViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
@@ -110,32 +121,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         });
     }
 
-    private boolean onMenuItemClick(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_logout) {
-            logout();
-            return true;
-        } else if (id == R.id.action_theme_toggle) {
-            toggleTheme();
-            return true;
-        }
-        return false;
-    }
-
-    private void toggleTheme() {
-        int currentMode = AppCompatDelegate.getDefaultNightMode();
-        if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
-    }
-
-    private void logout() {
-        homeViewModel.logout();
-        navController.navigate(R.id.action_homeFragment_to_loginFragment);
-    }
-
     @Override
     public void onResume() {
         super.onResume();
@@ -153,6 +138,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         homeViewModel = null;
         newsViewModel = null;
         newsAdapter = null;
+        promotionsAdapter = null;
         super.onDestroyView();
     }
 }
