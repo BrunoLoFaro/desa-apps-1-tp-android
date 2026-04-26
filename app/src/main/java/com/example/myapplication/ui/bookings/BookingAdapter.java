@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,9 +38,15 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         void onDetail(BookingResponse booking);
     }
 
+    public interface OnVoucherClickListener {
+        void onVoucher(BookingResponse booking);
+    }
+
     private List<BookingListItem> items = Collections.emptyList();
+    private boolean offline = false;
     private final OnCancelClickListener cancelClickListener;
     private OnDetailClickListener detailClickListener;
+    private OnVoucherClickListener voucherClickListener;
     private final OnReviewClickListener reviewClickListener;
 
     public BookingAdapter(OnCancelClickListener cancelClickListener, OnReviewClickListener reviewClickListener) {
@@ -51,9 +58,20 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.detailClickListener = listener;
     }
 
+    public void setOnVoucherClickListener(OnVoucherClickListener listener) {
+        this.voucherClickListener = listener;
+    }
+
     public void updateData(List<BookingListItem> newItems) {
         items = newItems != null ? newItems : Collections.emptyList();
         notifyDataSetChanged();
+    }
+
+    public void setOffline(boolean offline) {
+        if (this.offline != offline) {
+            this.offline = offline;
+            notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -97,12 +115,7 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.day.setText(item.dayNumber);
         holder.month.setText(item.monthAbbr);
 
-        if (!item.isToday) {
-            holder.statusBadge.setVisibility(View.VISIBLE);
-            holder.statusBadge.setText(R.string.booking_badge_upcoming);
-        } else {
-            holder.statusBadge.setVisibility(View.GONE);
-        }
+        bindStatusBadge(holder.statusBadge, booking.status);
 
         holder.title.setText(booking.activityName != null ? booking.activityName : "");
 
@@ -120,18 +133,42 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             holder.guide.setVisibility(View.GONE);
         }
 
-        boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
-        holder.cancelButton.setVisibility(canCancel ? View.VISIBLE : View.GONE);
+
+        // Estados
+        final boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
+        final boolean isConfirmed = "CONFIRMED".equalsIgnoreCase(booking.status);
+        final boolean isCompleted = "COMPLETED".equalsIgnoreCase(booking.status);
+        final boolean canCancel = isConfirmed;
+        final boolean canVoucher = isConfirmed && !isPendingCancel;
+        final boolean canReview = booking.canReview && isCompleted && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
+
+        // Utilidad para configurar botones
+        setButtonState(holder.cancelButton, (canCancel && !isPendingCancel), !isPendingCancel, isPendingCancel ? 0.5f : 1f);
+        setButtonState(holder.voucherButton, canVoucher, !isPendingCancel, isPendingCancel ? 0.5f : 1f);
+        setButtonState(holder.reviewButton, canReview, !offline, offline ? 0.45f : 1f);
+
         holder.cancelButton.setOnClickListener(v -> {
-            if (cancelClickListener != null) cancelClickListener.onCancel(booking);
+            if (!isPendingCancel && cancelClickListener != null) {
+                cancelClickListener.onCancel(booking);
+            } else if (isPendingCancel) {
+                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
+            }
         });
 
-        boolean canReview = booking.canReview
-                && "COMPLETED".equalsIgnoreCase(booking.status)
-                && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
-        holder.reviewButton.setVisibility(canReview ? View.VISIBLE : View.GONE);
+        holder.voucherButton.setOnClickListener(v -> {
+            if (!isPendingCancel && voucherClickListener != null) {
+                voucherClickListener.onVoucher(booking);
+            } else if (isPendingCancel) {
+                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         holder.reviewButton.setOnClickListener(v -> {
-            if (reviewClickListener != null) reviewClickListener.onReview(booking);
+            if (offline) {
+                Toast.makeText(v.getContext(), R.string.review_offline_error, Toast.LENGTH_SHORT).show();
+            } else if (reviewClickListener != null) {
+                reviewClickListener.onReview(booking);
+            }
         });
 
         holder.detailButton.setOnClickListener(v -> {
@@ -139,9 +176,65 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
     }
 
+    /**
+     * Configura visibilidad, habilitación y alpha de un botón de forma DRY.
+     */
+    private void setButtonState(View button, boolean visible, boolean enabled, float alpha) {
+        button.setVisibility(visible ? View.VISIBLE : View.GONE);
+        button.setEnabled(enabled);
+        button.setAlpha(alpha);
+    }
+
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    private static void bindStatusBadge(TextView badge, String status) {
+        if (status == null) {
+            badge.setVisibility(View.GONE);
+            return;
+        }
+        android.content.Context ctx = badge.getContext();
+        String label;
+        int bgColor;
+        int textColor;
+        switch (status.toUpperCase()) {
+            case "CONFIRMED":
+                label = ctx.getString(R.string.status_confirmed);
+                bgColor = 0xFFE3F2FD;
+                textColor = 0xFF1565C0;
+                break;
+            case "COMPLETED":
+                label = ctx.getString(R.string.status_completed);
+                bgColor = 0xFFE8F5E9;
+                textColor = 0xFF2E7D32;
+                break;
+            case "CANCELLED":
+                label = ctx.getString(R.string.status_cancelled);
+                bgColor = 0xFFFFEBEE;
+                textColor = 0xFFB71C1C;
+                break;
+            case "PENDING_CANCEL":
+                label = ctx.getString(R.string.status_pending_cancel);
+                bgColor = 0xFFFFF8E1;
+                textColor = 0xFFE65100;
+                break;
+            case "PENDING":
+                label = ctx.getString(R.string.status_pending);
+                bgColor = 0xFFFFF8E1;
+                textColor = 0xFFE65100;
+                break;
+            default:
+                label = status;
+                bgColor = 0xFFF5F5F5;
+                textColor = 0xFF616161;
+                break;
+        }
+        badge.setText(label);
+        badge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(bgColor));
+        badge.setTextColor(textColor);
+        badge.setVisibility(View.VISIBLE);
     }
 
     private static boolean isWithinReviewWindow(String sessionStartIso, int durationMinutes) {
@@ -191,20 +284,22 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         final MaterialButton detailButton;
         final MaterialButton cancelButton;
         final MaterialButton reviewButton;
+        final MaterialButton voucherButton;
 
         BookingViewHolder(@NonNull View itemView) {
             super(itemView);
-            day          = itemView.findViewById(R.id.booking_day);
-            month        = itemView.findViewById(R.id.booking_month);
-            statusBadge  = itemView.findViewById(R.id.booking_status_badge);
-            title        = itemView.findViewById(R.id.booking_title);
-            subtitle     = itemView.findViewById(R.id.booking_subtitle);
-            dateTime     = itemView.findViewById(R.id.booking_datetime);
-            duration     = itemView.findViewById(R.id.booking_duration);
-            guide        = itemView.findViewById(R.id.booking_guide);
-            detailButton = itemView.findViewById(R.id.booking_detail_button);
-            cancelButton = itemView.findViewById(R.id.booking_cancel_button);
-            reviewButton = itemView.findViewById(R.id.booking_review_button);
+            day           = itemView.findViewById(R.id.booking_day);
+            month         = itemView.findViewById(R.id.booking_month);
+            statusBadge   = itemView.findViewById(R.id.booking_status_badge);
+            title         = itemView.findViewById(R.id.booking_title);
+            subtitle      = itemView.findViewById(R.id.booking_subtitle);
+            dateTime      = itemView.findViewById(R.id.booking_datetime);
+            duration      = itemView.findViewById(R.id.booking_duration);
+            guide         = itemView.findViewById(R.id.booking_guide);
+            detailButton  = itemView.findViewById(R.id.booking_detail_button);
+            cancelButton  = itemView.findViewById(R.id.booking_cancel_button);
+            reviewButton  = itemView.findViewById(R.id.booking_review_button);
+            voucherButton = itemView.findViewById(R.id.booking_voucher_button);
         }
     }
 }

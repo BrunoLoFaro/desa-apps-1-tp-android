@@ -1,11 +1,12 @@
 package com.example.myapplication.data.repository;
 
-import android.util.Log;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.local.OfflineBookingDao;
+import com.example.myapplication.data.local.OfflineBookingEntity;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.BookingSummaryItemResponse;
 import com.example.myapplication.data.model.BookingSummaryPageResponse;
@@ -16,11 +17,11 @@ import com.example.myapplication.data.model.UserProfileResponse;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.MediaType;
@@ -34,18 +35,19 @@ public class ProfileRepository extends BaseRepository {
     private final ProfileService profileService;
     private final ConfigLoader configLoader;
     private final com.example.myapplication.data.session.SessionManager sessionManager;
-    private final Moshi moshi;
+    private final OfflineBookingDao offlineBookingDao;
+    private final Executor dbExecutor = Executors.newSingleThreadExecutor();
 
     @Inject
     public ProfileRepository(ProfileService profileService, ConfigLoader configLoader,
                              NetworkErrorParser errorParser,
                              com.example.myapplication.data.session.SessionManager sessionManager,
-                             Moshi moshi) {
+                             OfflineBookingDao offlineBookingDao) {
         super(errorParser);
         this.profileService = profileService;
         this.configLoader = configLoader;
         this.sessionManager = sessionManager;
-        this.moshi = moshi;
+        this.offlineBookingDao = offlineBookingDao;
     }
 
     public void getProfile(RepositoryCallback<UserProfileData> callback) {
@@ -146,21 +148,11 @@ public class ProfileRepository extends BaseRepository {
             public void onResponse(Call<BookingSummaryPageResponse> c,
                                    Response<BookingSummaryPageResponse> response) {
                 activeCalls.remove(c);
-                if (response.isSuccessful() && response.body() != null) {
-                    // Logging the JSON response
-                    try {
-                        JsonAdapter<BookingSummaryPageResponse> adapter = moshi.adapter(BookingSummaryPageResponse.class);
-                        String json = adapter.toJson(response.body());
-                        Log.d("API_SUMMARY_JSON", json);
-                    } catch (Exception e) {
-                        Log.e("API_SUMMARY_JSON", "Error logging JSON", e);
-                    }
-
-                    if (response.body().items != null) {
-                        callback.onSuccess(mapToSummaryItems(response.body().items));
-                    } else {
-                        callback.onSuccess(Collections.emptyList());
-                    }
+                if (response.isSuccessful() && response.body() != null
+                        && response.body().items != null) {
+                    List<BookingSummaryItemResponse> rawItems = response.body().items;
+                    persistHistorial(rawItems);
+                    callback.onSuccess(mapToSummaryItems(rawItems));
                 } else {
                     callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
                 }
@@ -265,6 +257,27 @@ public class ProfileRepository extends BaseRepository {
             r.completedBookings,
             r.cancelledBookings
         );
+    }
+
+    private void persistHistorial(List<BookingSummaryItemResponse> items) {
+        long userId = sessionManager.getUserId();
+        List<OfflineBookingEntity> entities = new ArrayList<>(items.size());
+        for (BookingSummaryItemResponse item : items) {
+            OfflineBookingEntity e = new OfflineBookingEntity();
+            e.id = item.id != null ? item.id : 0;
+            e.userId = userId;
+            e.activityId = item.activityId;
+            e.activityName = item.activityName;
+            e.status = item.status;
+            e.destinationName = item.destination;
+            e.guideName = item.guideName;
+            e.sessionStartTime = item.sessionStartTime;
+            e.durationMinutes = item.durationMinutes;
+            e.totalPrice = item.totalPrice;
+            e.currency = item.currency;
+            entities.add(e);
+        }
+        dbExecutor.execute(() -> offlineBookingDao.replaceHistorial(userId, entities));
     }
 
     private List<BookingSummaryItem> mapToSummaryItems(List<BookingSummaryItemResponse> items) {

@@ -13,24 +13,48 @@ public interface OfflineBookingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<OfflineBookingEntity> bookings);
 
-    @Query("SELECT * FROM offline_bookings WHERE userId = :userId AND status = 'CONFIRMED' ORDER BY sessionStartTime ASC")
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void insertAllIgnore(List<OfflineBookingEntity> bookings);
+
+    @Query("SELECT * FROM offline_bookings WHERE userId = :userId AND (status = 'CONFIRMED' OR pendingCancel = 1) ORDER BY sessionStartTime ASC")
     List<OfflineBookingEntity> getConfirmedByUser(long userId);
 
-    @Query("DELETE FROM offline_bookings WHERE userId = :userId AND status = 'CONFIRMED'")
+    @Query("DELETE FROM offline_bookings WHERE userId = :userId AND status = 'CONFIRMED' AND pendingCancel = 0")
     void deleteConfirmedByUser(long userId);
 
     @Transaction
     default void replaceConfirmed(long userId, List<OfflineBookingEntity> bookings) {
         deleteConfirmedByUser(userId);
-        if (!bookings.isEmpty()) insertAll(bookings);
+        if (!bookings.isEmpty()) insertAllIgnore(bookings);
     }
 
-    @Query("UPDATE offline_bookings SET pendingCancel = 1, status = 'CANCELLED' WHERE id = :id")
+    @Query("UPDATE offline_bookings SET pendingCancel = 1 WHERE id = :id")
     void markPendingCancel(long id);
+
+    @Query("UPDATE offline_bookings SET pendingCancel = 0 WHERE id = :id")
+    void clearPendingCancel(long id);
 
     @Query("SELECT * FROM offline_bookings WHERE userId = :userId AND pendingCancel = 1")
     List<OfflineBookingEntity> getPendingCancellations(long userId);
 
     @Query("DELETE FROM offline_bookings WHERE id = :id")
     void deleteById(long id);
+
+    @Query("DELETE FROM offline_bookings WHERE userId = :userId")
+    void deleteAllByUser(long userId);
+
+    @Query("SELECT * FROM offline_bookings WHERE id = :id LIMIT 1")
+    OfflineBookingEntity getById(long id);
+
+    @Query("SELECT * FROM offline_bookings WHERE userId = :userId AND status IN ('COMPLETED', 'CANCELLED') AND pendingCancel = 0 ORDER BY sessionStartTime DESC")
+    List<OfflineBookingEntity> getHistorialByUser(long userId);
+
+    @Query("DELETE FROM offline_bookings WHERE userId = :userId AND status IN ('COMPLETED', 'CANCELLED') AND pendingCancel = 0")
+    void deleteHistorialByUser(long userId);
+
+    @Transaction
+    default void replaceHistorial(long userId, List<OfflineBookingEntity> bookings) {
+        deleteHistorialByUser(userId);
+        if (!bookings.isEmpty()) insertAll(bookings);
+    }
 }

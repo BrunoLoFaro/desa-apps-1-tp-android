@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.ui.main.MainViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.inject.Inject;
@@ -22,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        new ViewModelProvider(this).get(MainViewModel.class);
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
