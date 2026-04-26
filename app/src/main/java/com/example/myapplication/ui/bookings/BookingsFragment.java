@@ -6,8 +6,6 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +27,7 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
+import com.example.myapplication.util.MainThreadUtils;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -319,14 +318,14 @@ public class BookingsFragment extends Fragment {
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
-                new Handler(Looper.getMainLooper()).post(() -> {
+                MainThreadUtils.post(() -> {
                     if (isAdded()) viewModel.onConnectivityChanged(true);
                 });
             }
 
             @Override
             public void onLost(Network network) {
-                new Handler(Looper.getMainLooper()).post(() -> {
+                MainThreadUtils.post(() -> {
                     if (isAdded()) viewModel.onConnectivityChanged(false);
                 });
             }
@@ -390,29 +389,21 @@ public class BookingsFragment extends Fragment {
     // ── Navigation ────────────────────────────────────────────────────────────
 
     private void navigateToDetail(BookingResponse booking) {
-        // Sin conexión: el detalle de la actividad requiere red. Mostrar el voucher que está cacheado.
-        if (Boolean.TRUE.equals(viewModel.isOffline().getValue())) {
-            navigateToVoucher(booking);
-            return;
-        }
-        // Si por algún motivo no hay activityId, caer al voucher en lugar de silenciar.
-        if (booking.activityId == null) {
-            navigateToVoucher(booking);
-            return;
-        }
         String destination = booking.destination != null ? booking.destination.name : "";
         String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
         String price = booking.currency != null
                 ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
         TourActivity activity = new TourActivity(
                 booking.activityName != null ? booking.activityName : "",
-                destination, "", duration, price, -1, null,
+                destination, "", duration, price, 1, null,
                 null, 0f, 0, null, booking.meetingPoint,
                 booking.guideName, null, booking.cancellationPolicy, null);
-        activity.setId(booking.activityId);
+        if (booking.activityId != null) activity.setId(booking.activityId);
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", false);
+        args.putBoolean("from_history", true);
+        args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
+        if (booking.id != null) args.putLong("booking_id", booking.id);
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
     }

@@ -5,12 +5,15 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
+import com.example.myapplication.data.local.CachedActivityDao;
+import com.example.myapplication.data.local.CachedActivityEntity;
 import com.example.myapplication.data.local.OfflineBookingDao;
 import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -27,6 +30,7 @@ public class HomeViewModel extends ViewModel {
     private final TourRepository tourRepository;
     private final ProfileImageManager profileImageManager;
     private final OfflineBookingDao offlineBookingDao;
+    private final CachedActivityDao cachedActivityDao;
     private final Executor dbExecutor = Executors.newSingleThreadExecutor();
 
     private final MutableLiveData<List<TourActivity>> _featuredTours = new MutableLiveData<>();
@@ -37,11 +41,13 @@ public class HomeViewModel extends ViewModel {
 
     @Inject
     public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository,
-                         ProfileImageManager profileImageManager, OfflineBookingDao offlineBookingDao) {
+                         ProfileImageManager profileImageManager, OfflineBookingDao offlineBookingDao,
+                         CachedActivityDao cachedActivityDao) {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
         this.profileImageManager = profileImageManager;
         this.offlineBookingDao = offlineBookingDao;
+        this.cachedActivityDao = cachedActivityDao;
         refreshTours();
     }
 
@@ -101,8 +107,19 @@ public class HomeViewModel extends ViewModel {
 
             @Override
             public void onError(UiMessage error) {
-                _error.setValue(error);
+                loadAllToursFromCache();
                 onCallFinished();
+            }
+        });
+    }
+
+    private void loadAllToursFromCache() {
+        dbExecutor.execute(() -> {
+            List<CachedActivityEntity> cached = cachedActivityDao.getAll();
+            if (cached != null && !cached.isEmpty()) {
+                List<TourActivity> result = new ArrayList<>(cached.size());
+                for (CachedActivityEntity e : cached) result.add(TourRepository.mapFromCache(e));
+                _allTours.postValue(result);
             }
         });
     }

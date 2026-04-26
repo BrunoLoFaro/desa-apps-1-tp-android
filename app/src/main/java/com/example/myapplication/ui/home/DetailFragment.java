@@ -228,6 +228,14 @@ public class DetailFragment extends Fragment {
                     sessionsRecycler.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
                 });
 
+                detailViewModel.isOfflineCacheMiss().observe(getViewLifecycleOwner(), miss -> {
+                    if (Boolean.TRUE.equals(miss)) {
+                        android.widget.Toast.makeText(requireContext(),
+                                getString(R.string.detail_offline_cache_miss),
+                                android.widget.Toast.LENGTH_LONG).show();
+                    }
+                });
+
                 if (isOnline()) {
                     detailViewModel.load(id);
                 } else {
@@ -235,6 +243,7 @@ public class DetailFragment extends Fragment {
                     if (sessionsTitle != null) sessionsTitle.setVisibility(View.GONE);
                     sessionsRecycler.setVisibility(View.GONE);
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
+                    detailViewModel.loadFromCache(id);
                     android.widget.Toast.makeText(requireContext(),
                             "Sin conexión. Mostrando datos guardados.", android.widget.Toast.LENGTH_SHORT).show();
                 }
@@ -259,7 +268,7 @@ public class DetailFragment extends Fragment {
         TextView duration = root.findViewById(R.id.activity_duration);
         TextView price = root.findViewById(R.id.activity_price);
         TextView slots = root.findViewById(R.id.activity_slots);
-        
+
         View detailedContainer = root.findViewById(R.id.detailed_info_container);
         TextView description = root.findViewById(R.id.activity_description);
         TextView rating = root.findViewById(R.id.activity_rating);
@@ -270,21 +279,21 @@ public class DetailFragment extends Fragment {
         TextView cancellation = root.findViewById(R.id.activity_cancellation);
         com.google.android.material.floatingactionbutton.FloatingActionButton favoriteButton = root.findViewById(R.id.favorite_button);
 
-        // Forzar visibilidad del contenedor de detalles
         if (detailedContainer != null) {
             detailedContainer.setVisibility(View.VISIBLE);
         }
 
-        name.setText(tourActivity.getName());
-        destination.setText(tourActivity.getDestination());
-        category.setText(tourActivity.getCategory().toUpperCase());
-        duration.setText(tourActivity.getDuration());
-        price.setText(tourActivity.getPrice());
+        name.setText(nd(tourActivity.getName()));
+        destination.setText(nd(tourActivity.getDestination()));
+        String cat = tourActivity.getCategory();
+        category.setText(cat != null && !cat.isEmpty() ? cat.toUpperCase() : getString(R.string.no_data));
+        duration.setText(nd(tourActivity.getDuration()));
+        price.setText(nd(tourActivity.getPrice()));
         boolean soldOut = tourActivity.getAvailableSlots() <= 0;
         slots.setText(soldOut
                 ? getString(R.string.sold_out)
                 : getString(R.string.slots_available, tourActivity.getAvailableSlots()));
-        root.setAlpha(soldOut ? 0.65f : 1f);
+        root.setAlpha((!fromHistory && soldOut) ? 0.65f : 1f);
         slots.setVisibility(fromHistory ? View.GONE : View.VISIBLE);
 
         if (favoriteButton != null) {
@@ -304,7 +313,7 @@ public class DetailFragment extends Fragment {
             });
         }
 
-        if (description != null) description.setText(tourActivity.getDescription());
+        if (description != null) description.setText(nd(tourActivity.getDescription()));
         if (rating != null) {
             if (tourActivity.getReviewsCount() <= 0) {
                 rating.setText(getString(R.string.no_reviews));
@@ -312,11 +321,11 @@ public class DetailFragment extends Fragment {
                 rating.setText(String.valueOf(tourActivity.getRating()));
             }
         }
-        if (language != null) language.setText("Idioma: " + tourActivity.getLanguage());
-        if (guide != null) guide.setText("Guía: " + tourActivity.getGuideName());
-        if (meetingPoint != null) meetingPoint.setText("Encuentro: " + tourActivity.getMeetingPoint());
-        if (includes != null) includes.setText(tourActivity.getWhatIncluded());
-        if (cancellation != null) cancellation.setText(tourActivity.getCancellationPolicy());
+        if (language != null) language.setText("Idioma: " + nd(tourActivity.getLanguage()));
+        if (guide != null) guide.setText("Guía: " + nd(tourActivity.getGuideName()));
+        if (meetingPoint != null) meetingPoint.setText("Encuentro: " + nd(tourActivity.getMeetingPoint()));
+        if (includes != null) includes.setText(nd(tourActivity.getWhatIncluded()));
+        if (cancellation != null) cancellation.setText(nd(tourActivity.getCancellationPolicy()));
 
         if (image != null) {
             // Ajustar altura de imagen para detalle (opcional, como tenías en tu Activity)
@@ -351,6 +360,25 @@ public class DetailFragment extends Fragment {
                     commentView.setVisibility(View.GONE);
                 }
             }
+        }
+    }
+
+    /** Campos requeridos: siempre muestran "No disponible" si están vacíos. */
+    private String nd(String value) {
+        return (value != null && !value.trim().isEmpty()) ? value : getString(R.string.no_data);
+    }
+
+    /**
+     * Campos opcionales: visibles con su texto cuando hay dato, ocultos cuando no.
+     * @param prefix prefijo a mostrar antes del valor (ej. "Idioma: "), o null si no hay.
+     */
+    private void setOptionalText(TextView view, String value, String prefix) {
+        if (view == null) return;
+        if (value != null && !value.trim().isEmpty()) {
+            view.setText(prefix != null ? prefix + value : value);
+            view.setVisibility(View.VISIBLE);
+        } else {
+            view.setVisibility(View.GONE);
         }
     }
 

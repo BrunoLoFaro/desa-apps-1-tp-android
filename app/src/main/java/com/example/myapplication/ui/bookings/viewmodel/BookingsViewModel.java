@@ -1,8 +1,6 @@
 package com.example.myapplication.ui.bookings.viewmodel;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -18,6 +16,7 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import com.example.myapplication.data.work.SyncCancellationsWorker;
+import com.example.myapplication.util.ConnectivityUtils;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
@@ -80,7 +79,7 @@ public class BookingsViewModel extends ViewModel {
         this.profileRepository = profileRepository;
         this.reviewRepository = reviewRepository;
         this.context = context;
-        this.offline = !isOnline();
+        this.offline = !ConnectivityUtils.isOnline(context);
         if (this.offline) _isOffline.setValue(true);
     }
 
@@ -373,14 +372,6 @@ public class BookingsViewModel extends ViewModel {
                         _error.setValue(error);
                     }
                 });
-    }
-
-    private boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm == null) return false;
-        NetworkCapabilities caps = cm.getNetworkCapabilities(cm.getActiveNetwork());
-        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     @Override

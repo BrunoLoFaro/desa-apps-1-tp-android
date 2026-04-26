@@ -252,6 +252,8 @@
     <string name="offline_banner_message">Estás sin conexión. Mostramos la información guardada en tu dispositivo.</string>
     <string name="bookings_empty_offline">Aún no tenemos información guardada. Conectate a internet para cargar tus actividades.</string>
     <string name="review_offline_error">Para calificar esta actividad necesitás conexión a internet.</string>
+    <string name="detail_offline_cache_miss">Esta actividad no fue sincronizada antes de perder la conexión. Conectate a internet para ver el detalle completo.</string>
+    <string name="no_data">No disponible</string>
     <string name="booking_cancelled_by_server">Una o más reservas fueron canceladas. El listado fue actualizado.</string>
     <string name="cancel_booking_offline_queued">Registramos tu solicitud de cancelación. La procesaremos automáticamente cuando vuelvas a tener conexión.</string>
     <string name="cancel_booking_offline_modal">Tu cancelación se procesará automáticamente cuando vuelvas a tener conexión.</string>
