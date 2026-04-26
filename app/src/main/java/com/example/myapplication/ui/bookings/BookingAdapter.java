@@ -163,10 +163,16 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             if (detailClickListener != null) detailClickListener.onDetail(booking);
         });
 
-        boolean canVoucher = "CONFIRMED".equalsIgnoreCase(booking.status);
+        boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
+        boolean canVoucher = "CONFIRMED".equalsIgnoreCase(booking.status) && !isPendingCancel;
         holder.voucherButton.setVisibility(canVoucher ? View.VISIBLE : View.GONE);
+        holder.voucherButton.setEnabled(!isPendingCancel);
+        holder.voucherButton.setAlpha(isPendingCancel ? 0.5f : 1f);
         holder.voucherButton.setOnClickListener(v -> {
-            if (voucherClickListener != null) voucherClickListener.onVoucher(booking);
+            if (!isPendingCancel && voucherClickListener != null) voucherClickListener.onVoucher(booking);
+            else if (isPendingCancel) {
+                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
