@@ -5,13 +5,24 @@
     <string name="login_button_text">Iniciar sesión</string>
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="sign_up_button">Registrarse</string>
+    <string name="login_register_link">¿No tenés cuenta? Registrate</string>
+    <string name="login_separator">— o —</string>
+    <string name="otp_login_button_text">Ingresar con código de un solo uso</string>
+    <string name="otp_login_title">Ingresar con código</string>
+    <string name="otp_login_subtitle">Ingresá tu correo y te enviaremos un código de acceso.</string>
+    <string name="otp_login_send_button">Enviar código</string>
+    <string name="register_create_account_title">Crear cuenta</string>
+    <string name="register_create_account_button">Crear cuenta</string>
+    <string name="phone_placeholder_hint">Ej: +54 9 11 1234-5678</string>
+    <string name="otp_verify_title">Verificar identidad</string>
+    <string name="otp_verify_subtitle_format">Ingresá el código de 6 dígitos que enviamos a %1$s</string>
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
     <string name="error_empty_fields">Por favor, completa todos los campos.</string>
-    <string name="error_invalid_credentials">Usuario o contraseña inválidos.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
+    <string name="error_invalid_credentials">Las credenciales son incorrectas. Verificá tu correo y contraseña.</string>
 
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
@@ -39,9 +50,20 @@
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_email_required">El correo electrónico es obligatorio.</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
+    <string name="error_password_required">La contraseña es obligatoria.</string>
     <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_first_name_required">El nombre es obligatorio.</string>
     <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_last_name_required">El apellido es obligatorio.</string>
+
+    <!-- Hints de registro con indicador de campo obligatorio -->
+    <string name="register_email_hint">Correo electrónico *</string>
+    <string name="register_password_hint">Contraseña *</string>
+    <string name="register_first_name_hint">Nombre *</string>
+    <string name="register_last_name_hint">Apellido *</string>
+    <string name="phone_hint_optional">Teléfono (opcional)</string>
     <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
     <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
     <string name="error_register_failed_default">No se pudo completar el registro.</string>
@@ -199,4 +221,7 @@
     <string name="cancel_booking_policy_unknown">Política no disponible</string>
     <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
     <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
+
+    <!-- Offline -->
+    <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
 </resources>

@@ -13,144 +13,138 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import javax.inject.Inject;
 
 /**
- * Activity-scoped ViewModel for the OTP signup flow.
- * Shared by SignupFragment, OtpSignupCodeFragment, and OtpSignupCompleteFragment.
- *
- * Exposes three separate LiveData streams — one per screen — so each Fragment
- * observes only the state relevant to it.
+ * ViewModel compartido (activity-scoped) para:
+ * - Flujo "Ingresar con código de un solo uso": SignupFragment → OtpSignupCodeFragment
+ * - Verificación OTP post-registro: OtpSignupCodeFragment
  */
 @HiltViewModel
 public class SignupViewModel extends ViewModel {
 
-    // ─────────────── UiState for SignupFragment (request OTP) ───────────────
+    // ─────────────── UiState para SignupFragment (enviar OTP de login) ────────
 
-    public static final class RequestOtpUiState {
+    public static final class SendOtpUiState {
         public final boolean isLoading;
         @Nullable public final UiMessage error;
         public final boolean navigateToOtpCode;
 
-        private RequestOtpUiState(boolean isLoading,
-                                   @Nullable UiMessage error, boolean navigateToOtpCode) {
+        private SendOtpUiState(boolean isLoading, @Nullable UiMessage error, boolean navigateToOtpCode) {
             this.isLoading = isLoading;
             this.error = error;
             this.navigateToOtpCode = navigateToOtpCode;
         }
 
-        static RequestOtpUiState idle() {
-            return new RequestOtpUiState(false, null, false);
-        }
-        RequestOtpUiState loading() { return new RequestOtpUiState(true, null, false); }
-        RequestOtpUiState navigateToCode() { return new RequestOtpUiState(false, null, true); }
-        RequestOtpUiState withError(UiMessage m) { return new RequestOtpUiState(false, m, false); }
-        RequestOtpUiState errorConsumed() { return new RequestOtpUiState(isLoading, null, navigateToOtpCode); }
-        RequestOtpUiState navigationConsumed() { return new RequestOtpUiState(isLoading, error, false); }
+        static SendOtpUiState idle() { return new SendOtpUiState(false, null, false); }
+        SendOtpUiState loading() { return new SendOtpUiState(true, null, false); }
+        SendOtpUiState navigateToCode() { return new SendOtpUiState(false, null, true); }
+        SendOtpUiState withError(UiMessage m) { return new SendOtpUiState(false, m, false); }
+        SendOtpUiState errorConsumed() { return new SendOtpUiState(isLoading, null, navigateToOtpCode); }
+        SendOtpUiState navigationConsumed() { return new SendOtpUiState(isLoading, error, false); }
     }
 
-    // ──────────────── UiState for OtpSignupCodeFragment ─────────────────────
+    // ────────────────── UiState para OtpSignupCodeFragment ───────────────────
 
     public static final class OtpCodeUiState {
         public final boolean isLoading;
         @Nullable public final UiMessage error;
-        public final boolean navigateToComplete;
+        public final boolean navigateToHome;
         public final boolean otpResent;
 
         private OtpCodeUiState(boolean isLoading, @Nullable UiMessage error,
-                                boolean navigateToComplete, boolean otpResent) {
+                                boolean navigateToHome, boolean otpResent) {
             this.isLoading = isLoading;
             this.error = error;
-            this.navigateToComplete = navigateToComplete;
+            this.navigateToHome = navigateToHome;
             this.otpResent = otpResent;
         }
 
         static OtpCodeUiState idle() { return new OtpCodeUiState(false, null, false, false); }
         OtpCodeUiState loading() { return new OtpCodeUiState(true, null, false, false); }
-        OtpCodeUiState navigateToComplete() { return new OtpCodeUiState(false, null, true, false); }
+        OtpCodeUiState navigateToHome() { return new OtpCodeUiState(false, null, true, false); }
         OtpCodeUiState resent() { return new OtpCodeUiState(false, null, false, true); }
         OtpCodeUiState withError(UiMessage m) { return new OtpCodeUiState(false, m, false, false); }
-        OtpCodeUiState errorConsumed() { return new OtpCodeUiState(isLoading, null, navigateToComplete, otpResent); }
+        OtpCodeUiState errorConsumed() { return new OtpCodeUiState(isLoading, null, navigateToHome, otpResent); }
         OtpCodeUiState navigationConsumed() { return new OtpCodeUiState(isLoading, error, false, false); }
-        OtpCodeUiState resentConsumed() { return new OtpCodeUiState(isLoading, error, navigateToComplete, false); }
+        OtpCodeUiState resentConsumed() { return new OtpCodeUiState(isLoading, error, navigateToHome, false); }
     }
 
-    // ─────────────── UiState for OtpSignupCompleteFragment ──────────────────
-
-    public static final class OtpCompleteUiState {
-        public final boolean isLoading;
-        @Nullable public final UiMessage error;
-        public final boolean navigateToHome;
-
-        private OtpCompleteUiState(boolean isLoading, @Nullable UiMessage error, boolean navigateToHome) {
-            this.isLoading = isLoading;
-            this.error = error;
-            this.navigateToHome = navigateToHome;
-        }
-
-        static OtpCompleteUiState idle() { return new OtpCompleteUiState(false, null, false); }
-        OtpCompleteUiState loading() { return new OtpCompleteUiState(true, null, false); }
-        OtpCompleteUiState success() { return new OtpCompleteUiState(false, null, true); }
-        OtpCompleteUiState withError(UiMessage m) { return new OtpCompleteUiState(false, m, false); }
-        OtpCompleteUiState errorConsumed() { return new OtpCompleteUiState(isLoading, null, navigateToHome); }
-        OtpCompleteUiState navigationConsumed() { return new OtpCompleteUiState(isLoading, error, false); }
-    }
-
-    // ─────────────────────────── ViewModel body ─────────────────────────────
+    // ──────────────────────────── ViewModel body ─────────────────────────────
 
     private final OtpSignupUseCase otpSignupUseCase;
-    private final MutableLiveData<RequestOtpUiState> _requestOtpState;
-    private final MutableLiveData<OtpCodeUiState> _otpCodeState = new MutableLiveData<>(OtpCodeUiState.idle());
-    private final MutableLiveData<OtpCompleteUiState> _otpCompleteState = new MutableLiveData<>(OtpCompleteUiState.idle());
+    private final MutableLiveData<SendOtpUiState> _sendOtpState;
+    private final MutableLiveData<OtpCodeUiState> _otpCodeState;
 
     @Inject
     public SignupViewModel(OtpSignupUseCase otpSignupUseCase) {
         this.otpSignupUseCase = otpSignupUseCase;
-        _requestOtpState = new MutableLiveData<>(RequestOtpUiState.idle());
+        _sendOtpState = new MutableLiveData<>(SendOtpUiState.idle());
+        _otpCodeState = new MutableLiveData<>(OtpCodeUiState.idle());
     }
 
-    public LiveData<RequestOtpUiState> getRequestOtpState() { return _requestOtpState; }
+    public LiveData<SendOtpUiState> getSendOtpState() { return _sendOtpState; }
     public LiveData<OtpCodeUiState> getOtpCodeState() { return _otpCodeState; }
-    public LiveData<OtpCompleteUiState> getOtpCompleteState() { return _otpCompleteState; }
 
-    // ── SignupFragment actions ──
+    // ── SignupFragment actions (OTP login email entry) ──
 
-    public void requestSignupOtp(String email) {
-        RequestOtpUiState s = _requestOtpState.getValue();
+    /** Envía OTP a un usuario existente activo para login con código. */
+    public void sendLoginOtp(String email) {
+        SendOtpUiState s = _sendOtpState.getValue();
         if (s == null) return;
-        _requestOtpState.setValue(s.loading());
-        otpSignupUseCase.requestOtp(email, new RepositoryCallback<OtpResponse>() {
+        _sendOtpState.setValue(s.loading());
+        otpSignupUseCase.sendLoginOtp(email, new RepositoryCallback<OtpResponse>() {
             @Override
             public void onSuccess(OtpResponse data) {
-                RequestOtpUiState cur = _requestOtpState.getValue();
-                if (cur != null) _requestOtpState.postValue(cur.navigateToCode());
+                SendOtpUiState cur = _sendOtpState.getValue();
+                if (cur != null) _sendOtpState.postValue(cur.navigateToCode());
             }
             @Override
             public void onError(UiMessage error) {
-                RequestOtpUiState cur = _requestOtpState.getValue();
-                if (cur != null) _requestOtpState.postValue(cur.withError(error));
+                SendOtpUiState cur = _sendOtpState.getValue();
+                if (cur != null) _sendOtpState.postValue(cur.withError(error));
             }
         });
     }
 
-    public void requestOtpErrorConsumed() {
-        RequestOtpUiState s = _requestOtpState.getValue();
-        if (s != null) _requestOtpState.setValue(s.errorConsumed());
+    public void sendOtpErrorConsumed() {
+        SendOtpUiState s = _sendOtpState.getValue();
+        if (s != null) _sendOtpState.setValue(s.errorConsumed());
     }
 
-    public void requestOtpNavigationConsumed() {
-        RequestOtpUiState s = _requestOtpState.getValue();
-        if (s != null) _requestOtpState.setValue(s.navigationConsumed());
+    public void sendOtpNavigationConsumed() {
+        SendOtpUiState s = _sendOtpState.getValue();
+        if (s != null) _sendOtpState.setValue(s.navigationConsumed());
     }
 
-    // ── OtpSignupCodeFragment actions ──
+    // ── OtpSignupCodeFragment actions (compartido por registro y OTP login) ──
 
+    /** Verifica OTP de REGISTRO (POST /auth/signup/otp/verify → activa usuario + JWT). */
     public void verifySignupOtp(String email, String code) {
         OtpCodeUiState s = _otpCodeState.getValue();
         if (s == null) return;
         _otpCodeState.setValue(s.loading());
-        otpSignupUseCase.verifyOtp(email, code, new RepositoryCallback<OtpResponse>() {
+        otpSignupUseCase.verifySignupOtp(email, code, new RepositoryCallback<LoginResponse>() {
             @Override
-            public void onSuccess(OtpResponse data) {
+            public void onSuccess(LoginResponse data) {
                 OtpCodeUiState cur = _otpCodeState.getValue();
-                if (cur != null) _otpCodeState.postValue(cur.navigateToComplete());
+                if (cur != null) _otpCodeState.postValue(cur.navigateToHome());
+            }
+            @Override
+            public void onError(UiMessage error) {
+                OtpCodeUiState cur = _otpCodeState.getValue();
+                if (cur != null) _otpCodeState.postValue(cur.withError(error));
+            }
+        });
+    }
+
+    /** Verifica OTP de LOGIN OTP (POST /auth/otp/verify → JWT). */
+    public void verifyLoginOtp(String email, String code) {
+        OtpCodeUiState s = _otpCodeState.getValue();
+        if (s == null) return;
+        _otpCodeState.setValue(s.loading());
+        otpSignupUseCase.verifyLoginOtp(email, code, new RepositoryCallback<LoginResponse>() {
+            @Override
+            public void onSuccess(LoginResponse data) {
+                OtpCodeUiState cur = _otpCodeState.getValue();
+                if (cur != null) _otpCodeState.postValue(cur.navigateToHome());
             }
             @Override
             public void onError(UiMessage error) {
@@ -178,6 +172,24 @@ public class SignupViewModel extends ViewModel {
         });
     }
 
+    public void resendLoginOtp(String email) {
+        OtpCodeUiState s = _otpCodeState.getValue();
+        if (s == null) return;
+        _otpCodeState.setValue(s.loading());
+        otpSignupUseCase.resendLoginOtp(email, new RepositoryCallback<OtpResponse>() {
+            @Override
+            public void onSuccess(OtpResponse data) {
+                OtpCodeUiState cur = _otpCodeState.getValue();
+                if (cur != null) _otpCodeState.postValue(cur.resent());
+            }
+            @Override
+            public void onError(UiMessage error) {
+                OtpCodeUiState cur = _otpCodeState.getValue();
+                if (cur != null) _otpCodeState.postValue(cur.withError(error));
+            }
+        });
+    }
+
     public void otpCodeErrorConsumed() {
         OtpCodeUiState s = _otpCodeState.getValue();
         if (s != null) _otpCodeState.setValue(s.errorConsumed());
@@ -191,38 +203,6 @@ public class SignupViewModel extends ViewModel {
     public void otpResentConsumed() {
         OtpCodeUiState s = _otpCodeState.getValue();
         if (s != null) _otpCodeState.setValue(s.resentConsumed());
-    }
-
-    // ── OtpSignupCompleteFragment actions ──
-
-    public void completeSignupWithOtp(String email, String code, String password,
-                                      String firstName, String lastName, String dni) {
-        OtpCompleteUiState s = _otpCompleteState.getValue();
-        if (s == null) return;
-        _otpCompleteState.setValue(s.loading());
-        otpSignupUseCase.completeSignup(email, code, password, firstName, lastName, dni,
-                new RepositoryCallback<LoginResponse>() {
-                    @Override
-                    public void onSuccess(LoginResponse data) {
-                        OtpCompleteUiState cur = _otpCompleteState.getValue();
-                        if (cur != null) _otpCompleteState.postValue(cur.success());
-                    }
-                    @Override
-                    public void onError(UiMessage error) {
-                        OtpCompleteUiState cur = _otpCompleteState.getValue();
-                        if (cur != null) _otpCompleteState.postValue(cur.withError(error));
-                    }
-                });
-    }
-
-    public void otpCompleteErrorConsumed() {
-        OtpCompleteUiState s = _otpCompleteState.getValue();
-        if (s != null) _otpCompleteState.setValue(s.errorConsumed());
-    }
-
-    public void otpCompleteNavigationConsumed() {
-        OtpCompleteUiState s = _otpCompleteState.getValue();
-        if (s != null) _otpCompleteState.setValue(s.navigationConsumed());
     }
 
     @Override

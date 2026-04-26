@@ -87,6 +87,11 @@ dependencies {
     kapt(libs.glide.compiler)
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
 
+    // Room — offline cache
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)

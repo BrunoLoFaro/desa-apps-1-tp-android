@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.bookings.viewmodel;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -12,6 +15,7 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -25,11 +29,15 @@ public class BookingsViewModel extends ViewModel {
     private final BookingRepository bookingRepository;
     private final ProfileRepository profileRepository;
     private final ReviewRepository reviewRepository;
+    private final Context context;
+
     private final MutableLiveData<List<BookingResponse>> _bookings =
             new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<UiMessage> _error = new MutableLiveData<>();
     private final MutableLiveData<UiMessage> _message = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> _isOffline = new MutableLiveData<>(false);
+    private boolean offline = false;
     private String currentFilter = null;
 
     // ── Historial ────────────────────────────────────────────────────────────
@@ -48,36 +56,54 @@ public class BookingsViewModel extends ViewModel {
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository,
                              ProfileRepository profileRepository,
-                             ReviewRepository reviewRepository) {
+                             ReviewRepository reviewRepository,
+                             @ApplicationContext Context context) {
         this.bookingRepository = bookingRepository;
         this.profileRepository = profileRepository;
         this.reviewRepository = reviewRepository;
+        this.context = context;
+        this.offline = !isOnline();
+        if (this.offline) _isOffline.setValue(true);
     }
 
-    // ── Activas getters ──────────────────────────────────────────────────────
+    // ── Getters ──────────────────────────────────────────────────────────────
     public LiveData<List<BookingResponse>> getBookings() { return _bookings; }
     public LiveData<UiMessage> getError() { return _error; }
     public LiveData<UiMessage> getMessage() { return _message; }
     public LiveData<Boolean> isLoading() { return _loading; }
+    public LiveData<Boolean> isOffline() { return _isOffline; }
 
-    // ── Tab state ────────────────────────────────────────────────────────────
     public int getSelectedTab() { return selectedTab; }
     public void setSelectedTab(int tab) { selectedTab = tab; }
 
-    // ── Historial getters ────────────────────────────────────────────────────
     public LiveData<List<BookingSummaryItem>> getHistorial() { return _historial; }
     public LiveData<Boolean> isHistorialLoading() { return _historialLoading; }
     public LiveData<List<String>> getAvailableDestinations() { return _availableDestinations; }
 
-    public void clearMessage() {
-        _message.setValue(null);
-    }
+    public void clearMessage() { _message.setValue(null); }
 
     // ── Activas actions ──────────────────────────────────────────────────────
+
+    public void onConnectivityChanged(boolean isOnline) {
+        offline = !isOnline;
+        _isOffline.setValue(offline);
+        if (isOnline) {
+            bookingRepository.syncPendingCancellations(() ->
+                    loadMyBookings(currentFilter != null ? currentFilter : "CONFIRMED"));
+        } else {
+            loadCachedBookings();
+        }
+    }
 
     public void loadMyBookings(String statusFilter) {
         currentFilter = statusFilter;
         _loading.setValue(true);
+
+        if (offline) {
+            loadCachedBookings();
+            return;
+        }
+
         bookingRepository.listMyBookings(statusFilter, new RepositoryCallback<List<BookingResponse>>() {
             @Override
             public void onSuccess(List<BookingResponse> data) {
@@ -93,8 +119,30 @@ public class BookingsViewModel extends ViewModel {
         });
     }
 
+    private void loadCachedBookings() {
+        bookingRepository.loadCachedConfirmedBookings(new RepositoryCallback<List<BookingResponse>>() {
+            @Override
+            public void onSuccess(List<BookingResponse> cached) {
+                _loading.setValue(false);
+                _bookings.setValue(cached != null ? cached : Collections.emptyList());
+            }
+
+            @Override
+            public void onError(UiMessage e) {
+                _loading.setValue(false);
+            }
+        });
+    }
+
     public void cancelBooking(Long bookingId) {
         if (bookingId == null) return;
+
+        if (offline) {
+            bookingRepository.cancelBookingLocally(bookingId,
+                    () -> loadMyBookings(currentFilter));
+            return;
+        }
+
         _loading.setValue(true);
         bookingRepository.cancelBooking(bookingId, new RepositoryCallback<BookingResponse>() {
             @Override
@@ -205,6 +253,14 @@ public class BookingsViewModel extends ViewModel {
                         _error.setValue(error);
                     }
                 });
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        NetworkCapabilities caps = cm.getNetworkCapabilities(cm.getActiveNetwork());
+        return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
     }
 
     @Override

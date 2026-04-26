@@ -1,16 +1,17 @@
 package com.example.myapplication.ui.auth;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.ui.auth.viewmodel.LoginViewModel;
-import com.example.myapplication.util.AuthInputValidator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
@@ -26,6 +27,7 @@ public class LoginFragment extends BaseAuthFragment {
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
     private MaterialButton forgotPasswordButton;
+    private MaterialButton otpLoginButton;
     private MaterialButton signUpButton;
     private CircularProgressIndicator progressIndicator;
 
@@ -46,6 +48,7 @@ public class LoginFragment extends BaseAuthFragment {
         passwordEditText = view.findViewById(R.id.password_edit_text);
         loginButton = view.findViewById(R.id.login_button);
         forgotPasswordButton = view.findViewById(R.id.forgot_password_button);
+        otpLoginButton = view.findViewById(R.id.otp_login_button);
         signUpButton = view.findViewById(R.id.sign_up_button);
         progressIndicator = view.findViewById(R.id.progress_indicator);
 
@@ -54,17 +57,21 @@ public class LoginFragment extends BaseAuthFragment {
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         loginButton.setOnClickListener(v -> attemptLogin());
-        signUpButton.setOnClickListener(v ->
-                navController.navigate(R.id.action_loginFragment_to_signupFragment));
         forgotPasswordButton.setOnClickListener(v ->
                 navController.navigate(R.id.action_loginFragment_to_forgotPasswordRequestFragment));
+        otpLoginButton.setOnClickListener(v ->
+                navController.navigate(R.id.action_loginFragment_to_signupFragment));
+        signUpButton.setOnClickListener(v ->
+                navController.navigate(R.id.action_loginFragment_to_classicRegisterFragment));
 
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
-            loginButton.setEnabled(!state.isLoading);
-            forgotPasswordButton.setEnabled(!state.isLoading);
-            signUpButton.setEnabled(!state.isLoading);
-            emailEditText.setEnabled(!state.isLoading);
-            passwordEditText.setEnabled(!state.isLoading);
+            boolean notLoading = !state.isLoading;
+            loginButton.setEnabled(notLoading);
+            forgotPasswordButton.setEnabled(notLoading);
+            otpLoginButton.setEnabled(notLoading);
+            signUpButton.setEnabled(notLoading);
+            emailEditText.setEnabled(notLoading);
+            passwordEditText.setEnabled(notLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
             if (state.error != null) {
@@ -83,21 +90,16 @@ public class LoginFragment extends BaseAuthFragment {
     }
 
     private void handleError(UiMessage error) {
-        // En el enfoque "pro", si el error es un ResMessage que conocemos,
-        // podemos reaccionar específicamente sin comparar strings.
         if (error instanceof UiMessage.ResMessage) {
             int resId = ((UiMessage.ResMessage) error).resId;
             if (resId == R.string.error_invalid_email) {
                 emailLayout.setError(getString(resId));
                 return;
             } else if (resId == R.string.error_invalid_credentials) {
-                // Para credenciales inválidas, marcamos ambos o mostramos snackbar
                 showError(getString(resId));
                 return;
             }
         }
-        
-        // Fallback para otros errores (Strings del server o errores genéricos)
         showError(error.resolve(requireContext()));
     }
 
@@ -124,7 +126,18 @@ public class LoginFragment extends BaseAuthFragment {
             return;
         }
 
+        // Cerrar el teclado antes de hacer la llamada para que el Snackbar de error sea visible
+        hideKeyboard();
         viewModel.login(email, password);
+    }
+
+    private void hideKeyboard() {
+        View focused = requireActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager)
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+        }
     }
 
     @Override
@@ -135,6 +148,7 @@ public class LoginFragment extends BaseAuthFragment {
         passwordEditText = null;
         loginButton = null;
         forgotPasswordButton = null;
+        otpLoginButton = null;
         signUpButton = null;
         progressIndicator = null;
         super.onDestroyView();
