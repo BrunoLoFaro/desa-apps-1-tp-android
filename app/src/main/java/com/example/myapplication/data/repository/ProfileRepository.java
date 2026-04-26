@@ -174,6 +174,32 @@ public class ProfileRepository extends BaseRepository {
         });
     }
 
+    public void getMyReviews(RepositoryCallback<List<ReviewResponse>> callback) {
+        AppConfig config = getConfig(callback);
+        if (config == null) return;
+        long userId = sessionManager.getUserId();
+        String url = config.myReviewsEndpoint.replace("{userId}", String.valueOf(userId));
+        Call<List<ReviewResponse>> call = profileService.getMyReviews(url);
+        activeCalls.add(call);
+        call.enqueue(new retrofit2.Callback<List<ReviewResponse>>() {
+            @Override
+            public void onResponse(Call<List<ReviewResponse>> c, Response<List<ReviewResponse>> response) {
+                activeCalls.remove(c);
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError(errorParser.getErrorMessage(response, R.string.error_load_profile));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ReviewResponse>> c, Throwable t) {
+                activeCalls.remove(c);
+                callback.onError(errorParser.getFailureMessage(t, R.string.error_network_generic));
+            }
+        });
+    }
+
     public void getReviewByBookingId(long bookingId, RepositoryCallback<ReviewResponse> callback) {
         AppConfig config = getConfig(callback);
         if (config == null) return;
