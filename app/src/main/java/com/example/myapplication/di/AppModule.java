@@ -89,8 +89,10 @@ public class AppModule {
 
             String refreshToken = sessionManager.getRefreshToken();
             if (refreshToken == null || refreshToken.isEmpty()) {
-                Log.d(TAG, "401 sin refresh token disponible. Forzando logout.");
-                sessionManager.triggerForceLogout();
+                if (sessionManager.getAccessToken() != null) {
+                    Log.d(TAG, "401 sin refresh token disponible. Forzando logout.");
+                    sessionManager.triggerForceLogout();
+                }
                 return null;
             }
 
