@@ -23,12 +23,13 @@ public class ErrorTranslator {
 
     private void setupRules() {
         // --- Authentication Errors ---
-        addRule(".*invalid credentials.*|unauthorized", R.string.error_invalid_credentials);
+        addRule(".*invalid credentials.*|unauthorized|.*credenciales inválidas.*", R.string.error_invalid_credentials);
         addRule(".*token.*expired.*", R.string.error_invalid_config);
 
         // --- Validation Errors (Generic or Framework specific) ---
         // Matches common Micronaut/Spring validation patterns
-        addRule(".*validation error.*|.*loginrequestdto.*|.*field 'email'.*", R.string.error_invalid_email);
+        // Catching specific field errors and default messages from Spring
+        addRule(".*validation failed.*|.*loginrequestdto.*|.*field 'email'.*|.*well-formed email address.*|.*formato válido.*|.*correo electrónico no tiene.*", R.string.error_invalid_email);
 
         // --- Connection / Server Errors ---
         addRule(".*internal server error.*", R.string.error_internal_server);
@@ -36,7 +37,7 @@ public class ErrorTranslator {
     }
 
     private void addRule(String regex, int resId) {
-        rules.add(new TranslationRule(Pattern.compile(regex, Pattern.CASE_INSENSITIVE), resId));
+        rules.add(new TranslationRule(Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL), resId));
     }
 
     /**
@@ -45,20 +46,22 @@ public class ErrorTranslator {
     public int translate(String serverMessage, String url) {
         if (serverMessage == null || serverMessage.trim().isEmpty()) return -1;
 
-        // Note: You can also add URL-specific logic here if needed
-        // e.g., if (url.contains("/bookings")) { ... }
-
-        String normalizedMsg = serverMessage.trim().toLowerCase();
-
-        if (url.contains("auth/login")) {
-            if (normalizedMsg.contains("formato válido") || normalizedMsg.contains("correo electrónico no tiene")) {
-                return R.string.error_invalid_email;
-            }
-            if (normalizedMsg.contains("credenciales inválidas")) {
-                return R.string.error_invalid_credentials;
+        for (TranslationRule rule : rules) {
+            if (rule.pattern.matcher(serverMessage).matches()) {
+                return rule.resId;
             }
         }
 
-        return -1;
+        return -1; // No translation found
+    }
+
+    private static class TranslationRule {
+        final Pattern pattern;
+        final int resId;
+
+        TranslationRule(Pattern pattern, int resId) {
+            this.pattern = pattern;
+            this.resId = resId;
+        }
     }
 }
