@@ -207,7 +207,6 @@
     <string name="status_pending_cancel">Cancelación pendiente</string>
         <string name="cancel_booking_pending_alert">La cancelación está pendiente de sincronización. Se procesará cuando recuperes la conexión.</string>
     <string name="status_pending">Pendiente</string>
-    <string name="status_pending_cancel">Cancelación pendiente</string>
 
     <!-- Profile activity summary -->
     <string name="profile_section_summary">Resumen de actividades</string>
