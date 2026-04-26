@@ -63,6 +63,9 @@ public class BookingsViewModel extends ViewModel {
     private List<BookingResponse> reconnectPendingSnapshot = null;
     private int selectedTab = 0;
 
+    // Nuevo: flag para historial nunca sincronizado
+    private final MutableLiveData<Boolean> _historialNeverSynced = new MutableLiveData<>(false);
+
     @Inject
     public BookingsViewModel(BookingRepository bookingRepository,
                              ProfileRepository profileRepository,
@@ -88,6 +91,9 @@ public class BookingsViewModel extends ViewModel {
 
     public LiveData<List<BookingSummaryItem>> getHistorial() { return _historial; }
     public LiveData<Boolean> isHistorialLoading() { return _historialLoading; }
+
+    // Nuevo getter
+    public LiveData<Boolean> isHistorialNeverSynced() { return _historialNeverSynced; }
     public LiveData<List<String>> getAvailableDestinations() { return _availableDestinations; }
 
     public void clearMessage() { _message.setValue(null); }
@@ -272,6 +278,10 @@ public class BookingsViewModel extends ViewModel {
             updateDestinationSuggestions();
             applyFilters();
             _historialLoading.setValue(false);
+
+            // Nuevo: si nunca hubo datos sincronizados
+            boolean neverSynced = (cachedServerHistorialItems == null || cachedServerHistorialItems.isEmpty());
+            _historialNeverSynced.setValue(neverSynced);
             return;
         }
 
@@ -290,6 +300,9 @@ public class BookingsViewModel extends ViewModel {
                 updateDestinationSuggestions();
                 applyFilters();
                 _historialLoading.setValue(false);
+
+                // Nuevo: si hubo datos sincronizados, nuncaSynced = false
+                _historialNeverSynced.setValue(false);
             }
 
             @Override
@@ -309,6 +322,8 @@ public class BookingsViewModel extends ViewModel {
                 allHistorialItems = all;
                 applyFilters();
                 _historialLoading.setValue(false);
+                boolean neverSynced = (cachedServerHistorialItems == null || cachedServerHistorialItems.isEmpty());
+                _historialNeverSynced.setValue(neverSynced);
                 if (all.isEmpty()) _error.setValue(error);
             }
         });

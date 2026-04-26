@@ -195,6 +195,9 @@
     <string name="bookings_tab_historial">Historial</string>
     <string name="bookings_empty_activas">No tenés reservas activas.</string>
     <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+
+    <!-- Mensaje especial para historial nunca sincronizado offline -->
+    <string name="bookings_empty_historial_never_synced">No hay datos de actividades porque nunca se sincronizó el historial con conexión a internet.</string>
     <string name="bookings_section_hoy">Hoy</string>
     <string name="bookings_section_proximas">Próximas</string>
     <string name="booking_badge_upcoming">Próximo</string>

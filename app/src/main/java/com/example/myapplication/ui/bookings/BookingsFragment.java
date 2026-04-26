@@ -238,8 +238,30 @@ public class BookingsFragment extends Fragment {
             if (items == null) return;
             summaryAdapter.updateData(items);
             boolean empty = items.isEmpty();
-            historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+            // El mensaje se decide abajo según neverSynced
             historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        });
+
+        // Nuevo: observar si nunca se sincronizó
+        viewModel.isHistorialNeverSynced().observe(getViewLifecycleOwner(), neverSynced -> {
+            boolean show = false;
+            if (Boolean.TRUE.equals(neverSynced)) {
+                // Solo mostrar si además la lista está vacía
+                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
+                show = (items == null || items.isEmpty());
+            }
+            if (show) {
+                historialEmpty.setText(R.string.bookings_empty_historial_never_synced);
+                historialEmpty.setVisibility(View.VISIBLE);
+                historialRecycler.setVisibility(View.GONE);
+            } else {
+                // Restaurar mensaje por default si corresponde
+                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
+                boolean empty = (items == null || items.isEmpty());
+                historialEmpty.setText(R.string.bookings_empty_historial);
+                historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+                historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+            }
         });
 
         viewModel.getAvailableDestinations().observe(getViewLifecycleOwner(), destinations -> {
