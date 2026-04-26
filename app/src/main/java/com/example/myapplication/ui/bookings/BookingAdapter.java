@@ -134,23 +134,35 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
 
-        boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
-        boolean canCancel = "CONFIRMED".equalsIgnoreCase(booking.status);
-        holder.cancelButton.setVisibility((canCancel && !isPendingCancel) ? View.VISIBLE : View.GONE);
-        holder.cancelButton.setEnabled(!isPendingCancel);
-        holder.cancelButton.setAlpha(isPendingCancel ? 0.5f : 1f);
+        // Estados
+        final boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
+        final boolean isConfirmed = "CONFIRMED".equalsIgnoreCase(booking.status);
+        final boolean isCompleted = "COMPLETED".equalsIgnoreCase(booking.status);
+        final boolean canCancel = isConfirmed;
+        final boolean canVoucher = isConfirmed && !isPendingCancel;
+        final boolean canReview = booking.canReview && isCompleted && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
+
+        // Utilidad para configurar botones
+        setButtonState(holder.cancelButton, (canCancel && !isPendingCancel), !isPendingCancel, isPendingCancel ? 0.5f : 1f);
+        setButtonState(holder.voucherButton, canVoucher, !isPendingCancel, isPendingCancel ? 0.5f : 1f);
+        setButtonState(holder.reviewButton, canReview, !offline, offline ? 0.45f : 1f);
+
         holder.cancelButton.setOnClickListener(v -> {
-            if (!isPendingCancel && cancelClickListener != null) cancelClickListener.onCancel(booking);
-            else if (isPendingCancel) {
+            if (!isPendingCancel && cancelClickListener != null) {
+                cancelClickListener.onCancel(booking);
+            } else if (isPendingCancel) {
                 Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
             }
         });
 
-        boolean canReview = booking.canReview
-                && "COMPLETED".equalsIgnoreCase(booking.status)
-                && isWithinReviewWindow(booking.sessionStartTime, booking.durationMinutes);
-        holder.reviewButton.setVisibility(canReview ? View.VISIBLE : View.GONE);
-        holder.reviewButton.setAlpha(offline ? 0.45f : 1f);
+        holder.voucherButton.setOnClickListener(v -> {
+            if (!isPendingCancel && voucherClickListener != null) {
+                voucherClickListener.onVoucher(booking);
+            } else if (isPendingCancel) {
+                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         holder.reviewButton.setOnClickListener(v -> {
             if (offline) {
                 Toast.makeText(v.getContext(), R.string.review_offline_error, Toast.LENGTH_SHORT).show();
@@ -162,18 +174,14 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.detailButton.setOnClickListener(v -> {
             if (detailClickListener != null) detailClickListener.onDetail(booking);
         });
-
-        boolean isPendingCancel = "PENDING_CANCEL".equalsIgnoreCase(booking.status);
-        boolean canVoucher = "CONFIRMED".equalsIgnoreCase(booking.status) && !isPendingCancel;
-        holder.voucherButton.setVisibility(canVoucher ? View.VISIBLE : View.GONE);
-        holder.voucherButton.setEnabled(!isPendingCancel);
-        holder.voucherButton.setAlpha(isPendingCancel ? 0.5f : 1f);
-        holder.voucherButton.setOnClickListener(v -> {
-            if (!isPendingCancel && voucherClickListener != null) voucherClickListener.onVoucher(booking);
-            else if (isPendingCancel) {
-                Toast.makeText(v.getContext(), R.string.cancel_booking_pending_alert, Toast.LENGTH_SHORT).show();
-            }
-        });
+        /**
+         * Configura visibilidad, habilitación y alpha de un botón de forma DRY.
+         */
+        private void setButtonState(View button, boolean visible, boolean enabled, float alpha) {
+            button.setVisibility(visible ? View.VISIBLE : View.GONE);
+            button.setEnabled(enabled);
+            button.setAlpha(alpha);
+        }
     }
 
     @Override
