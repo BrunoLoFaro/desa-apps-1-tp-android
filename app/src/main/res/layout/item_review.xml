@@ -20,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.XploreNow.H2"
+            android:textColor="#000000"
             android:textStyle="bold" />
 
         <TextView
@@ -27,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="#333333"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -41,6 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Actividad:"
+                android:textColor="#000000"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -68,6 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Guía:"
+                android:textColor="#000000"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -91,7 +94,7 @@
             android:background="@drawable/bg_review_comment"
             android:padding="10dp"
             android:textStyle="italic"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="#000000"
             android:textSize="14sp" />
 
         <TextView
@@ -100,7 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="end"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="#666666"
             android:textSize="11sp" />
 
     </LinearLayout>
