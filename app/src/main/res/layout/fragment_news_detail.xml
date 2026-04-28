@@ -119,15 +119,6 @@
                     android:textAppearance="@style/TextAppearance.XploreNow.Body"
                     android:textColor="?attr/colorPrimary" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/view_activity_button"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Ver actividad"
-                    app:cornerRadius="20dp" />
-
             </LinearLayout>
 
             <!-- CTA button -->

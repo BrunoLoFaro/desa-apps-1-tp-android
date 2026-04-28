@@ -34,7 +34,7 @@ public class NewsDetailFragment extends Fragment {
     private TextView typeText, titleText, publishedAtText, validUntilText, contentText;
     private LinearLayout relatedActivitySection;
     private TextView relatedActivityName;
-    private MaterialButton viewActivityButton, ctaButton;
+    private MaterialButton ctaButton;
     private Long newsId;
     private Long relatedActivityId;
 
@@ -60,7 +60,6 @@ public class NewsDetailFragment extends Fragment {
         contentText = view.findViewById(R.id.news_detail_content);
         relatedActivitySection = view.findViewById(R.id.related_activity_section);
         relatedActivityName = view.findViewById(R.id.related_activity_name);
-        viewActivityButton = view.findViewById(R.id.view_activity_button);
         ctaButton = view.findViewById(R.id.cta_button);
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
@@ -146,15 +145,8 @@ public class NewsDetailFragment extends Fragment {
                     ? news.relatedActivityName
                     : "Actividad relacionada");
             this.relatedActivityId = news.relatedActivityId;
-
-            viewActivityButton.setOnClickListener(v -> {
-                Bundle bundle = new Bundle();
-                bundle.putLong("activity_id", news.relatedActivityId);
-                Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
-            });
         } else {
             relatedActivitySection.setVisibility(View.GONE);
-            viewActivityButton.setOnClickListener(null);
         }
 
         // CTA button
