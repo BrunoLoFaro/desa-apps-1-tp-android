@@ -173,7 +173,7 @@ public class DetailFragment extends Fragment {
 
         // If navigated from a promotion with only activity_id, load from API
         if (tourActivity == null && activityIdFromArgs != null) {
-            tourActivity = new TourActivity();
+            tourActivity = new TourActivity("", "", "", "", "", 0, null);
             tourActivity.setId(activityIdFromArgs);
         }
 
