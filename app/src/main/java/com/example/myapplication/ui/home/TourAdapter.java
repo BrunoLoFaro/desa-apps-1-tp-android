@@ -68,18 +68,18 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         boolean soldOut = activity.getAvailableSlots() <= 0;
         
         // Handle discount pricing
+        // API price is the ORIGINAL price. Discounted price = original * (1 - discount/100)
         if (activity.getDiscountPercentage() != null && activity.getDiscountPercentage() > 0) {
-            // Calculate original price and discounted price
             String priceStr = activity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
                 try {
-                    double currentPrice = Double.parseDouble(priceStr.substring(1));
-                    double originalPrice = currentPrice / (1 - activity.getDiscountPercentage() / 100.0);
-                    
+                    double originalPrice = Double.parseDouble(priceStr.substring(1));
+                    double discountedPrice = originalPrice * (1 - activity.getDiscountPercentage() / 100.0);
+
                     holder.originalPrice.setText(String.format("$%.2f", originalPrice));
                     holder.originalPrice.setVisibility(View.VISIBLE);
-                    holder.price.setText(activity.getPrice());
-                    
+                    holder.price.setText(String.format("$%.2f", discountedPrice));
+
                     holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
                     holder.discountBadge.setVisibility(View.VISIBLE);
                 } catch (NumberFormatException e) {

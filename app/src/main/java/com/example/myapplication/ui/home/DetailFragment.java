@@ -45,6 +45,8 @@ public class DetailFragment extends Fragment {
     private SessionAdapter sessionAdapter;
     private ActivitySessionResponse selectedSession;
 
+    private Long activityIdFromArgs;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +56,9 @@ public class DetailFragment extends Fragment {
             bookingStatus = getArguments().getString("booking_status");
             if (getArguments().containsKey("booking_id")) {
                 bookingId = getArguments().getLong("booking_id");
+            }
+            if (getArguments().containsKey("activity_id")) {
+                activityIdFromArgs = getArguments().getLong("activity_id");
             }
         }
     }
@@ -164,6 +169,12 @@ public class DetailFragment extends Fragment {
                 historyReviewViewModel.getReview().observe(getViewLifecycleOwner(),
                         review -> populateExperienceSection(experienceSection, review));
             }
+        }
+
+        // If navigated from a promotion with only activity_id, load from API
+        if (tourActivity == null && activityIdFromArgs != null) {
+            tourActivity = new TourActivity();
+            tourActivity.setId(activityIdFromArgs);
         }
 
         if (tourActivity != null) {
