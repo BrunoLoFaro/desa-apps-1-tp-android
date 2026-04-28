@@ -5,6 +5,7 @@ import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
+import com.example.myapplication.data.local.CachedActivityDao;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
 import com.example.myapplication.data.model.DestinationResponse;
@@ -17,6 +18,8 @@ import com.example.myapplication.util.NetworkErrorParser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.HttpUrl;
@@ -32,16 +35,19 @@ public class ExploreRepository extends BaseRepository {
     private final CatalogMetaService metaService;
     private final ConfigLoader configLoader;
     private final SessionManager sessionManager;
+    private final CachedActivityDao cachedActivityDao;
+    private final Executor dbExecutor = Executors.newSingleThreadExecutor();
 
     @Inject
     public ExploreRepository(ActivityService activityService, CatalogMetaService metaService,
                              ConfigLoader configLoader, SessionManager sessionManager,
-                             NetworkErrorParser errorParser) {
+                             NetworkErrorParser errorParser, CachedActivityDao cachedActivityDao) {
         super(errorParser);
         this.activityService = activityService;
         this.metaService = metaService;
         this.configLoader = configLoader;
         this.sessionManager = sessionManager;
+        this.cachedActivityDao = cachedActivityDao;
     }
 
     public void listActivities(
@@ -66,7 +72,28 @@ public class ExploreRepository extends BaseRepository {
             return;
         }
 
-        enqueue(activityService.listActivities(url.toString()), callback, R.string.error_load_activities);
+        enqueue(activityService.listActivities(url.toString()),
+                new RepositoryCallback<ActivitiesPageResponse>() {
+                    @Override
+                    public void onSuccess(ActivitiesPageResponse data) {
+                        if (data.items != null && !data.items.isEmpty()) {
+                            dbExecutor.execute(() -> {
+                                List<com.example.myapplication.data.local.CachedActivityEntity> entities =
+                                        new ArrayList<>(data.items.size());
+                                for (ActivitySummaryResponse item : data.items) {
+                                    if (item.id != null) entities.add(TourRepository.fromSummary(item));
+                                }
+                                if (!entities.isEmpty()) cachedActivityDao.upsertAll(entities);
+                            });
+                        }
+                        callback.onSuccess(data);
+                    }
+                    @Override
+                    public void onError(UiMessage error) {
+                        callback.onError(error);
+                    }
+                },
+                R.string.error_load_activities);
     }
 
     public void listDestinations(RepositoryCallback<List<DestinationResponse>> callback) {

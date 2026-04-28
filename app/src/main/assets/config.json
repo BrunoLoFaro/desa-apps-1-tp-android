@@ -18,5 +18,6 @@
   "profile_endpoint": "users/{userId}/profile",
   "preferences_endpoint": "users/preferences",
   "activity_summary_endpoint": "users/activities/summary",
-  "categories_endpoint": "categories"
+  "categories_endpoint": "categories",
+  "my_reviews_endpoint": "users/{userId}/reviews/mine"
 }
