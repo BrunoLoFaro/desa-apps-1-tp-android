@@ -272,7 +272,40 @@ public class DetailFragment extends Fragment {
         destination.setText(tourActivity.getDestination());
         category.setText(tourActivity.getCategory().toUpperCase());
         duration.setText(tourActivity.getDuration());
-        price.setText(tourActivity.getPrice());
+
+        // Handle discount pricing in detail view
+        TextView originalPrice = root.findViewById(R.id.original_price);
+        TextView discountBadge = root.findViewById(R.id.discount_badge);
+        if (tourActivity.getDiscountPercentage() != null && tourActivity.getDiscountPercentage() > 0) {
+            String priceStr = tourActivity.getPrice();
+            if (priceStr != null && priceStr.startsWith("$")) {
+                try {
+                    double basePrice = Double.parseDouble(priceStr.substring(1));
+                    double discountedPrice = basePrice * (1 - tourActivity.getDiscountPercentage() / 100.0);
+                    if (originalPrice != null) {
+                        originalPrice.setText(String.format("$%.2f", basePrice));
+                        originalPrice.setVisibility(View.VISIBLE);
+                    }
+                    price.setText(String.format("$%.2f", discountedPrice));
+                    if (discountBadge != null) {
+                        discountBadge.setText(tourActivity.getDiscountPercentage() + "% OFF");
+                        discountBadge.setVisibility(View.VISIBLE);
+                    }
+                } catch (NumberFormatException e) {
+                    if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+                    if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+                    price.setText(tourActivity.getPrice());
+                }
+            } else {
+                if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+                if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+                price.setText(tourActivity.getPrice());
+            }
+        } else {
+            if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+            if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+            price.setText(tourActivity.getPrice());
+        }
         boolean soldOut = tourActivity.getAvailableSlots() <= 0;
         slots.setText(soldOut
                 ? getString(R.string.sold_out)
