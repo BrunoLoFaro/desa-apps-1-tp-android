@@ -115,6 +115,7 @@ public class DetailViewModel extends ViewModel {
         );
         activity.setId(data.id);
         activity.setFavorite(data.isFavorite);
+        if (data.discountPercentage != null) activity.setDiscountPercentage(data.discountPercentage);
         return activity;
     }
 
