@@ -140,9 +140,11 @@ public class NewsDetailFragment extends Fragment {
         }
 
         // Related activity
-        if (news.relatedActivityId != null && news.relatedActivityName != null) {
+        if (news.relatedActivityId != null) {
             relatedActivitySection.setVisibility(View.VISIBLE);
-            relatedActivityName.setText(news.relatedActivityName);
+            relatedActivityName.setText(news.relatedActivityName != null && !news.relatedActivityName.isEmpty()
+                    ? news.relatedActivityName
+                    : "Actividad relacionada");
             this.relatedActivityId = news.relatedActivityId;
 
             viewActivityButton.setOnClickListener(v -> {
@@ -150,18 +152,25 @@ public class NewsDetailFragment extends Fragment {
                 bundle.putLong("activity_id", news.relatedActivityId);
                 Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
             });
+        } else {
+            relatedActivitySection.setVisibility(View.GONE);
+            viewActivityButton.setOnClickListener(null);
         }
 
         // CTA button
-        if (news.ctaText != null && !news.ctaText.isEmpty()) {
+        if (news.relatedActivityId != null) {
             ctaButton.setVisibility(View.VISIBLE);
-            ctaButton.setText(news.ctaText);
+            ctaButton.setText(news.ctaText != null && !news.ctaText.isEmpty()
+                    ? news.ctaText
+                    : "Explorar actividades");
             ctaButton.setOnClickListener(v -> {
-                if (news.ctaLink != null && !news.ctaLink.isEmpty()) {
-                    // Open link in browser (implement if needed)
-                    Toast.makeText(requireContext(), "Abriendo enlace...", Toast.LENGTH_SHORT).show();
-                }
+                Bundle bundle = new Bundle();
+                bundle.putLong("activity_id", news.relatedActivityId);
+                Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
             });
+        } else {
+            ctaButton.setVisibility(View.GONE);
+            ctaButton.setOnClickListener(null);
         }
     }
 
