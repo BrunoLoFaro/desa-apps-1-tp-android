@@ -69,20 +69,16 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         
         // Click listener
         holder.itemView.setOnClickListener(v -> {
-            Bundle bundle = new Bundle();
-            bundle.putLong("news_id", news.id);
-            bundle.putString("news_type", news.type);
             if (news.relatedActivityId != null) {
-                bundle.putLong("related_activity_id", news.relatedActivityId);
-            }
-            
-            if ("OFFER".equalsIgnoreCase(news.type) && news.relatedActivityId != null) {
-                // Navigate to activity detail
+                // Navigate to activity detail for any item with a related activity
                 Bundle activityBundle = new Bundle();
                 activityBundle.putLong("activity_id", news.relatedActivityId);
                 Navigation.findNavController(v).navigate(R.id.detailFragment, activityBundle);
             } else {
                 // Navigate to news detail
+                Bundle bundle = new Bundle();
+                bundle.putLong("news_id", news.id);
+                bundle.putString("news_type", news.type);
                 Navigation.findNavController(v).navigate(R.id.newsDetailFragment, bundle);
             }
         });
