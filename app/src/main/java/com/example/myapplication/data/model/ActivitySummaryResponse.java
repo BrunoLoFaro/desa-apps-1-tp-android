@@ -38,4 +38,7 @@ public class ActivitySummaryResponse {
 
     @Json(name = "isFavorite")
     public boolean isFavorite;
+
+    @Json(name = "discountPercentage")
+    public Integer discountPercentage;
 }
