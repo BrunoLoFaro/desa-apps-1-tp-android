@@ -26,7 +26,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
     private HomeViewModel homeViewModel;
     private NewsViewModel newsViewModel;
     private NewsAdapter newsAdapter;
-    private NewsAdapter promotionsAdapter;
+    private PromotionsAdapter promotionsAdapter;
     private NavController navController;
 
     @Nullable
@@ -88,7 +88,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         RecyclerView promotionsRecycler = view.findViewById(R.id.promotions_recycler_view);
         promotionsRecycler.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        promotionsAdapter = new NewsAdapter();
+        promotionsAdapter = new PromotionsAdapter();
         promotionsRecycler.setAdapter(promotionsAdapter);
 
         newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsList -> {
