@@ -7,6 +7,7 @@ import com.example.myapplication.BuildConfig;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.local.AppDatabase;
+import com.example.myapplication.data.local.CachedActivityDao;
 import com.example.myapplication.data.local.OfflineBookingDao;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
@@ -224,6 +225,7 @@ public class AppModule {
     @Singleton
     static AppDatabase provideDatabase(@ApplicationContext Context context) {
         return Room.databaseBuilder(context, AppDatabase.class, "xplorenow_db")
+                .addMigrations(AppDatabase.MIGRATION_4_5)
                 .fallbackToDestructiveMigration()
                 .build();
     }
@@ -232,5 +234,11 @@ public class AppModule {
     @Singleton
     static OfflineBookingDao provideOfflineBookingDao(AppDatabase db) {
         return db.offlineBookingDao();
+    }
+
+    @Provides
+    @Singleton
+    static CachedActivityDao provideCachedActivityDao(AppDatabase db) {
+        return db.cachedActivityDao();
     }
 }

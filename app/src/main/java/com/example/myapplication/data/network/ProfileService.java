@@ -4,6 +4,7 @@ import com.example.myapplication.data.model.BookingSummaryPageResponse;
 import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.data.model.UserPreferencesResponse;
 import com.example.myapplication.data.model.UserProfileResponse;
+import java.util.List;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -31,6 +32,9 @@ public interface ProfileService {
 
     @GET
     Call<BookingSummaryPageResponse> getActivitySummary(@Url String url);
+
+    @GET
+    Call<List<ReviewResponse>> getMyReviews(@Url String url);
 
     /** GET /api/v1/users/{userId}/reviews/booking/{bookingId} */
     @GET
