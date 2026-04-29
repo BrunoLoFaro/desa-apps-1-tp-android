@@ -294,10 +294,13 @@ public class DetailFragment extends Fragment {
             detailedContainer.setVisibility(View.VISIBLE);
         }
 
-        name.setText(tourActivity.getName());
-        destination.setText(tourActivity.getDestination());
-        category.setText(tourActivity.getCategory().toUpperCase());
-        duration.setText(tourActivity.getDuration());
+        // Base fields (null-safe)
+        name.setText(nd(tourActivity.getName()));
+        destination.setText(nd(tourActivity.getDestination()));
+        String cat = tourActivity.getCategory();
+        category.setText(cat != null && !cat.isEmpty() ? cat.toUpperCase() : getString(R.string.no_data));
+        duration.setText(nd(tourActivity.getDuration()));
+        price.setText(nd(tourActivity.getPrice()));
 
         // Handle discount pricing in detail view
         TextView originalPrice = root.findViewById(R.id.original_price);
@@ -320,24 +323,18 @@ public class DetailFragment extends Fragment {
                 } catch (NumberFormatException e) {
                     if (originalPrice != null) originalPrice.setVisibility(View.GONE);
                     if (discountBadge != null) discountBadge.setVisibility(View.GONE);
-                    price.setText(tourActivity.getPrice());
+                    price.setText(nd(tourActivity.getPrice()));
                 }
             } else {
                 if (originalPrice != null) originalPrice.setVisibility(View.GONE);
                 if (discountBadge != null) discountBadge.setVisibility(View.GONE);
-                price.setText(tourActivity.getPrice());
+                price.setText(nd(tourActivity.getPrice()));
             }
         } else {
             if (originalPrice != null) originalPrice.setVisibility(View.GONE);
             if (discountBadge != null) discountBadge.setVisibility(View.GONE);
-            price.setText(tourActivity.getPrice());
+            price.setText(nd(tourActivity.getPrice()));
         }
-        name.setText(nd(tourActivity.getName()));
-        destination.setText(nd(tourActivity.getDestination()));
-        String cat = tourActivity.getCategory();
-        category.setText(cat != null && !cat.isEmpty() ? cat.toUpperCase() : getString(R.string.no_data));
-        duration.setText(nd(tourActivity.getDuration()));
-        price.setText(nd(tourActivity.getPrice()));
         boolean soldOut = tourActivity.getAvailableSlots() <= 0;
         slots.setText(soldOut
                 ? getString(R.string.sold_out)
