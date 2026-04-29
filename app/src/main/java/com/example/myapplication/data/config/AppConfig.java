@@ -69,4 +69,6 @@ public class AppConfig {
 
     @Json(name = "news_endpoint")
     public String newsEndpoint;
+    @Json(name = "my_reviews_endpoint")
+    public String myReviewsEndpoint;
 }

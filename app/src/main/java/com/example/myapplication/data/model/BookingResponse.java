@@ -50,5 +50,11 @@ public class BookingResponse {
 
     @Json(name = "canReview")
     public boolean canReview;
+
+    @Json(name = "voucherCode")
+    public String voucherCode;
+
+    @Json(name = "meetingPoint")
+    public String meetingPoint;
 }
 

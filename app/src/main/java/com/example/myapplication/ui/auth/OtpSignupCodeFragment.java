@@ -45,6 +45,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     private long resendSecondsLeft;
     private TextWatcher codeWatcher;
     private boolean otpHasError;
+    private boolean isProgrammaticallyClearing;
     private boolean requiresResend;
     private boolean lockedByAttempts;
     private int invalidAttempts;
@@ -213,8 +214,10 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
                     codeEditText.setSelection(trimmed.length());
                     return;
                 }
-                codeInputLayout.setError(null);
-                otpHasError = false;
+                if (!isProgrammaticallyClearing) {
+                    codeInputLayout.setError(null);
+                    otpHasError = false;
+                }
                 updateOtpBoxes(digits);
                 updateVerifyButtonState(true);
             }
@@ -252,7 +255,9 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
     }
 
     private void clearOtpInputPreservingError() {
+        isProgrammaticallyClearing = true;
         codeEditText.setText("");
+        isProgrammaticallyClearing = false;
         updateOtpBoxes("");
         updateVerifyButtonState(true);
     }

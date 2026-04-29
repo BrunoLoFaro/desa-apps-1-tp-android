@@ -21,3 +21,5 @@
   "categories_endpoint": "categories",
   "news_endpoint": "news"
 }
+  "my_reviews_endpoint": "users/{userId}/reviews/mine"
+}

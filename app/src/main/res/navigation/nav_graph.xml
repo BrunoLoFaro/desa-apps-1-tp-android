@@ -159,6 +159,9 @@
         <action
             android:id="@+id/action_bookingsFragment_to_detailFragment"
             app:destination="@id/detailFragment" />
+        <action
+            android:id="@+id/action_bookingsFragment_to_voucherFragment"
+            app:destination="@id/voucherFragment" />
     </fragment>
 
     <fragment
@@ -221,6 +224,19 @@
             android:name="activity_id"
             app:argType="long"
             android:defaultValue="-1L" />
+        <action
+            android:id="@+id/action_detailFragment_to_voucherFragment"
+            app:destination="@id/voucherFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/voucherFragment"
+        android:name="com.example.myapplication.ui.bookings.VoucherFragment"
+        android:label="Voucher"
+        tools:layout="@layout/fragment_voucher">
+        <argument
+            android:name="bookingId"
+            app:argType="long" />
     </fragment>
 
 </navigation>

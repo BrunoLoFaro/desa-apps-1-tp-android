@@ -30,11 +30,15 @@ import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @AndroidEntryPoint
@@ -57,6 +61,7 @@ public class ProfileFragment extends Fragment {
     private MaterialButton btnSave;
     private ProgressBar loadingSpinner;
     private View scrollView;
+    private ChipGroup chipGroupCategories;
 
     // Summary views
     private TextView statCompleted;
@@ -141,9 +146,10 @@ public class ProfileFragment extends Fragment {
         editFirstName   = view.findViewById(R.id.edit_first_name);
         editLastName    = view.findViewById(R.id.edit_last_name);
         editPhone       = view.findViewById(R.id.edit_phone);
-        btnSave         = view.findViewById(R.id.btn_save);
-        loadingSpinner  = view.findViewById(R.id.loading_spinner);
-        scrollView      = view.findViewById(R.id.scroll_view);
+        btnSave             = view.findViewById(R.id.btn_save);
+        loadingSpinner      = view.findViewById(R.id.loading_spinner);
+        scrollView          = view.findViewById(R.id.scroll_view);
+        chipGroupCategories = view.findViewById(R.id.chip_group_categories);
 
         statCompleted  = view.findViewById(R.id.stat_completed_count);
         statPending    = view.findViewById(R.id.stat_pending_count);
@@ -189,6 +195,20 @@ public class ProfileFragment extends Fragment {
             if (Boolean.TRUE.equals(success)) {
                 Toast.makeText(requireContext(), R.string.profile_saved_ok, Toast.LENGTH_SHORT).show();
                 viewModel.saveSuccessConsumed();
+            }
+        });
+
+        viewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
+            if (categories == null || chipGroupCategories == null) return;
+            rebuildCategoryChips(categories, viewModel.getCurrentPreferences());
+        });
+
+        viewModel.getPreferences().observe(getViewLifecycleOwner(), preferences -> {
+            if (chipGroupCategories == null || chipGroupCategories.getChildCount() == 0) return;
+            List<String> prefs = preferences != null ? preferences : Collections.emptyList();
+            for (int i = 0; i < chipGroupCategories.getChildCount(); i++) {
+                Chip chip = (Chip) chipGroupCategories.getChildAt(i);
+                chip.setChecked(prefs.contains((String) chip.getTag()));
             }
         });
 
@@ -283,6 +303,45 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    private void rebuildCategoryChips(List<String> categories, List<String> selectedPrefs) {
+        if (chipGroupCategories == null) return;
+        chipGroupCategories.removeAllViews();
+        for (String cat : categories) {
+            Chip chip = new Chip(requireContext());
+            chip.setText(categoryDisplayName(cat));
+            chip.setTag(cat);
+            chip.setCheckable(true);
+            chip.setCheckedIconVisible(true);
+            chip.setChecked(selectedPrefs != null && selectedPrefs.contains(cat));
+            chipGroupCategories.addView(chip);
+        }
+    }
+
+    private String categoryDisplayName(String cat) {
+        if (cat == null) return "";
+        switch (cat.toLowerCase()) {
+            case "aventura":      return getString(R.string.category_aventura);
+            case "gastronomia":   return getString(R.string.category_gastronomia);
+            case "excursion":     return getString(R.string.category_excursion);
+            case "visita_guiada": return getString(R.string.category_visita_guiada);
+            case "free_tour":     return getString(R.string.category_free_tour);
+            case "otra":          return getString(R.string.category_otra);
+            default:
+                String s = cat.replace('_', ' ').toLowerCase();
+                return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+        }
+    }
+
+    private List<String> getSelectedCategories() {
+        List<String> selected = new ArrayList<>();
+        if (chipGroupCategories == null) return selected;
+        for (int i = 0; i < chipGroupCategories.getChildCount(); i++) {
+            Chip chip = (Chip) chipGroupCategories.getChildAt(i);
+            if (chip.isChecked()) selected.add((String) chip.getTag());
+        }
+        return selected;
+    }
+
     private void onSaveClicked() {
         String firstName = getText(editFirstName);
         String lastName  = getText(editLastName);
@@ -302,7 +361,7 @@ public class ProfileFragment extends Fragment {
         }
         if (!valid) return;
 
-        viewModel.saveAll(firstName, lastName, phone, viewModel.getCurrentPreferences());
+        viewModel.saveAll(firstName, lastName, phone, getSelectedCategories());
     }
 
     private String getText(TextInputEditText field) {
@@ -354,9 +413,10 @@ public class ProfileFragment extends Fragment {
         editFirstName    = null;
         editLastName     = null;
         editPhone        = null;
-        btnSave          = null;
-        loadingSpinner   = null;
-        scrollView       = null;
+        btnSave             = null;
+        loadingSpinner      = null;
+        scrollView          = null;
+        chipGroupCategories = null;
         statCompleted    = null;
         statPending      = null;
         badgeHoy         = null;
