@@ -48,6 +48,8 @@ public class DetailFragment extends Fragment {
     private SessionAdapter sessionAdapter;
     private ActivitySessionResponse selectedSession;
 
+    private Long activityIdFromArgs;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +59,9 @@ public class DetailFragment extends Fragment {
             bookingStatus = getArguments().getString("booking_status");
             if (getArguments().containsKey("booking_id")) {
                 bookingId = getArguments().getLong("booking_id");
+            }
+            if (getArguments().containsKey("activity_id")) {
+                activityIdFromArgs = getArguments().getLong("activity_id");
             }
         }
     }
@@ -175,6 +180,12 @@ public class DetailFragment extends Fragment {
             }
         }
 
+        // If navigated from a promotion with only activity_id, load from API
+        if (tourActivity == null && activityIdFromArgs != null) {
+            tourActivity = new TourActivity("", "", "", "", "", 0, null);
+            tourActivity.setId(activityIdFromArgs);
+        }
+
         if (tourActivity != null) {
             toolbar.setTitle(tourActivity.getName());
 
@@ -283,6 +294,44 @@ public class DetailFragment extends Fragment {
             detailedContainer.setVisibility(View.VISIBLE);
         }
 
+        name.setText(tourActivity.getName());
+        destination.setText(tourActivity.getDestination());
+        category.setText(tourActivity.getCategory().toUpperCase());
+        duration.setText(tourActivity.getDuration());
+
+        // Handle discount pricing in detail view
+        TextView originalPrice = root.findViewById(R.id.original_price);
+        TextView discountBadge = root.findViewById(R.id.discount_badge);
+        if (tourActivity.getDiscountPercentage() != null && tourActivity.getDiscountPercentage() > 0) {
+            String priceStr = tourActivity.getPrice();
+            if (priceStr != null && priceStr.startsWith("$")) {
+                try {
+                    double basePrice = Double.parseDouble(priceStr.substring(1));
+                    double discountedPrice = basePrice * (1 - tourActivity.getDiscountPercentage() / 100.0);
+                    if (originalPrice != null) {
+                        originalPrice.setText(String.format("$%.2f", basePrice));
+                        originalPrice.setVisibility(View.VISIBLE);
+                    }
+                    price.setText(String.format("$%.2f", discountedPrice));
+                    if (discountBadge != null) {
+                        discountBadge.setText(tourActivity.getDiscountPercentage() + "% OFF");
+                        discountBadge.setVisibility(View.VISIBLE);
+                    }
+                } catch (NumberFormatException e) {
+                    if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+                    if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+                    price.setText(tourActivity.getPrice());
+                }
+            } else {
+                if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+                if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+                price.setText(tourActivity.getPrice());
+            }
+        } else {
+            if (originalPrice != null) originalPrice.setVisibility(View.GONE);
+            if (discountBadge != null) discountBadge.setVisibility(View.GONE);
+            price.setText(tourActivity.getPrice());
+        }
         name.setText(nd(tourActivity.getName()));
         destination.setText(nd(tourActivity.getDestination()));
         String cat = tourActivity.getCategory();

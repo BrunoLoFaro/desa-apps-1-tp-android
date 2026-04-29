@@ -133,6 +133,7 @@ public class ExploreRepository extends BaseRepository {
             activity.setFavorite(item.isFavorite);
             if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
             if (item.reviewCount != null) activity.setReviewsCount(item.reviewCount.intValue());
+            if (item.discountPercentage != null) activity.setDiscountPercentage(item.discountPercentage);
 
             result.add(activity);
         }
