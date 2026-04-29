@@ -57,10 +57,9 @@ public class AppModule {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(
                 message -> Log.d(TAG, "HTTP: " + message)
         );
-        // BASIC en lugar de BODY: evita bufferizar la respuesta completa en el interceptor,
-        // lo que causaba EOFException al leer transfer-encoding chunked en multipart responses.
+        // BODY para debug de favorites (ver raw JSON). Revertir a BASIC si hay EOFException en multipart.
         logging.setLevel(BuildConfig.DEBUG
-                ? HttpLoggingInterceptor.Level.BASIC
+                ? HttpLoggingInterceptor.Level.BODY
                 : HttpLoggingInterceptor.Level.NONE);
         builder.addInterceptor(logging);
 

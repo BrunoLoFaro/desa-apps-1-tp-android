@@ -14,6 +14,11 @@ package com.example.myapplication.ui.favorites;
  * [ ] Navegar a otra sección y volver a Favoritos → la lista se refresca (solo 1 request).
  * [ ] Rotar pantalla → la lista no se recarga desde el servidor (ViewModel sobrevive).
  * [ ] Agregar un favorito desde Explorar y volver → aparece en la lista al reentrar.
+ * [ ] Actividad sin cupos → chip "Sin cupos" visible (rojo), botón Reservar deshabilitado.
+ * [ ] Actividad con precio cambiado → chip "Nuevo precio" visible.
+ * [ ] Actividad con cupos liberados → chip "Se liberaron cupos" visible.
+ * [ ] Precio y cupos cambiados al mismo tiempo → ambos chips visibles (nunca "Sin cupos").
+ * [ ] Actividad sin cupos + precio cambiado → solo chip "Sin cupos", no "Nuevo precio".
  *
  * PRUEBAS AUTOMATIZADAS (ver métodos @Test abajo)
  * ------------------------------------------------
@@ -26,6 +31,10 @@ package com.example.myapplication.ui.favorites;
  * [x] toggleFavorite error restaura la lista completa (rollback)
  * [x] toggleFavorite error restaura el flag isFavorite del ítem
  * [x] toggleFavorite éxito dispara una recarga desde el repositorio
+ * [x] backend hasPriceChange=true → priceChanged preservado en favoritos
+ * [x] backend hasAvailabilityChange=true → slotsChanged preservado en favoritos
+ * [x] priceChanged y slotsChanged simultáneos → ambos flags preservados
+ * [x] sin cambios → ambos flags false
  */
 
 import static org.junit.Assert.*;
@@ -64,6 +73,8 @@ public class FavoritesViewModelTest {
         MockitoAnnotations.openMocks(this);
         viewModel = new FavoritesViewModel(tourRepository);
     }
+
+    // ── carga básica ───────────────────────────────────────────────────────────
 
     @Test
     public void constructor_doesNotTriggerGetFavorites() {
@@ -123,6 +134,8 @@ public class FavoritesViewModelTest {
         assertFalse(Boolean.TRUE.equals(viewModel.loading.getValue()));
     }
 
+    // ── toggle favorito ────────────────────────────────────────────────────────
+
     @SuppressWarnings("unchecked")
     @Test
     public void toggleFavorite_remove_optimisticallyRemovesItemFromList() {
@@ -155,7 +168,6 @@ public class FavoritesViewModelTest {
     @SuppressWarnings("unchecked")
     @Test
     public void toggleFavorite_onError_restoresFavoriteFlagOnItem() {
-        // Simula la mutación optimista que hace el adapter antes de llamar al ViewModel
         TourActivity activity = makeFavorite(10L, "Tour X", true);
         activity.setFavorite(false);
         seedFavorites(activity);
@@ -185,7 +197,76 @@ public class FavoritesViewModelTest {
         verify(tourRepository, times(2)).getFavorites(any());
     }
 
-    // --- helpers ---
+    // ── flags de cambio (vienen del backend, pasados por el repositorio) ───────
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void loadFavorites_priceChangedFlag_preservedInResult() {
+        TourActivity activity = makeFavorite(1L, "Tour A", true);
+        activity.setPriceChanged(true);
+        ArgumentCaptor<RepositoryCallback<List<TourActivity>>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        viewModel.loadFavorites();
+        verify(tourRepository).getFavorites(captor.capture());
+        captor.getValue().onSuccess(Arrays.asList(activity));
+
+        assertTrue(viewModel.favorites.getValue().get(0).isPriceChanged());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void loadFavorites_slotsChangedFlag_preservedInResult() {
+        TourActivity activity = makeFavorite(1L, "Tour A", true);
+        activity.setSlotsChanged(true);
+        ArgumentCaptor<RepositoryCallback<List<TourActivity>>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        viewModel.loadFavorites();
+        verify(tourRepository).getFavorites(captor.capture());
+        captor.getValue().onSuccess(Arrays.asList(activity));
+
+        assertTrue(viewModel.favorites.getValue().get(0).isSlotsChanged());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void loadFavorites_bothFlagsChanged_bothPreserved() {
+        TourActivity activity = makeFavorite(1L, "Tour A", true);
+        activity.setPriceChanged(true);
+        activity.setSlotsChanged(true);
+        activity.setFavoriteUpdate(true);
+        ArgumentCaptor<RepositoryCallback<List<TourActivity>>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        viewModel.loadFavorites();
+        verify(tourRepository).getFavorites(captor.capture());
+        captor.getValue().onSuccess(Arrays.asList(activity));
+
+        TourActivity result = viewModel.favorites.getValue().get(0);
+        assertTrue(result.isPriceChanged());
+        assertTrue(result.isSlotsChanged());
+        assertTrue(result.hasFavoriteUpdate());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void loadFavorites_noChanges_flagsRemainFalse() {
+        TourActivity activity = makeFavorite(1L, "Tour A", true);
+        ArgumentCaptor<RepositoryCallback<List<TourActivity>>> captor =
+                ArgumentCaptor.forClass(RepositoryCallback.class);
+
+        viewModel.loadFavorites();
+        verify(tourRepository).getFavorites(captor.capture());
+        captor.getValue().onSuccess(Arrays.asList(activity));
+
+        TourActivity result = viewModel.favorites.getValue().get(0);
+        assertFalse(result.isPriceChanged());
+        assertFalse(result.isSlotsChanged());
+        assertFalse(result.hasFavoriteUpdate());
+    }
+
+    // ── helpers ────────────────────────────────────────────────────────────────
 
     private TourActivity makeFavorite(long id, String name, boolean isFavorite) {
         TourActivity activity = new TourActivity(name, "Destino", "Aventura",

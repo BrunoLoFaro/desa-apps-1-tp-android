@@ -10,9 +10,7 @@ import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.TourRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import android.util.Log;
 
 import javax.inject.Inject;
@@ -29,7 +27,6 @@ public class FavoritesViewModel extends ViewModel {
     public LiveData<UiMessage> error = _error;
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
     public LiveData<Boolean> loading = _loading;
-    private final Map<Long, FavoriteSnapshot> lastSnapshotById = new HashMap<>();
 
     @Inject
     public FavoritesViewModel(TourRepository tourRepository) {
@@ -42,10 +39,8 @@ public class FavoritesViewModel extends ViewModel {
         tourRepository.getFavorites(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
-                Log.d("FavoritesViewModel", "Favorites loaded successfully: " + (data != null ? data.size() : 0) + " items");
-                List<TourActivity> safeData = data != null ? data : new ArrayList<>();
-                applyChangeFlags(safeData);
-                _favorites.setValue(safeData);
+                Log.d("FavoritesViewModel", "Favorites loaded: " + (data != null ? data.size() : 0));
+                _favorites.setValue(data != null ? data : new ArrayList<>());
                 _loading.setValue(false);
             }
 
@@ -74,18 +69,16 @@ public class FavoritesViewModel extends ViewModel {
         final boolean previousFavoriteState = !isFavorite;
         final List<TourActivity> rollback = new ArrayList<>(current);
 
-        if (isFavorite) {
-            Log.d("FavoritesViewModel", "Adding favorite: " + activityId);
-        } else {
+        if (!isFavorite) {
             current.removeIf(item -> item.getId() != null && item.getId() == activityId);
             Log.d("FavoritesViewModel", "Removing favorite: " + activityId);
         }
         _favorites.setValue(current);
 
-        RepositoryCallback<Void> callback = new RepositoryCallback<Void>() {
+        tourRepository.toggleFavorite(activityId, isFavorite, new RepositoryCallback<Void>() {
             @Override
             public void onSuccess(Void data) {
-                Log.d("FavoritesViewModel", "Toggle favorite successful, reloading favorites");
+                Log.d("FavoritesViewModel", "Toggle favorite successful, reloading");
                 loadFavorites();
             }
 
@@ -98,38 +91,6 @@ public class FavoritesViewModel extends ViewModel {
                 _favorites.setValue(rollback);
                 _error.setValue(error);
             }
-        };
-
-        tourRepository.toggleFavorite(activityId, isFavorite, callback);
-    }
-
-    private void applyChangeFlags(List<TourActivity> favorites) {
-        Map<Long, FavoriteSnapshot> newSnapshotById = new HashMap<>();
-        for (TourActivity item : favorites) {
-            if (item.getId() == null) continue;
-            FavoriteSnapshot previous = lastSnapshotById.get(item.getId());
-            boolean priceChanged = previous != null && !safe(item.getPrice()).equals(previous.price);
-            boolean slotsChanged = previous != null && item.getAvailableSlots() != previous.slots;
-            item.setPriceChanged(priceChanged);
-            item.setSlotsChanged(slotsChanged);
-            item.setFavoriteUpdate(priceChanged || slotsChanged);
-            newSnapshotById.put(item.getId(), new FavoriteSnapshot(safe(item.getPrice()), item.getAvailableSlots()));
-        }
-        lastSnapshotById.clear();
-        lastSnapshotById.putAll(newSnapshotById);
-    }
-
-    private static String safe(String value) {
-        return value == null ? "" : value;
-    }
-
-    private static final class FavoriteSnapshot {
-        final String price;
-        final int slots;
-
-        FavoriteSnapshot(String price, int slots) {
-            this.price = price;
-            this.slots = slots;
-        }
+        });
     }
 }

@@ -1,10 +1,12 @@
 package com.example.myapplication.ui.home;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
@@ -12,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.TourActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
 
@@ -24,16 +27,22 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     private List<TourActivity> tourActivities;
     private final boolean isHorizontal;
     private final boolean isCompact;
+    private final boolean isFavoritesSection;
     private OnFavoriteToggleListener favoriteToggleListener;
 
     public TourAdapter(boolean isHorizontal) {
-        this(isHorizontal, isHorizontal);
+        this(isHorizontal, isHorizontal, false);
     }
 
     public TourAdapter(boolean isHorizontal, boolean isCompact) {
+        this(isHorizontal, isCompact, false);
+    }
+
+    public TourAdapter(boolean isHorizontal, boolean isCompact, boolean isFavoritesSection) {
         this.tourActivities = java.util.Collections.emptyList();
         this.isHorizontal = isHorizontal;
         this.isCompact = isCompact;
+        this.isFavoritesSection = isFavoritesSection;
     }
 
     public void updateData(List<TourActivity> newData) {
@@ -59,6 +68,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     }
 
     @Override
+    @SuppressLint("SetTextI18n")
     public void onBindViewHolder(@NonNull TourViewHolder holder, int position) {
         TourActivity activity = tourActivities.get(position);
         holder.name.setText(activity.getName());
@@ -85,19 +95,26 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         } else {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
             if (holder.description != null) holder.description.setText(activity.getDescription());
-            if (holder.language != null) holder.language.setText("Idioma: " + activity.getLanguage());
-            if (holder.guide != null) holder.guide.setText("Guía: " + activity.getGuideName());
-            if (holder.meetingPoint != null) holder.meetingPoint.setText("Encuentro: " + activity.getMeetingPoint());
+            if (holder.language != null) {
+                String langText = "Idioma: " + activity.getLanguage();
+                holder.language.setText(langText);
+            }
+            if (holder.guide != null) {
+                String guideText = "Guía: " + activity.getGuideName();
+                holder.guide.setText(guideText);
+            }
+            if (holder.meetingPoint != null) {
+                String meetingText = "Encuentro: " + activity.getMeetingPoint();
+                holder.meetingPoint.setText(meetingText);
+            }
             if (holder.includes != null) {
                 holder.includes.setText(formatList(activity.getWhatIncluded()));
             }
             if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
         }
 
-        String imageUrl = activity.getImageUrl();
-
         Glide.with(holder.itemView.getContext())
-                .load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
+                .load(activity.getImageUrl() != null && !activity.getImageUrl().isEmpty() ? activity.getImageUrl() : null)
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .centerCrop()
                 .into(holder.image);
@@ -117,20 +134,61 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             });
         }
 
-        if (holder.favoriteUpdateBadge != null) {
-            boolean hasUpdates = activity.hasFavoriteUpdate() || activity.isPriceChanged() || activity.isSlotsChanged();
-            holder.favoriteUpdateBadge.setVisibility(hasUpdates ? View.VISIBLE : View.GONE);
+        bindChips(holder, activity, soldOut);
+
+        if (holder.bookButton != null) {
+            if (isFavoritesSection) {
+                holder.bookButton.setVisibility(View.VISIBLE);
+                holder.bookButton.setEnabled(!soldOut);
+                holder.bookButton.setAlpha(soldOut ? 0.5f : 1f);
+            } else {
+                holder.bookButton.setVisibility(View.GONE);
+            }
         }
 
-        View.OnClickListener listener = v -> {
+        View.OnClickListener detailListener = v -> {
             Bundle bundle = new Bundle();
             bundle.putSerializable("activity_data", activity);
             Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
         };
 
-        holder.itemView.setOnClickListener(listener);
-        holder.image.setOnClickListener(listener);
-        holder.name.setOnClickListener(listener);
+        holder.itemView.setOnClickListener(detailListener);
+        holder.image.setOnClickListener(detailListener);
+        holder.name.setOnClickListener(detailListener);
+        if (holder.bookButton != null && isFavoritesSection) {
+            holder.bookButton.setOnClickListener(detailListener);
+        }
+    }
+
+    private void bindChips(TourViewHolder holder, TourActivity activity, boolean soldOut) {
+        if (holder.chipsContainer == null) return;
+
+        if (!isFavoritesSection) {
+            holder.chipsContainer.setVisibility(View.GONE);
+            return;
+        }
+
+        if (holder.chipSoldOut != null) holder.chipSoldOut.setVisibility(View.GONE);
+        if (holder.chipSlotsAvailable != null) holder.chipSlotsAvailable.setVisibility(View.GONE);
+        if (holder.chipNewPrice != null) holder.chipNewPrice.setVisibility(View.GONE);
+
+        boolean anyChipVisible = false;
+
+        if (soldOut) {
+            if (holder.chipSoldOut != null) holder.chipSoldOut.setVisibility(View.VISIBLE);
+            anyChipVisible = true;
+        } else {
+            if (activity.isSlotsChanged() && holder.chipSlotsAvailable != null) {
+                holder.chipSlotsAvailable.setVisibility(View.VISIBLE);
+                anyChipVisible = true;
+            }
+            if (activity.isPriceChanged() && holder.chipNewPrice != null) {
+                holder.chipNewPrice.setVisibility(View.VISIBLE);
+                anyChipVisible = true;
+            }
+        }
+
+        holder.chipsContainer.setVisibility(anyChipVisible ? View.VISIBLE : View.GONE);
     }
 
     private String formatList(String input) {
@@ -156,9 +214,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         ImageView image;
         TextView category, name, destination, duration, price, slots;
         TextView description, rating, language, guide, meetingPoint, includes, cancellation;
-        TextView favoriteUpdateBadge;
+        LinearLayout chipsContainer;
+        TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
         View detailedContainer;
         FloatingActionButton favoriteBtn;
+        MaterialButton bookButton;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -179,7 +239,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             includes = itemView.findViewById(R.id.activity_includes);
             cancellation = itemView.findViewById(R.id.activity_cancellation);
             favoriteBtn = itemView.findViewById(R.id.favorite_button);
-            favoriteUpdateBadge = itemView.findViewById(R.id.favorite_update_badge);
+            chipsContainer = itemView.findViewById(R.id.chips_container);
+            chipSoldOut = itemView.findViewById(R.id.chip_sold_out);
+            chipSlotsAvailable = itemView.findViewById(R.id.chip_slots_available);
+            chipNewPrice = itemView.findViewById(R.id.chip_new_price);
+            bookButton = itemView.findViewById(R.id.btn_book_now);
         }
     }
 }

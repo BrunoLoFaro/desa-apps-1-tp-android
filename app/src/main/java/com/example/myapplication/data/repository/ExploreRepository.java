@@ -106,7 +106,12 @@ public class ExploreRepository extends BaseRepository {
             activity.setFavorite(item.isFavorite);
             if (item.avgRating != null) activity.setRating(item.avgRating.floatValue());
             if (item.reviewCount != null) activity.setReviewsCount(item.reviewCount.intValue());
-
+            activity.setPriceChanged(item.hasPriceChange);
+            activity.setSlotsChanged(item.hasAvailabilityChange);
+            activity.setFavoriteUpdate(item.hasPriceChange || item.hasAvailabilityChange);
+            if (item.startDate != null && !item.startDate.isEmpty()) {
+                activity.setStartDate(FormatUtils.formatDate(item.startDate));
+            }
             result.add(activity);
         }
         return result;

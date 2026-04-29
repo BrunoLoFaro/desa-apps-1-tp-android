@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.home;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,8 +25,11 @@ import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
+import androidx.core.content.ContextCompat;
+import androidx.core.os.BundleCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.List;
@@ -33,7 +37,6 @@ import java.util.List;
 @AndroidEntryPoint
 public class DetailFragment extends Fragment {
 
-    private View rootView;
 
     private TourActivity tourActivity;
     private boolean fromHistory;
@@ -49,11 +52,16 @@ public class DetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            tourActivity = (TourActivity) getArguments().getSerializable("activity_data");
-            fromHistory = getArguments().getBoolean("from_history", false);
-            bookingStatus = getArguments().getString("booking_status");
-            if (getArguments().containsKey("booking_id")) {
-                bookingId = getArguments().getLong("booking_id");
+            // Guardar argumentos en una variable local para evitar llamadas repetidas
+            android.os.Bundle args = getArguments();
+            // Usar la variante tipada getSerializable(key, Class) para evitar API deprecated
+            if (args.containsKey("activity_data")) {
+                tourActivity = BundleCompat.getSerializable(args, "activity_data", TourActivity.class);
+            }
+            fromHistory = args.getBoolean("from_history", false);
+            bookingStatus = args.getString("booking_status");
+            if (args.containsKey("booking_id")) {
+                bookingId = args.getLong("booking_id");
             }
         }
     }
@@ -67,7 +75,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        rootView = view;
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
@@ -107,9 +114,9 @@ public class DetailFragment extends Fragment {
                     if (!value.isEmpty()) {
                         try {
                             participants = Integer.parseInt(value);
-                        } catch (NumberFormatException ignored) {
-                            participants = 1;
-                        }
+                                        } catch (NumberFormatException ignored) {
+                                            // mantener valor por defecto (1) en caso de parse inválido
+                                        }
                     }
                 }
                 if (participants < 1) {
@@ -138,7 +145,15 @@ public class DetailFragment extends Fragment {
         });
         createBookingViewModel.getBooking().observe(getViewLifecycleOwner(), booking -> {
             if (booking != null) {
-                android.widget.Toast.makeText(requireContext(), "Reserva creada", android.widget.Toast.LENGTH_SHORT).show();
+                Snackbar snackbar = Snackbar.make(
+                        requireActivity().findViewById(android.R.id.content),
+                        getString(R.string.booking_created_message),
+                        Snackbar.LENGTH_LONG);
+                snackbar.setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.md_theme_primary));
+                snackbar.setTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setAction(getString(R.string.booking_created_action), v -> {});
+                snackbar.show();
                 // refresca cupos/sesiones
                 if (tourActivity != null && tourActivity.getId() != null) {
                     detailViewModel.load(tourActivity.getId());
@@ -233,6 +248,7 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private void populateDetails(View root) {
         ImageView image = root.findViewById(R.id.activity_image);
         TextView category = root.findViewById(R.id.activity_category);
@@ -294,9 +310,18 @@ public class DetailFragment extends Fragment {
                 rating.setText(String.valueOf(tourActivity.getRating()));
             }
         }
-        if (language != null) language.setText("Idioma: " + tourActivity.getLanguage());
-        if (guide != null) guide.setText("Guía: " + tourActivity.getGuideName());
-        if (meetingPoint != null) meetingPoint.setText("Encuentro: " + tourActivity.getMeetingPoint());
+        if (language != null) {
+            String langText = "Idioma: " + tourActivity.getLanguage();
+            language.setText(langText);
+        }
+        if (guide != null) {
+            String guideText = "Guía: " + tourActivity.getGuideName();
+            guide.setText(guideText);
+        }
+        if (meetingPoint != null) {
+            String meetingText = "Encuentro: " + tourActivity.getMeetingPoint();
+            meetingPoint.setText(meetingText);
+        }
         if (includes != null) includes.setText(tourActivity.getWhatIncluded());
         if (cancellation != null) cancellation.setText(tourActivity.getCancellationPolicy());
 
@@ -338,7 +363,6 @@ public class DetailFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        rootView = null;
         sessionAdapter = null;
         detailViewModel = null;
         historyReviewViewModel = null;
