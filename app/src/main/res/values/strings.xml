@@ -252,7 +252,12 @@
     <string name="profile_preferences_hint">Seleccioná los tipos de actividades que más te interesan</string>
 
     <!-- Offline -->
-    <string name="offline_banner_message">Estás sin conexión. Mostramos la información guardada en tu dispositivo.</string>
+    <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+
+    <!-- Feature 10 - Maps -->
+    <string name="map_meeting_title">Mapa y punto de encuentro</string>
+    <string name="map_meeting_error">No se pudo ubicar el punto en el mapa.</string>
+    <string name="map_directions_button">Como llegar</string>
     <string name="bookings_empty_offline">Aún no tenemos información guardada. Conectate a internet para cargar tus actividades.</string>
     <string name="review_offline_error">Para calificar esta actividad necesitás conexión a internet.</string>
     <string name="detail_offline_cache_miss">Esta actividad no fue sincronizada antes de perder la conexión. Conectate a internet para ver el detalle completo.</string>
