@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.home;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.location.Address;
@@ -36,6 +37,8 @@ import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
+import androidx.core.content.ContextCompat;
+import androidx.core.os.BundleCompat;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -44,6 +47,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.io.IOException;
@@ -54,7 +58,6 @@ import java.util.Locale;
 @AndroidEntryPoint
 public class DetailFragment extends Fragment {
 
-    private View rootView;
 
     private TourActivity tourActivity;
     private boolean fromHistory;
@@ -80,12 +83,16 @@ public class DetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            tourActivity = (TourActivity) getArguments().getSerializable("activity_data");
-            fromHistory = getArguments().getBoolean("from_history", false);
-            fromBooking = getArguments().getBoolean("from_booking", false);
-            bookingStatus = getArguments().getString("booking_status");
-            if (getArguments().containsKey("booking_id")) {
-                bookingId = getArguments().getLong("booking_id");
+            // Guardar argumentos en una variable local para evitar llamadas repetidas
+            android.os.Bundle args = getArguments();
+            // Usar la variante tipada getSerializable(key, Class) para evitar API deprecated
+            if (args.containsKey("activity_data")) {
+                tourActivity = BundleCompat.getSerializable(args, "activity_data", TourActivity.class);
+            }
+            fromHistory = args.getBoolean("from_history", false);
+            bookingStatus = args.getString("booking_status");
+            if (args.containsKey("booking_id")) {
+                bookingId = args.getLong("booking_id");
             }
             if (getArguments().containsKey("activity_id")) {
                 activityIdFromArgs = getArguments().getLong("activity_id");
@@ -102,7 +109,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        rootView = view;
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
@@ -157,9 +163,9 @@ public class DetailFragment extends Fragment {
                     if (!value.isEmpty()) {
                         try {
                             participants = Integer.parseInt(value);
-                        } catch (NumberFormatException ignored) {
-                            participants = 1;
-                        }
+                                        } catch (NumberFormatException ignored) {
+                                            // mantener valor por defecto (1) en caso de parse inválido
+                                        }
                     }
                 }
                 if (participants < 1) {
@@ -188,6 +194,20 @@ public class DetailFragment extends Fragment {
         });
         createBookingViewModel.getBooking().observe(getViewLifecycleOwner(), booking -> {
             if (booking != null) {
+                Snackbar snackbar = Snackbar.make(
+                        requireActivity().findViewById(android.R.id.content),
+                        getString(R.string.booking_created_message),
+                        Snackbar.LENGTH_LONG);
+                snackbar.setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.md_theme_primary));
+                snackbar.setTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setAction(getString(R.string.booking_created_action), v -> {});
+                snackbar.show();
+                // refresca cupos/sesiones
+                if (tourActivity != null && tourActivity.getId() != null) {
+                    detailViewModel.load(tourActivity.getId());
+                }
+                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
                 selectedSession = null;
                 if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                 createBookingViewModel.clearBooking();
@@ -501,6 +521,7 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private void populateDetails(View root) {
         ImageView image = root.findViewById(R.id.activity_image);
         TextView category = root.findViewById(R.id.activity_category);
@@ -597,11 +618,20 @@ public class DetailFragment extends Fragment {
                 rating.setText(String.valueOf(tourActivity.getRating()));
             }
         }
-        if (language != null) language.setText("Idioma: " + nd(tourActivity.getLanguage()));
-        if (guide != null) guide.setText("Guía: " + nd(tourActivity.getGuideName()));
-        if (meetingPoint != null) meetingPoint.setText("Encuentro: " + nd(tourActivity.getMeetingPoint()));
-        if (includes != null) includes.setText(nd(tourActivity.getWhatIncluded()));
-        if (cancellation != null) cancellation.setText(nd(tourActivity.getCancellationPolicy()));
+        if (language != null) {
+            String langText = "Idioma: " + tourActivity.getLanguage();
+            language.setText(langText);
+        }
+        if (guide != null) {
+            String guideText = "Guía: " + tourActivity.getGuideName();
+            guide.setText(guideText);
+        }
+        if (meetingPoint != null) {
+            String meetingText = "Encuentro: " + tourActivity.getMeetingPoint();
+            meetingPoint.setText(meetingText);
+        }
+        if (includes != null) includes.setText(tourActivity.getWhatIncluded());
+        if (cancellation != null) cancellation.setText(tourActivity.getCancellationPolicy());
 
         if (image != null) {
             // Ajustar altura de imagen para detalle (opcional, como tenías en tu Activity)
@@ -670,7 +700,6 @@ public class DetailFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        rootView = null;
         sessionAdapter = null;
         detailViewModel = null;
         historyReviewViewModel = null;

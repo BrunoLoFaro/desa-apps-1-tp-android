@@ -35,7 +35,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -369,7 +368,9 @@ public class BookingsFragment extends Fragment {
     private List<BookingListItem> buildGroupedList(List<BookingResponse> bookings) {
         if (bookings == null || bookings.isEmpty()) return Collections.emptyList();
 
-        String todayStr = LocalDate.now().toString();
+        Calendar today = Calendar.getInstance();
+        String todayStr = String.format(Locale.US, "%04d-%02d-%02d",
+                today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1, today.get(Calendar.DAY_OF_MONTH));
 
         List<BookingResponse> todayItems = new ArrayList<>();
         List<BookingResponse> upcomingItems = new ArrayList<>();
@@ -425,12 +426,11 @@ public class BookingsFragment extends Fragment {
                 booking.activityName != null ? booking.activityName : "",
                 destination, "", duration, price, 1, null,
                 null, 0f, 0, null, booking.meetingPoint,
-                booking.guideName, null, booking.cancellationPolicy, null);
+                booking.guideName, null, booking.cancellationPolicy, false);
         if (booking.activityId != null) activity.setId(booking.activityId);
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", false);
-        args.putBoolean("from_booking", true);
+        args.putBoolean("from_history", true);
         args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
         if (booking.id != null) args.putLong("booking_id", booking.id);
         Navigation.findNavController(requireView())
@@ -455,12 +455,11 @@ public class BookingsFragment extends Fragment {
                 item.getPrice() != null ? item.getPrice() : "",
                 0, item.getImageUrl(),
                 null, 0f, 0, null, null,
-                item.getGuideName(), null, null, null);
+                item.getGuideName(), null, null, false);
         activity.setId(item.getActivityId());
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
         args.putBoolean("from_history", true);
-        args.putBoolean("from_booking", true);
         args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
         if (item.getId() != null) args.putLong("booking_id", item.getId());
         Navigation.findNavController(requireView())

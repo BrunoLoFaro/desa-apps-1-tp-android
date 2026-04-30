@@ -38,6 +38,9 @@
     <string name="price_from">desde</string>
     <string name="favorite_desc">Marcar como favorito</string>
     <string name="favorite_update_badge">Actualizada</string>
+    <string name="chip_sold_out">Sin cupos</string>
+    <string name="chip_slots_available">Se liberaron cupos</string>
+    <string name="chip_new_price">Nuevo precio</string>
 
     <string name="signup_title">Registrarse</string>
     <string name="signup_with_email_button">Registrarse con correo electrónico</string>
@@ -107,6 +110,7 @@
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
     <string name="error_load_activities">No se pudieron cargar las actividades.</string>
     <string name="error_load_favorites">No se pudieron cargar los favoritos.</string>
+    <string name="favorites_header_title">Mis favoritos</string>
     <string name="favorites_empty_title">No tienes favoritos</string>
     <string name="favorites_empty_subtitle">Tus actividades favoritas aparecerán aquí.</string>
     <string name="error_add_favorite">No se pudo agregar a favoritos.</string>
@@ -119,6 +123,8 @@
     <string name="error_internal_server">Ocurrió un error en el servidor. Por favor, reintentá más tarde.</string>
 
     <string name="book_now">Reservar</string>
+    <string name="booking_created_message">¡Actividad reservada exitosamente!</string>
+    <string name="booking_created_action">OK</string>
     <string name="participants_hint">Participantes</string>
 
     <string name="bookings_filter_all">Todas</string>
@@ -182,6 +188,10 @@
     <string name="history_filter_clear">Limpiar</string>
     <string name="history_filter_search">Buscar</string>
     <string name="history_guide_prefix">Guía: %s</string>
+    <!-- Activity detail formatted labels -->
+    <string name="activity_language_format">Idioma: %s</string>
+    <string name="activity_guide_format">Guía: %s</string>
+    <string name="activity_meeting_point_format">Encuentro: %s</string>
     <string name="profile_no_completed_activities">Sin actividades finalizadas.</string>
 
     <!-- Experience section -->

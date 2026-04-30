@@ -72,11 +72,20 @@ public class TourRepository extends BaseRepository {
         enqueue(activityService.getFavorites(), new RepositoryCallback<List<ActivitySummaryResponse>>() {
             @Override
             public void onSuccess(List<ActivitySummaryResponse> data) {
+                android.util.Log.d("TourRepository", "getFavorites raw count: " + (data != null ? data.size() : "null"));
+                if (data != null && !data.isEmpty()) {
+                    ActivitySummaryResponse first = data.get(0);
+                    android.util.Log.d("TourRepository", "first item → id=" + first.id
+                            + " name=" + first.name
+                            + " imageUrl=" + first.imageUrl
+                            + " destination=" + (first.destination != null ? first.destination.name : "null"));
+                }
                 callback.onSuccess(ExploreRepository.mapToTourActivities(data));
             }
 
             @Override
             public void onError(UiMessage error) {
+                android.util.Log.e("TourRepository", "getFavorites error: " + error);
                 callback.onError(error);
             }
         }, R.string.error_load_favorites);
@@ -255,13 +264,13 @@ public class TourRepository extends BaseRepository {
                 e.description != null ? e.description : "",
                 e.avgRating,
                 e.reviewCount,
-                e.includesText != null ? e.includesText : "",
-                e.meetingPoint != null ? e.meetingPoint : "",
-                e.guideName != null ? e.guideName : "",
-                e.language != null ? e.language : "",
-                e.cancellationPolicy != null ? e.cancellationPolicy : "",
-                null
-        );
+                 e.includesText != null ? e.includesText : "",
+                 e.meetingPoint != null ? e.meetingPoint : "",
+                 e.guideName != null ? e.guideName : "",
+                 e.language != null ? e.language : "",
+                 e.cancellationPolicy != null ? e.cancellationPolicy : "",
+                 false
+         );
         a.setId(e.id);
         return a;
     }

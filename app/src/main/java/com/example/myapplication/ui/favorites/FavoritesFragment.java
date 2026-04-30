@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
-import com.example.myapplication.ui.home.TourAdapter;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -28,7 +27,7 @@ public class FavoritesFragment extends Fragment {
     private LinearLayout emptyView;
     private ProgressBar progressBar;
     private FavoritesViewModel viewModel;
-    private TourAdapter adapter;
+    private FavoritesAdapter adapter;
 
     @Nullable
     @Override
@@ -50,11 +49,7 @@ public class FavoritesFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new TourAdapter(false, true);
-        adapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
-            if (activity.getId() == null) return;
-            viewModel.toggleFavorite(activity.getId(), targetFavorite);
-        });
+        adapter = new FavoritesAdapter(activity -> viewModel.toggleFavorite(activity.getId(), false));
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewFavorites.setAdapter(adapter);
     }

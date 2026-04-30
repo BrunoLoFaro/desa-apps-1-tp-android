@@ -136,8 +136,7 @@ public class DetailViewModel extends ViewModel {
                 safe(data.meetingPoint),
                 guideName,
                 safe(data.language),
-                safe(data.cancellationPolicy),
-                null
+                safe(data.cancellationPolicy)
         );
         activity.setId(data.id);
         activity.setFavorite(data.isFavorite);

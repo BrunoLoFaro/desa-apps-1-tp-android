@@ -39,6 +39,17 @@ public class ActivitySummaryResponse {
     @Json(name = "isFavorite")
     public boolean isFavorite;
 
+    @Json(name = "hasPriceChange")
+    public boolean hasPriceChange;
+
+    @Json(name = "hasAvailabilityChange")
+    public boolean hasAvailabilityChange;
+
+    @Json(name = "startDate")
+    public String startDate;
+
+    @Json(name = "startTime")
+    public String startTime;
     @Json(name = "discountPercentage")
     public Integer discountPercentage;
 }
