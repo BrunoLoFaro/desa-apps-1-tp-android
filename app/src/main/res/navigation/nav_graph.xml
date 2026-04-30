@@ -189,6 +189,30 @@
         tools:layout="@layout/fragment_favorites" />
 
     <fragment
+        android:id="@+id/newsFragment"
+        android:name="com.example.myapplication.ui.home.NewsFragment"
+        android:label="Noticias"
+        tools:layout="@layout/fragment_news">
+        <action
+            android:id="@+id/action_newsFragment_to_newsDetailFragment"
+            app:destination="@id/newsDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/newsDetailFragment"
+        android:name="com.example.myapplication.ui.home.NewsDetailFragment"
+        android:label="Detalle de Noticia"
+        tools:layout="@layout/fragment_news_detail">
+        <argument
+            android:name="news_id"
+            app:argType="long" />
+        <argument
+            android:name="related_activity_id"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <fragment
         android:id="@+id/detailFragment"
         android:name="com.example.myapplication.ui.home.DetailFragment"
         android:label="Detail"
@@ -196,6 +220,10 @@
         <argument
             android:name="activity_data"
             app:argType="com.example.myapplication.data.model.TourActivity" />
+        <argument
+            android:name="activity_id"
+            app:argType="long"
+            android:defaultValue="-1L" />
         <action
             android:id="@+id/action_detailFragment_to_voucherFragment"
             app:destination="@id/voucherFragment" />

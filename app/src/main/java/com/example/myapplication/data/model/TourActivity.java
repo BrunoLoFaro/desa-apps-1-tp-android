@@ -16,16 +16,19 @@ public class TourActivity implements Serializable {
     private int reviewsCount;
 
     // Nuevos campos según la consigna
-    private final String whatIncluded;
-    private final String meetingPoint;
-    private final String guideName;
-    private final String language;
-    private final String cancellationPolicy;
+    private String whatIncluded;
+    private String meetingPoint;
+    private String guideName;
+    private String language;
+    private String cancellationPolicy;
+    private List<String> galleryUrls;
+    private List<ItineraryPoint> itineraryPoints;
     private boolean isFavorite;
     private boolean favoriteUpdate;
     private boolean priceChanged;
     private boolean slotsChanged;
     private String startDate;
+    private Integer discountPercentage;
 
     public TourActivity(String name, String destination, String category, String duration,
                         String price, int availableSlots, String imageUrl) {
@@ -62,6 +65,8 @@ public class TourActivity implements Serializable {
         this.guideName = guideName;
         this.language = language;
         this.cancellationPolicy = cancellationPolicy;
+        this.galleryUrls = galleryUrls;
+        this.itineraryPoints = null;
         this.isFavorite = isFavorite;
         this.favoriteUpdate = false;
         this.priceChanged = false;
@@ -87,6 +92,9 @@ public class TourActivity implements Serializable {
     public String getGuideName() { return guideName; }
     public String getLanguage() { return language; }
     public String getCancellationPolicy() { return cancellationPolicy; }
+    public List<String> getGalleryUrls() { return galleryUrls; }
+    public List<ItineraryPoint> getItineraryPoints() { return itineraryPoints; }
+    public void setItineraryPoints(List<ItineraryPoint> itineraryPoints) { this.itineraryPoints = itineraryPoints; }
     public boolean isFavorite() { return isFavorite; }
     public void setFavorite(boolean favorite) { isFavorite = favorite; }
     public boolean hasFavoriteUpdate() { return favoriteUpdate; }
@@ -97,4 +105,6 @@ public class TourActivity implements Serializable {
     public void setSlotsChanged(boolean slotsChanged) { this.slotsChanged = slotsChanged; }
     public String getStartDate() { return startDate; }
     public void setStartDate(String startDate) { this.startDate = startDate; }
+    public Integer getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
 }

@@ -139,6 +139,8 @@ public class ExploreRepository extends BaseRepository {
             if (item.startDate != null && !item.startDate.isEmpty()) {
                 activity.setStartDate(FormatUtils.formatDate(item.startDate));
             }
+            if (item.discountPercentage != null) activity.setDiscountPercentage(item.discountPercentage);
+
             result.add(activity);
         }
         return result;

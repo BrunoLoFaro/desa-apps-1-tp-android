@@ -28,6 +28,9 @@ public class ActivityDetailResponse {
     @Json(name = "meetingPoint")
     public String meetingPoint;
 
+    @Json(name = "itineraryPoints")
+    public List<ItineraryPointResponse> itineraryPoints;
+
     @Json(name = "guide")
     public GuideResponse guide;
 
@@ -60,4 +63,7 @@ public class ActivityDetailResponse {
 
     @Json(name = "isFavorite")
     public boolean isFavorite;
+
+    @Json(name = "discountPercentage")
+    public Integer discountPercentage;
 }

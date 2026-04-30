@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+import java.util.Properties
+
 android {
     namespace = "com.example.myapplication"
     compileSdk = 35
@@ -17,6 +19,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Google Maps API key (define MAPS_API_KEY in local.properties; do not commit it)
+        val localProperties = Properties().apply {
+            val localFile = rootProject.file("local.properties")
+            if (localFile.exists()) {
+                localFile.inputStream().use { load(it) }
+            }
+        }
+        val mapsApiKey = (project.findProperty("MAPS_API_KEY") as String?)
+            ?: localProperties.getProperty("MAPS_API_KEY")
+            ?: System.getenv("MAPS_API_KEY")
+            ?: ""
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -75,6 +90,9 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:$nav_version")
     implementation("androidx.navigation:navigation-ui:$nav_version")
 
+    // SwipeRefreshLayout
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
@@ -104,6 +122,9 @@ dependencies {
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+
+    // Google Maps (Feature 10)
+    implementation(libs.play.services.maps)
 
     testImplementation(libs.junit)
     testImplementation("androidx.arch.core:core-testing:2.2.0")
