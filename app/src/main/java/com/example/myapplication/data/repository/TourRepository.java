@@ -264,13 +264,13 @@ public class TourRepository extends BaseRepository {
                 e.description != null ? e.description : "",
                 e.avgRating,
                 e.reviewCount,
-                e.includesText != null ? e.includesText : "",
-                e.meetingPoint != null ? e.meetingPoint : "",
-                e.guideName != null ? e.guideName : "",
-                e.language != null ? e.language : "",
-                e.cancellationPolicy != null ? e.cancellationPolicy : "",
-                null
-        );
+                 e.includesText != null ? e.includesText : "",
+                 e.meetingPoint != null ? e.meetingPoint : "",
+                 e.guideName != null ? e.guideName : "",
+                 e.language != null ? e.language : "",
+                 e.cancellationPolicy != null ? e.cancellationPolicy : "",
+                 false
+         );
         a.setId(e.id);
         return a;
     }

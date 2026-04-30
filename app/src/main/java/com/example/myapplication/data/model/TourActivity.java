@@ -1,6 +1,7 @@
 package com.example.myapplication.data.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class TourActivity implements Serializable {
     private Long id;
@@ -65,7 +66,7 @@ public class TourActivity implements Serializable {
         this.guideName = guideName;
         this.language = language;
         this.cancellationPolicy = cancellationPolicy;
-        this.galleryUrls = galleryUrls;
+        this.galleryUrls = null;
         this.itineraryPoints = null;
         this.isFavorite = isFavorite;
         this.favoriteUpdate = false;
