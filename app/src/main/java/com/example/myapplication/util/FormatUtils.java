@@ -44,4 +44,11 @@ public final class FormatUtils {
         if (iso == null || iso.length() < 10) return iso != null ? iso : "";
         return iso.substring(0, 10);
     }
+
+    /** Extrae solo la hora "HH:mm" de un ISO timestamp. */
+    public static String extractTime(String iso) {
+        if (iso == null) return "";
+        String s = formatStartTime(iso);
+        return s.length() >= 16 ? s.substring(11, 16) : "";
+    }
 }

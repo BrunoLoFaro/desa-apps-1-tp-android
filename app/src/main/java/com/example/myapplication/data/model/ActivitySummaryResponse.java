@@ -50,4 +50,6 @@ public class ActivitySummaryResponse {
 
     @Json(name = "startTime")
     public String startTime;
+    @Json(name = "discountPercentage")
+    public Integer discountPercentage;
 }

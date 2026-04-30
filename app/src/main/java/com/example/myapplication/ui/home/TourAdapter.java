@@ -75,8 +75,38 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.destination.setText(activity.getDestination());
         holder.category.setText(activity.getCategory().toUpperCase());
         holder.duration.setText(activity.getDuration());
-        holder.price.setText(activity.getPrice());
         boolean soldOut = activity.getAvailableSlots() <= 0;
+        
+        // Handle discount pricing
+        // API price is the ORIGINAL price. Discounted price = original * (1 - discount/100)
+        if (activity.getDiscountPercentage() != null && activity.getDiscountPercentage() > 0) {
+            String priceStr = activity.getPrice();
+            if (priceStr != null && priceStr.startsWith("$")) {
+                try {
+                    double originalPrice = Double.parseDouble(priceStr.substring(1));
+                    double discountedPrice = originalPrice * (1 - activity.getDiscountPercentage() / 100.0);
+
+                    holder.originalPrice.setText(String.format("$%.2f", originalPrice));
+                    holder.originalPrice.setVisibility(View.VISIBLE);
+                    holder.price.setText(String.format("$%.2f", discountedPrice));
+
+                    holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
+                    holder.discountBadge.setVisibility(View.VISIBLE);
+                } catch (NumberFormatException e) {
+                    holder.originalPrice.setVisibility(View.GONE);
+                    holder.discountBadge.setVisibility(View.GONE);
+                    holder.price.setText(activity.getPrice());
+                }
+            } else {
+                holder.originalPrice.setVisibility(View.GONE);
+                holder.discountBadge.setVisibility(View.GONE);
+                holder.price.setText(activity.getPrice());
+            }
+        } else {
+            holder.originalPrice.setVisibility(View.GONE);
+            holder.discountBadge.setVisibility(View.GONE);
+            holder.price.setText(activity.getPrice());
+        }
         holder.slots.setText(soldOut
                 ? holder.itemView.getContext().getString(R.string.sold_out)
                 : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
@@ -213,6 +243,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     static class TourViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
         TextView category, name, destination, duration, price, slots;
+        TextView originalPrice, discountBadge;
         TextView description, rating, language, guide, meetingPoint, includes, cancellation;
         LinearLayout chipsContainer;
         TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
@@ -228,6 +259,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             destination = itemView.findViewById(R.id.activity_destination);
             duration = itemView.findViewById(R.id.activity_duration);
             price = itemView.findViewById(R.id.activity_price);
+            originalPrice = itemView.findViewById(R.id.original_price);
+            discountBadge = itemView.findViewById(R.id.discount_badge);
             slots = itemView.findViewById(R.id.activity_slots);
 
             detailedContainer = itemView.findViewById(R.id.detailed_info_container);

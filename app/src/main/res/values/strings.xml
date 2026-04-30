@@ -31,7 +31,7 @@
     <string name="nav_home">Inicio</string>
     <string name="nav_explore">Explorar</string>
     <string name="nav_favorites">Favoritos</string>
-    <string name="nav_bookings">Mis Reservas</string>
+    <string name="nav_bookings">Mis Actividades</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
     <string name="sold_out">Sin cupos</string>
@@ -133,6 +133,23 @@
     <string name="bookings_filter_cancelled">Canceladas</string>
 
     <string name="review_button">Calificar</string>
+    <string name="voucher_title">Mi reserva</string>
+    <string name="voucher_confirmed">¡Reserva confirmada!</string>
+    <string name="voucher_confirmed_subtitle">Tu actividad está reservada.</string>
+    <string name="voucher_code_label">Código de reserva</string>
+    <string name="voucher_code_hint">Mostrá este código el día de la actividad</string>
+    <string name="voucher_save_title">Guardá este código</string>
+    <string name="voucher_save_subtitle">Lo vas a necesitar para el check-in.</string>
+    <string name="voucher_label_datetime">Fecha y hora</string>
+    <string name="voucher_label_duration">Duración</string>
+    <string name="voucher_label_guide">Guía</string>
+    <string name="voucher_label_participants">Participantes</string>
+    <string name="voucher_label_price">Precio total</string>
+    <string name="voucher_download_button">Descargar voucher</string>
+    <string name="voucher_button">Ver voucher</string>
+    <string name="voucher_participants">%d participante(s)</string>
+    <string name="voucher_pdf_saved">Voucher guardado en Descargas</string>
+    <string name="voucher_pdf_error">No se pudo generar el PDF</string>
     <string name="review_title">Calificar</string>
     <string name="review_send">Enviar</string>
     <string name="review_cancel">Cancelar</string>
@@ -141,6 +158,7 @@
     <string name="review_comment_hint">Comentario (opcional)</string>
     <string name="review_error_activity_required">Seleccioná una calificación para la actividad.</string>
     <string name="review_thanks">¡Gracias por tu reseña!</string>
+    <string name="error_review_already_exists">Ya calificaste esta actividad.</string>
 
     <string name="no_reviews">Sin reseñas</string>
 
@@ -188,9 +206,18 @@
     <string name="bookings_tab_historial">Historial</string>
     <string name="bookings_empty_activas">No tenés reservas activas.</string>
     <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+
+    <!-- Mensaje especial para historial nunca sincronizado offline -->
+    <string name="bookings_empty_historial_never_synced">No hay datos de actividades porque nunca se sincronizó el historial con conexión a internet.</string>
     <string name="bookings_section_hoy">Hoy</string>
     <string name="bookings_section_proximas">Próximas</string>
     <string name="booking_badge_upcoming">Próximo</string>
+    <string name="status_confirmed">Confirmada</string>
+    <string name="status_completed">Finalizada</string>
+    <string name="status_cancelled">Cancelada</string>
+    <string name="status_pending_cancel">Cancelación pendiente</string>
+        <string name="cancel_booking_pending_alert">La cancelación está pendiente de sincronización. Se procesará cuando recuperes la conexión.</string>
+    <string name="status_pending">Pendiente</string>
 
     <!-- Profile activity summary -->
     <string name="profile_section_summary">Resumen de actividades</string>
@@ -232,6 +259,24 @@
     <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
     <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
 
+    <string name="profile_preferences_hint">Seleccioná los tipos de actividades que más te interesan</string>
+
     <!-- Offline -->
     <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+
+    <!-- Feature 10 - Maps -->
+    <string name="map_meeting_title">Mapa y punto de encuentro</string>
+    <string name="map_meeting_error">No se pudo ubicar el punto en el mapa.</string>
+    <string name="map_directions_button">Como llegar</string>
+    <string name="bookings_empty_offline">Aún no tenemos información guardada. Conectate a internet para cargar tus actividades.</string>
+    <string name="review_offline_error">Para calificar esta actividad necesitás conexión a internet.</string>
+    <string name="detail_offline_cache_miss">Esta actividad no fue sincronizada antes de perder la conexión. Conectate a internet para ver el detalle completo.</string>
+    <string name="no_data">No disponible</string>
+    <string name="booking_cancelled_by_server">Una o más reservas fueron canceladas. El listado fue actualizado.</string>
+    <string name="cancel_booking_offline_queued">Registramos tu solicitud de cancelación. La procesaremos automáticamente cuando vuelvas a tener conexión.</string>
+    <string name="cancel_booking_offline_modal">Tu cancelación se procesará automáticamente cuando vuelvas a tener conexión.</string>
+    <string name="cancel_sync_error">No pudimos procesar la cancelación. Intentá nuevamente.</string>
+
+    <!-- Voucher -->
+    <string name="voucher_label_meeting_point">Punto de encuentro</string>
 </resources>
