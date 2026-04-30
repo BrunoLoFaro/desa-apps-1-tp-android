@@ -42,6 +42,20 @@
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
                 android:textStyle="bold" />
 
+            <!-- Status badge -->
+            <TextView
+                android:id="@+id/summary_status_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_badge_upcoming"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <!-- Destination -->
             <TextView
                 android:id="@+id/summary_destination"
@@ -114,12 +128,27 @@
 
             </LinearLayout>
 
-            <!-- Ver detalle button (right-aligned) -->
+            <!-- Buttons row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:orientation="horizontal"
                 android:gravity="end">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/summary_review_button"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/review_button"
+                    android:visibility="gone"
+                    app:cornerRadius="20dp"
+                    android:paddingHorizontal="12dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:textSize="12sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/summary_detail_button"
@@ -127,7 +156,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/booking_detail_button"
-                    app:cornerRadius="20dp" />
+                    app:cornerRadius="20dp"
+                    android:paddingHorizontal="12dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 

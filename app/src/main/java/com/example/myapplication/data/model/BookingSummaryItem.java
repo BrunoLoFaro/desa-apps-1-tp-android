@@ -12,11 +12,13 @@ public class BookingSummaryItem {
     private final int durationMinutes;
     private final String imageUrl;
     private final String time;
+    private final boolean canReview;
+    private final String sessionStartTime;
 
     public BookingSummaryItem(Long id, Long activityId, String activityName, String status,
                               String date, String price,
                               String destination, String guideName, int durationMinutes,
-                              String imageUrl, String time) {
+                              String imageUrl, String time, boolean canReview, String sessionStartTime) {
         this.id = id;
         this.activityId = activityId;
         this.activityName = activityName;
@@ -28,6 +30,8 @@ public class BookingSummaryItem {
         this.durationMinutes = durationMinutes;
         this.imageUrl = imageUrl;
         this.time = time;
+        this.canReview = canReview;
+        this.sessionStartTime = sessionStartTime;
     }
 
     public Long getId() { return id; }
@@ -41,4 +45,6 @@ public class BookingSummaryItem {
     public int getDurationMinutes() { return durationMinutes; }
     public String getImageUrl() { return imageUrl; }
     public String getTime() { return time; }
+    public boolean isCanReview() { return canReview; }
+    public String getSessionStartTime() { return sessionStartTime; }
 }

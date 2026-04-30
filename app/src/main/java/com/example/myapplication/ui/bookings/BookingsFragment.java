@@ -6,8 +6,6 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +27,8 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
+import com.example.myapplication.util.MainThreadUtils;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -51,6 +51,7 @@ public class BookingsFragment extends Fragment {
     private BookingsViewModel viewModel;
     private View offlineBanner;
     private ConnectivityManager.NetworkCallback networkCallback;
+    private SwipeRefreshLayout swipeRefresh;
 
     // Activas views
     private View sectionActivas;
@@ -70,6 +71,13 @@ public class BookingsFragment extends Fragment {
     private TextInputEditText filterToDate;
     private MaterialButton btnBuscar;
     private MaterialButton btnLimpiar;
+
+    // Mis Calificaciones views
+    private View sectionReviews;
+    private RecyclerView reviewsRecycler;
+    private ProgressBar reviewsLoading;
+    private TextView reviewsEmpty;
+    private ReviewAdapter reviewAdapter;
 
     @Nullable
     @Override
@@ -99,6 +107,7 @@ public class BookingsFragment extends Fragment {
 
     private void bindViews(@NonNull View view) {
         offlineBanner     = view.findViewById(R.id.offline_banner);
+        swipeRefresh      = view.findViewById(R.id.swipe_refresh);
         sectionActivas    = view.findViewById(R.id.section_activas);
         activasRecycler   = view.findViewById(R.id.bookings_recycler_view);
         activasLoading    = view.findViewById(R.id.bookings_loading_spinner);
@@ -114,16 +123,28 @@ public class BookingsFragment extends Fragment {
         filterToDate      = view.findViewById(R.id.filter_to_date);
         btnBuscar         = view.findViewById(R.id.btn_buscar);
         btnLimpiar        = view.findViewById(R.id.btn_limpiar);
+
+        sectionReviews    = view.findViewById(R.id.section_mis_calificaciones);
+        reviewsRecycler   = view.findViewById(R.id.reviews_recycler_view);
+        reviewsLoading    = view.findViewById(R.id.reviews_loading_spinner);
+        reviewsEmpty      = view.findViewById(R.id.reviews_empty_text);
     }
 
     private void setupAdapters(@NonNull View view) {
-        bookingAdapter = new BookingAdapter(b -> viewModel.cancelBooking(b.id), this::showReviewDialog);
+        bookingAdapter = new BookingAdapter(this::showCancelDialog, b -> showReviewDialog(b.id, b.activityName));
         bookingAdapter.setOnDetailClickListener(this::navigateToDetail);
+        bookingAdapter.setOnVoucherClickListener(this::navigateToVoucher);
         activasRecycler.setAdapter(bookingAdapter);
 
         summaryAdapter = new ActivitySummaryAdapter();
         summaryAdapter.setOnItemClickListener(this::navigateToHistoryDetail);
+        summaryAdapter.setOnReviewClickListener(this::showReviewDialogForSummary);
         historialRecycler.setAdapter(summaryAdapter);
+
+        reviewAdapter = new ReviewAdapter();
+        reviewsRecycler.setAdapter(reviewAdapter);
+
+        swipeRefresh.setOnRefreshListener(() -> viewModel.loadMyBookings("CONFIRMED"));
     }
 
     private void setupFilters() {
@@ -177,18 +198,22 @@ public class BookingsFragment extends Fragment {
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.bookings_tab_activas));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.bookings_tab_historial));
+        tabLayout.addTab(tabLayout.newTab().setText("Mis Calificaciones"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                viewModel.setSelectedTab(tab.getPosition());
-                if (tab.getPosition() == 0) {
-                    sectionActivas.setVisibility(View.VISIBLE);
-                    sectionHistorial.setVisibility(View.GONE);
-                } else {
-                    sectionActivas.setVisibility(View.GONE);
-                    sectionHistorial.setVisibility(View.VISIBLE);
+                int pos = tab.getPosition();
+                viewModel.setSelectedTab(pos);
+                
+                sectionActivas.setVisibility(pos == 0 ? View.VISIBLE : View.GONE);
+                sectionHistorial.setVisibility(pos == 1 ? View.VISIBLE : View.GONE);
+                sectionReviews.setVisibility(pos == 2 ? View.VISIBLE : View.GONE);
+
+                if (pos == 1) {
                     viewModel.loadHistorialIfNeeded();
+                } else if (pos == 2) {
+                    viewModel.loadMyReviewsIfNeeded();
                 }
             }
 
@@ -197,21 +222,29 @@ public class BookingsFragment extends Fragment {
         });
 
         int savedTab = viewModel.getSelectedTab();
-        if (savedTab == 1) {
-            TabLayout.Tab tab = tabLayout.getTabAt(1);
+        if (savedTab >= 0 && savedTab < tabLayout.getTabCount()) {
+            TabLayout.Tab tab = tabLayout.getTabAt(savedTab);
             if (tab != null) tab.select();
         }
     }
 
     private void observeViewModel(@NonNull View view) {
         viewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
-            activasLoading.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE);
+            boolean isLoading = Boolean.TRUE.equals(loading);
+            activasLoading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            if (!isLoading && swipeRefresh != null) swipeRefresh.setRefreshing(false);
         });
 
         viewModel.getBookings().observe(getViewLifecycleOwner(), bookings -> {
             List<BookingListItem> grouped = buildGroupedList(bookings);
             bookingAdapter.updateData(grouped);
             boolean empty = bookings == null || bookings.isEmpty();
+            if (empty) {
+                boolean offline = Boolean.TRUE.equals(viewModel.isOffline().getValue());
+                activasEmpty.setText(offline
+                        ? R.string.bookings_empty_offline
+                        : R.string.bookings_empty_activas);
+            }
             activasEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
             activasRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
         });
@@ -221,10 +254,41 @@ public class BookingsFragment extends Fragment {
         });
 
         viewModel.getHistorial().observe(getViewLifecycleOwner(), items -> {
+            if (items == null) return;
             summaryAdapter.updateData(items);
-            boolean empty = items == null || items.isEmpty();
-            historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+            boolean empty = items.isEmpty();
+            // El mensaje se decide abajo según neverSynced
             historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        });
+
+        viewModel.isMyReviewsLoading().observe(getViewLifecycleOwner(), loading -> {
+            reviewsLoading.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE);
+        });
+
+        viewModel.getMyReviews().observe(getViewLifecycleOwner(), reviews -> {
+            reviewAdapter.updateData(reviews);
+            boolean empty = reviews == null || reviews.isEmpty();
+            reviewsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+            reviewsRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        });
+
+        viewModel.isHistorialNeverSynced().observe(getViewLifecycleOwner(), neverSynced -> {
+            boolean show = false;
+            if (Boolean.TRUE.equals(neverSynced)) {
+                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
+                show = (items == null || items.isEmpty());
+            }
+            if (show) {
+                historialEmpty.setText(R.string.bookings_empty_historial_never_synced);
+                historialEmpty.setVisibility(View.VISIBLE);
+                historialRecycler.setVisibility(View.GONE);
+            } else {
+                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
+                boolean empty = (items == null || items.isEmpty());
+                historialEmpty.setText(R.string.bookings_empty_historial);
+                historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+                historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+            }
         });
 
         viewModel.getAvailableDestinations().observe(getViewLifecycleOwner(), destinations -> {
@@ -248,9 +312,29 @@ public class BookingsFragment extends Fragment {
             }
         });
 
+        viewModel.isShowOfflineCancelModal().observe(getViewLifecycleOwner(), show -> {
+            if (Boolean.TRUE.equals(show)) {
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setMessage(R.string.cancel_booking_offline_modal)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                viewModel.clearOfflineCancelModal();
+            }
+        });
+
         viewModel.isOffline().observe(getViewLifecycleOwner(), offline -> {
+            boolean isOffline = Boolean.TRUE.equals(offline);
             if (offlineBanner != null) {
-                offlineBanner.setVisibility(Boolean.TRUE.equals(offline) ? View.VISIBLE : View.GONE);
+                offlineBanner.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            }
+            if (bookingAdapter != null) {
+                bookingAdapter.setOffline(isOffline);
+            }
+            // Si la lista ya está vacía, actualizar el texto según el nuevo estado de red
+            if (activasEmpty != null && activasEmpty.getVisibility() == View.VISIBLE) {
+                activasEmpty.setText(isOffline
+                        ? R.string.bookings_empty_offline
+                        : R.string.bookings_empty_activas);
             }
         });
     }
@@ -262,14 +346,14 @@ public class BookingsFragment extends Fragment {
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
-                new Handler(Looper.getMainLooper()).post(() -> {
+                MainThreadUtils.post(() -> {
                     if (isAdded()) viewModel.onConnectivityChanged(true);
                 });
             }
 
             @Override
             public void onLost(Network network) {
-                new Handler(Looper.getMainLooper()).post(() -> {
+                MainThreadUtils.post(() -> {
                     if (isAdded()) viewModel.onConnectivityChanged(false);
                 });
             }
@@ -333,29 +417,51 @@ public class BookingsFragment extends Fragment {
     // ── Navigation ────────────────────────────────────────────────────────────
 
     private void navigateToDetail(BookingResponse booking) {
-        if (booking.activityId == null) return;
+        String destination = booking.destination != null ? booking.destination.name : "";
+        String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
+        String price = booking.currency != null
+                ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
         TourActivity activity = new TourActivity(
                 booking.activityName != null ? booking.activityName : "",
-                "", "", "", "", 0, null);
-        activity.setId(booking.activityId);
+                destination, "", duration, price, 1, null,
+                null, 0f, 0, null, booking.meetingPoint,
+                booking.guideName, null, booking.cancellationPolicy, null);
+        if (booking.activityId != null) activity.setId(booking.activityId);
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
         args.putBoolean("from_history", false);
         args.putBoolean("from_booking", true);
+        args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
+        if (booking.id != null) args.putLong("booking_id", booking.id);
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
     }
 
+    private void navigateToVoucher(BookingResponse booking) {
+        if (booking.id == null) return;
+        Bundle args = new Bundle();
+        args.putLong("bookingId", booking.id);
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_bookingsFragment_to_voucherFragment, args);
+    }
+
     private void navigateToHistoryDetail(BookingSummaryItem item) {
         if (item.getActivityId() == null) return;
+        String duration = item.getDurationMinutes() > 0 ? item.getDurationMinutes() + " min" : "";
         TourActivity activity = new TourActivity(
-                item.getActivityName(), "", "", "", "", 0, item.getImageUrl());
+                item.getActivityName() != null ? item.getActivityName() : "",
+                item.getDestination() != null ? item.getDestination() : "",
+                "", duration,
+                item.getPrice() != null ? item.getPrice() : "",
+                0, item.getImageUrl(),
+                null, 0f, 0, null, null,
+                item.getGuideName(), null, null, null);
         activity.setId(item.getActivityId());
         Bundle args = new Bundle();
         args.putSerializable("activity_data", activity);
         args.putBoolean("from_history", true);
         args.putBoolean("from_booking", true);
-        args.putString("booking_status", "COMPLETED");
+        args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
         if (item.getId() != null) args.putLong("booking_id", item.getId());
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
@@ -387,6 +493,7 @@ public class BookingsFragment extends Fragment {
             networkCallback = null;
         }
         offlineBanner     = null;
+        swipeRefresh      = null;
         sectionActivas    = null;
         activasRecycler   = null;
         activasLoading    = null;
@@ -402,11 +509,35 @@ public class BookingsFragment extends Fragment {
         filterToDate      = null;
         btnBuscar         = null;
         btnLimpiar        = null;
+        sectionReviews    = null;
+        reviewsRecycler   = null;
+        reviewsLoading    = null;
+        reviewsEmpty      = null;
+        reviewAdapter     = null;
         super.onDestroyView();
     }
 
-    private void showReviewDialog(BookingResponse booking) {
+    private void showCancelDialog(BookingResponse booking) {
         if (booking == null || booking.id == null) return;
+        String policy = (booking.cancellationPolicy != null && !booking.cancellationPolicy.isEmpty())
+                ? booking.cancellationPolicy
+                : getString(R.string.cancel_booking_policy_unknown);
+        String name = booking.activityName != null ? booking.activityName : "";
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.cancel_booking_title)
+                .setMessage(getString(R.string.cancel_booking_message, name, policy))
+                .setPositiveButton(R.string.cancel_booking_confirm, (d, w) -> viewModel.cancelBooking(booking.id))
+                .setNegativeButton(R.string.cancel_booking_back, null)
+                .show();
+    }
+
+    private void showReviewDialogForSummary(BookingSummaryItem item) {
+        if (item == null) return;
+        showReviewDialog(item.getId(), item.getActivityName());
+    }
+
+    private void showReviewDialog(Long bookingId, String name) {
+        if (bookingId == null) return;
 
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_review, null);
         RatingBar activityRating = dialogView.findViewById(R.id.review_activity_rating);
@@ -414,7 +545,7 @@ public class BookingsFragment extends Fragment {
         TextInputEditText commentInput = dialogView.findViewById(R.id.review_comment_input);
 
         String title = getString(R.string.review_title);
-        String activityName = booking.activityName != null ? booking.activityName.trim() : "";
+        String activityName = name != null ? name.trim() : "";
         if (!activityName.isEmpty()) title = activityName;
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
@@ -440,7 +571,7 @@ public class BookingsFragment extends Fragment {
                 if (!raw.isEmpty()) comment = raw;
             }
 
-            viewModel.submitReview(booking.id, a, guide, comment);
+            viewModel.submitReview(bookingId, a, guide, comment);
             dialog.dismiss();
         });
     }

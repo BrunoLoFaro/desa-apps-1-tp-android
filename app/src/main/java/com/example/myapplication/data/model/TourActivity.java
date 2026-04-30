@@ -28,6 +28,7 @@ public class TourActivity implements Serializable {
     private boolean favoriteUpdate;
     private boolean priceChanged;
     private boolean slotsChanged;
+    private Integer discountPercentage;
 
     public TourActivity(String name, String destination, String category, String duration,
                         String price, int availableSlots, String imageUrl) {
@@ -103,4 +104,6 @@ public class TourActivity implements Serializable {
     public void setPriceChanged(boolean priceChanged) { this.priceChanged = priceChanged; }
     public boolean isSlotsChanged() { return slotsChanged; }
     public void setSlotsChanged(boolean slotsChanged) { this.slotsChanged = slotsChanged; }
+    public Integer getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
 }

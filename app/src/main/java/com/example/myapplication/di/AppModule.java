@@ -7,19 +7,21 @@ import com.example.myapplication.BuildConfig;
 import com.example.myapplication.data.config.AppConfig;
 import com.example.myapplication.data.config.ConfigLoader;
 import com.example.myapplication.data.local.AppDatabase;
+import com.example.myapplication.data.local.CachedActivityDao;
 import com.example.myapplication.data.local.OfflineBookingDao;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.data.network.AuthService;
 import com.example.myapplication.data.network.BookingService;
 import com.example.myapplication.data.network.CatalogMetaService;
+import com.example.myapplication.data.network.NewsService;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
-import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -89,8 +91,10 @@ public class AppModule {
 
             String refreshToken = sessionManager.getRefreshToken();
             if (refreshToken == null || refreshToken.isEmpty()) {
-                Log.d(TAG, "401 sin refresh token disponible. Forzando logout.");
-                sessionManager.triggerForceLogout();
+                if (sessionManager.getAccessToken() != null) {
+                    Log.d(TAG, "401 sin refresh token disponible. Forzando logout.");
+                    sessionManager.triggerForceLogout();
+                }
                 return null;
             }
 
@@ -221,8 +225,15 @@ public class AppModule {
 
     @Provides
     @Singleton
+    static NewsService provideNewsService(Retrofit retrofit) {
+        return retrofit.create(NewsService.class);
+    }
+
+    @Provides
+    @Singleton
     static AppDatabase provideDatabase(@ApplicationContext Context context) {
         return Room.databaseBuilder(context, AppDatabase.class, "xplorenow_db")
+                .addMigrations(AppDatabase.MIGRATION_4_5)
                 .fallbackToDestructiveMigration()
                 .build();
     }
@@ -231,5 +242,11 @@ public class AppModule {
     @Singleton
     static OfflineBookingDao provideOfflineBookingDao(AppDatabase db) {
         return db.offlineBookingDao();
+    }
+
+    @Provides
+    @Singleton
+    static CachedActivityDao provideCachedActivityDao(AppDatabase db) {
+        return db.cachedActivityDao();
     }
 }

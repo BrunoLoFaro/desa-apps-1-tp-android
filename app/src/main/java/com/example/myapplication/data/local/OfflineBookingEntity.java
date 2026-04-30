@@ -24,4 +24,6 @@ public class OfflineBookingEntity {
     public String cancelledAt;
     public boolean canReview;
     public boolean pendingCancel;
+    public String voucherCode;
+    public String meetingPoint;
 }
