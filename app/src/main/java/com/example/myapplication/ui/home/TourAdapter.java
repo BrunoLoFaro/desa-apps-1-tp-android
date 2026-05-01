@@ -136,11 +136,15 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
             // Reduce visual whitespace for compact cards
-            int compactImageDp = 160;
-            int compactPaddingBottomDp = 12;
-            int compactPaddingTopDp = 8;
-            int compactPaddingHorDp = 12;
-            int compactFooterTopDp = 8;
+            int compactImageDp = 145;
+            int compactPaddingBottomDp = 10;
+            int compactPaddingTopDp = 6;
+            int compactPaddingHorDp = 10;
+            int compactFooterTopDp = 4;
+            int compactRowTopDp = 12;
+            int compactTitleTopDp = 4;
+            int compactDestinationTopDp = 6;
+            int compactDurationTopDp = 4;
             int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
             holder.image.getLayoutParams().height = imgH;
             holder.image.requestLayout();
@@ -149,6 +153,26 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                 int padT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
                 int padB = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingBottomDp, holder.itemView.getContext().getResources().getDisplayMetrics());
                 holder.mainContentLayout.setPadding(padL, padT, padL, padB);
+            }
+            if (holder.category != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.category.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactRowTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.category.setLayoutParams(lp);
+            }
+            if (holder.name != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.name.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactTitleTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.name.setLayoutParams(lp);
+            }
+            if (holder.destination != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.destination.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactDestinationTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.destination.setLayoutParams(lp);
+            }
+            if (holder.duration != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.duration.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactDurationTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.duration.setLayoutParams(lp);
             }
             if (holder.footerContent != null) {
                 int padTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactFooterTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
