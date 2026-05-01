@@ -24,6 +24,24 @@
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
     <string name="error_invalid_credentials">Las credenciales son incorrectas. Verificá tu correo y contraseña.</string>
 
+    <!-- Biometric enroll -->
+    <string name="biometric_enroll_title">Acceso rápido con huella</string>
+    <string name="biometric_enroll_description">Activá la huella para iniciar sesión más rápido y de forma segura.</string>
+    <string name="biometric_enroll_activate">Activar huella</string>
+    <string name="biometric_enroll_skip">Omitir</string>
+    <string name="biometric_enroll_icon_desc">Ícono de huella digital</string>
+    <string name="biometric_prompt_title">XploreNow</string>
+    <string name="biometric_prompt_subtitle">Confirmá tu huella para activar el acceso rápido</string>
+    <string name="biometric_enroll_failed">No se pudo verificar la huella. Intentá de nuevo.</string>
+    <string name="biometric_enroll_error">No se pudo iniciar la autenticación biométrica.</string>
+    <string name="login_biometric_button_text">Ingresar con huella</string>
+    <string name="biometric_login_prompt_subtitle">Confirmá tu huella para ingresar</string>
+    <string name="biometric_login_failed">No se pudo verificar la huella. Intentá de nuevo.</string>
+    <string name="biometric_login_error">No se pudo iniciar el acceso con huella.</string>
+    <string name="profile_enable_biometric">Activar acceso con huella</string>
+    <string name="profile_disable_biometric">Desactivar acceso con huella</string>
+    <string name="profile_logout">Cerrar sesión</string>
+
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
     <string name="home_featured_title">Recomendados para ti</string>

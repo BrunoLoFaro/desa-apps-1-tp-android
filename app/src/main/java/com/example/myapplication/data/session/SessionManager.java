@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
+import com.example.myapplication.util.BiometricHelper;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
@@ -33,11 +34,13 @@ public class SessionManager {
     private static final String KEY_PENDING_PHOTO_URI   = "pending_photo_uri";
     private static final String KEY_PENDING_CATEGORIES  = "pending_categories";
 
+    private final Context appContext;
     private final SharedPreferences preferences;
     private final MutableLiveData<Boolean> _forceLogout = new MutableLiveData<>(false);
 
     @Inject
     public SessionManager(@ApplicationContext Context context) {
+        this.appContext = context.getApplicationContext();
         try {
             MasterKey masterKey = new MasterKey.Builder(context)
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -111,7 +114,11 @@ public class SessionManager {
     public boolean hasValidSession() {
         String token = getAccessToken();
         if (token == null || token.trim().isEmpty()) return false;
-        return !isTokenExpired(token);
+        boolean expired = isTokenExpired(token);
+        if (expired) {
+            BiometricHelper.setBiometricEnabled(appContext, false);
+        }
+        return !expired;
     }
 
     public void saveProfilePhotoUri(String uri) {
@@ -183,6 +190,7 @@ public class SessionManager {
      */
     public void triggerForceLogout() {
         clearSession();
+        BiometricHelper.setBiometricEnabled(appContext, false);
         _forceLogout.postValue(true);
     }
 

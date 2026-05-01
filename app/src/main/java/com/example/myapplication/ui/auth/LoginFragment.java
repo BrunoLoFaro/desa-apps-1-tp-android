@@ -8,15 +8,20 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.ui.auth.viewmodel.LoginViewModel;
+import com.example.myapplication.util.BiometricHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
+import java.util.concurrent.Executor;
 
 @AndroidEntryPoint
 public class LoginFragment extends BaseAuthFragment {
@@ -26,12 +31,14 @@ public class LoginFragment extends BaseAuthFragment {
     private TextInputEditText emailEditText;
     private TextInputEditText passwordEditText;
     private MaterialButton loginButton;
+    private MaterialButton biometricLoginButton;
     private MaterialButton forgotPasswordButton;
     private MaterialButton otpLoginButton;
     private MaterialButton signUpButton;
     private CircularProgressIndicator progressIndicator;
 
     private LoginViewModel viewModel;
+    private boolean biometricPromptShownOnce;
 
     @Nullable
     @Override
@@ -47,6 +54,7 @@ public class LoginFragment extends BaseAuthFragment {
         emailEditText = view.findViewById(R.id.email_edit_text);
         passwordEditText = view.findViewById(R.id.password_edit_text);
         loginButton = view.findViewById(R.id.login_button);
+        biometricLoginButton = view.findViewById(R.id.biometric_login_button);
         forgotPasswordButton = view.findViewById(R.id.forgot_password_button);
         otpLoginButton = view.findViewById(R.id.otp_login_button);
         signUpButton = view.findViewById(R.id.sign_up_button);
@@ -57,6 +65,7 @@ public class LoginFragment extends BaseAuthFragment {
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         loginButton.setOnClickListener(v -> attemptLogin());
+        biometricLoginButton.setOnClickListener(v -> showBiometricLoginPrompt());
         forgotPasswordButton.setOnClickListener(v ->
                 navController.navigate(R.id.action_loginFragment_to_forgotPasswordRequestFragment));
         otpLoginButton.setOnClickListener(v ->
@@ -84,8 +93,17 @@ public class LoginFragment extends BaseAuthFragment {
             }
         });
 
-        if (viewModel.hasValidSession()) {
-            navigateToHome();
+        boolean hasSession = viewModel.hasValidSession();
+        if (hasSession && shouldOfferBiometricLogin()) {
+            biometricLoginButton.setVisibility(View.VISIBLE);
+            if (savedInstanceState == null && !biometricPromptShownOnce) {
+                biometricPromptShownOnce = true;
+                showBiometricLoginPrompt();
+            }
+            return;
+        }
+        if (hasSession) {
+            navigateToHomeDirect();
         }
     }
 
@@ -105,6 +123,56 @@ public class LoginFragment extends BaseAuthFragment {
 
     @Override
     protected void navigateToHome() {
+        if (BiometricHelper.shouldShowEnrollment(requireContext())) {
+            navController.navigate(R.id.action_loginFragment_to_biometricEnrollFragment);
+        } else {
+            navigateToHomeDirect();
+        }
+    }
+
+    private boolean shouldOfferBiometricLogin() {
+        if (!BiometricHelper.isBiometricEnabled(requireContext())) return false;
+        int authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG
+                | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+        return BiometricManager.from(requireContext()).canAuthenticate(authenticators)
+                == BiometricManager.BIOMETRIC_SUCCESS;
+    }
+
+    private void showBiometricLoginPrompt() {
+        Executor executor = ContextCompat.getMainExecutor(requireContext());
+
+        BiometricPrompt.AuthenticationCallback callback = new BiometricPrompt.AuthenticationCallback() {
+            @Override
+            public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                super.onAuthenticationSucceeded(result);
+                navigateToHomeDirect();
+            }
+
+            @Override
+            public void onAuthenticationFailed() {
+                super.onAuthenticationFailed();
+                showError(getString(R.string.biometric_login_failed));
+            }
+
+            @Override
+            public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                super.onAuthenticationError(errorCode, errString);
+                showError(errString != null ? errString.toString() : getString(R.string.biometric_login_error));
+            }
+        };
+
+        BiometricPrompt prompt = new BiometricPrompt(this, executor, callback);
+        int authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG
+                | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setSubtitle(getString(R.string.biometric_login_prompt_subtitle))
+                .setAllowedAuthenticators(authenticators)
+                .build();
+        prompt.authenticate(promptInfo);
+    }
+
+    private void navigateToHomeDirect() {
         navController.navigate(R.id.action_loginFragment_to_homeFragment);
     }
 
@@ -147,6 +215,7 @@ public class LoginFragment extends BaseAuthFragment {
         emailEditText = null;
         passwordEditText = null;
         loginButton = null;
+        biometricLoginButton = null;
         forgotPasswordButton = null;
         otpLoginButton = null;
         signUpButton = null;

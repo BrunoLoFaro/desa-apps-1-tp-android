@@ -22,6 +22,11 @@
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
         <action
+            android:id="@+id/action_loginFragment_to_biometricEnrollFragment"
+            app:destination="@id/biometricEnrollFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
             android:id="@+id/action_loginFragment_to_forgotPasswordRequestFragment"
             app:destination="@id/forgotPasswordRequestFragment" />
     </fragment>
@@ -53,6 +58,11 @@
         <action
             android:id="@+id/action_otpSignupCodeFragment_to_homeFragment"
             app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_otpSignupCodeFragment_to_biometricEnrollFragment"
+            app:destination="@id/biometricEnrollFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -128,6 +138,27 @@
             app:destination="@id/homeFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_forgotPasswordNewPasswordFragment_to_biometricEnrollFragment"
+            app:destination="@id/biometricEnrollFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/biometricEnrollFragment"
+        android:name="com.example.myapplication.ui.auth.BiometricEnrollFragment"
+        android:label="Biometric Enroll"
+        tools:layout="@layout/fragment_biometric_enroll">
+        <argument
+            android:name="origin"
+            app:argType="string"
+            android:defaultValue="auth" />
+        <action
+            android:id="@+id/action_biometricEnrollFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/biometricEnrollFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -175,6 +206,9 @@
         <action
             android:id="@+id/action_profileFragment_to_bookingsFragment"
             app:destination="@id/bookingsFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_biometricEnrollFragment"
+            app:destination="@id/biometricEnrollFragment" />
     </fragment>
 
     <fragment
