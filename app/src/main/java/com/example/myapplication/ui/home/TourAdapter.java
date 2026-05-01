@@ -19,6 +19,7 @@ import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.util.TypedValue;
+import android.widget.FrameLayout;
 import java.util.List;
 
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
@@ -69,6 +70,12 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
             params.setMargins(0, 0, 32, 0);
             view.setLayoutParams(params);
+        } else if (isCompact) {
+            // For vertical compact layout (Explore), reduce FrameLayout height
+            FrameLayout frameLayout = (FrameLayout) view;
+            int compactVerticalHeightDp = 380;
+            int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactVerticalHeightDp, parent.getContext().getResources().getDisplayMetrics());
+            frameLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, heightPx));
         }
         return new TourViewHolder(view);
     }
