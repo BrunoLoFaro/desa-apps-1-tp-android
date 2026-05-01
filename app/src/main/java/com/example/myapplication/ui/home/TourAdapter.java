@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.home;
 
 import android.annotation.SuppressLint;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.TourActivity;
+import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
@@ -86,9 +88,10 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                     double originalPrice = Double.parseDouble(priceStr.substring(1));
                     double discountedPrice = originalPrice * (1 - activity.getDiscountPercentage() / 100.0);
 
-                    holder.originalPrice.setText(String.format("$%.2f", originalPrice));
+                    holder.originalPrice.setText(FormatUtils.formatPrice(originalPrice, "ARS"));
+                    holder.originalPrice.setPaintFlags(holder.originalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                     holder.originalPrice.setVisibility(View.VISIBLE);
-                    holder.price.setText(String.format("$%.2f", discountedPrice));
+                    holder.price.setText(FormatUtils.formatPrice(discountedPrice, "ARS"));
 
                     holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
                     holder.discountBadge.setVisibility(View.VISIBLE);

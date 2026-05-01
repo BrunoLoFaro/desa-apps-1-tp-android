@@ -49,20 +49,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
             return;
         }
 
-        View searchBarCard = view.findViewById(R.id.search_bar_card);
-        EditText searchEditText = view.findViewById(R.id.search_edit_text);
-        View.OnClickListener openExplore = v -> {
-            if (navController.getCurrentDestination() != null
-                    && navController.getCurrentDestination().getId() == R.id.exploreFragment) {
-                return;
-            }
-            navController.navigate(R.id.exploreFragment);
-        };
-        if (searchBarCard != null) searchBarCard.setOnClickListener(openExplore);
-        if (searchEditText != null) {
-            searchEditText.setOnClickListener(openExplore);
-        }
-
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
         featuredRecycler.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
