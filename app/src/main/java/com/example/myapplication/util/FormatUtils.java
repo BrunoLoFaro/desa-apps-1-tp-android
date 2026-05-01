@@ -9,8 +9,7 @@ public final class FormatUtils {
     public static String formatPrice(double price, String currency) {
         if (price <= 0) return "Gratis";
         String symbol = "ARS".equals(currency) ? "$" : (currency != null ? currency + " " : "");
-        // Format with thousands separator and no decimals
-        return symbol + String.format(Locale.US, "%,.0f", price).replace(",", ".");
+        return symbol + String.format(Locale.US, "%.2f", price);
     }
 
     public static String formatShortDate(String isoDate) {

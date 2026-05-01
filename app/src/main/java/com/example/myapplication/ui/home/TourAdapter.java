@@ -50,18 +50,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     }
 
     public void updateData(List<TourActivity> newData) {
-        // Filter out activities with no available slots for compact/explore view
-        if (isCompact && newData != null) {
-            List<TourActivity> filtered = new java.util.ArrayList<>();
-            for (TourActivity activity : newData) {
-                if (activity.getAvailableSlots() > 0) {
-                    filtered.add(activity);
-                }
-            }
-            this.tourActivities = filtered;
-        } else {
-            this.tourActivities = newData;
-        }
+        this.tourActivities = newData;
         notifyDataSetChanged();
     }
 
