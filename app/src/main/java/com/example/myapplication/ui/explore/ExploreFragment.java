@@ -17,8 +17,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.DestinationResponse;
+import com.example.myapplication.util.ConnectivityUtils;
 import com.example.myapplication.ui.explore.viewmodel.ExploreViewModel;
 import com.example.myapplication.ui.home.TourAdapter;
+import com.example.myapplication.ui.main.MainViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -183,7 +185,7 @@ public class ExploreFragment extends Fragment {
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
             }
         });
@@ -267,6 +269,21 @@ public class ExploreFragment extends Fragment {
         // initial load
         viewModel.loadMeta();
         viewModel.loadFirstPage();
+
+        View offlineState = view.findViewById(R.id.offline_state);
+        View filterContainer = view.findViewById(R.id.filter_container);
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            if (filterContainer != null) filterContainer.setVisibility(isOffline ? View.GONE : View.VISIBLE);
+            if (!isOffline && wasOffline[0]) {
+                viewModel.loadMeta();
+                viewModel.loadFirstPage();
+            }
+            wasOffline[0] = isOffline;
+        });
     }
 
     private static boolean isValidDecimal(String value) {

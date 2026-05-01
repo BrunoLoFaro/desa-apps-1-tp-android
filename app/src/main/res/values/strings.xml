@@ -281,6 +281,7 @@
 
     <!-- Offline -->
     <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+    <string name="offline_no_connection">No hay conexión a internet</string>
 
     <!-- Feature 10 - Maps -->
     <string name="map_meeting_title">Mapa y punto de encuentro</string>

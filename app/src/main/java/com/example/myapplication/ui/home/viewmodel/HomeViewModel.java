@@ -7,8 +7,6 @@ import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
 import com.example.myapplication.data.local.CachedActivityDao;
 import com.example.myapplication.data.local.CachedActivityEntity;
-import com.example.myapplication.data.local.OfflineBookingDao;
-import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
@@ -28,8 +26,6 @@ public class HomeViewModel extends ViewModel {
 
     private final SessionRepository sessionRepository;
     private final TourRepository tourRepository;
-    private final ProfileImageManager profileImageManager;
-    private final OfflineBookingDao offlineBookingDao;
     private final CachedActivityDao cachedActivityDao;
     private final Executor dbExecutor = Executors.newSingleThreadExecutor();
 
@@ -41,12 +37,9 @@ public class HomeViewModel extends ViewModel {
 
     @Inject
     public HomeViewModel(SessionRepository sessionRepository, TourRepository tourRepository,
-                         ProfileImageManager profileImageManager, OfflineBookingDao offlineBookingDao,
                          CachedActivityDao cachedActivityDao) {
         this.sessionRepository = sessionRepository;
         this.tourRepository = tourRepository;
-        this.profileImageManager = profileImageManager;
-        this.offlineBookingDao = offlineBookingDao;
         this.cachedActivityDao = cachedActivityDao;
         refreshTours();
     }
@@ -58,13 +51,6 @@ public class HomeViewModel extends ViewModel {
 
     public boolean hasValidSession() {
         return sessionRepository.hasValidSession();
-    }
-
-    public void logout() {
-        long userId = sessionRepository.getUserId();
-        profileImageManager.delete(userId);
-        sessionRepository.clearSession();
-        dbExecutor.execute(() -> offlineBookingDao.deleteAllByUser(userId));
     }
 
     public void reloadRecommended() {

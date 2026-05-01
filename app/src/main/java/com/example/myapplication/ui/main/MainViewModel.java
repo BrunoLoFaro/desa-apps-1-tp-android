@@ -1,6 +1,6 @@
 package com.example.myapplication.ui.main;
 
-import android.content.Context;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.myapplication.data.common.RepositoryCallback;
 import com.example.myapplication.data.common.UiMessage;
@@ -11,9 +11,8 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.SessionRepository;
 import com.example.myapplication.data.repository.TourRepository;
-import com.example.myapplication.util.ConnectivityUtils;
+import com.example.myapplication.util.NetworkMonitor;
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -23,22 +22,29 @@ public class MainViewModel extends ViewModel {
     private final BookingRepository bookingRepository;
     private final ProfileRepository profileRepository;
     private final TourRepository tourRepository;
+    private final NetworkMonitor networkMonitor;
 
     @Inject
     public MainViewModel(BookingRepository bookingRepository,
                          ProfileRepository profileRepository,
                          SessionRepository sessionRepository,
                          TourRepository tourRepository,
-                         @ApplicationContext Context context) {
+                         NetworkMonitor networkMonitor) {
         this.bookingRepository = bookingRepository;
         this.profileRepository = profileRepository;
         this.tourRepository = tourRepository;
+        this.networkMonitor = networkMonitor;
 
-        if (sessionRepository.hasValidSession() && ConnectivityUtils.isOnline(context)) {
+        if (sessionRepository.hasValidSession() && networkMonitor.isCurrentlyOnline()) {
             syncBookings();
             syncHistorial();
             syncActivities();
         }
+    }
+
+    /** Observe from any fragment to react to connectivity changes without registering callbacks. */
+    public LiveData<Boolean> isOnline() {
+        return networkMonitor.isOnline();
     }
 
     private void syncBookings() {
