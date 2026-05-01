@@ -64,18 +64,14 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
-            // Ensure fixed height for horizontal carousel items to keep uniform card heights
-            int heightDp = isCompact ? 460 : 600;
-            int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightDp, parent.getContext().getResources().getDisplayMetrics());
-            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, RecyclerView.LayoutParams.MATCH_PARENT);
             params.setMargins(0, 0, 32, 0);
             view.setLayoutParams(params);
         } else if (isCompact) {
-            // For vertical compact layout (Explore), reduce FrameLayout height
-            FrameLayout frameLayout = (FrameLayout) view;
-            int compactVerticalHeightDp = 520;
-            int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactVerticalHeightDp, parent.getContext().getResources().getDisplayMetrics());
-            frameLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, heightPx));
+            view.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            ));
         }
         return new TourViewHolder(view);
     }
@@ -91,7 +87,6 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         boolean soldOut = activity.getAvailableSlots() <= 0;
         
         // Handle discount pricing
-        // API price is the ORIGINAL price. Discounted price = original * (1 - discount/100)
         if (activity.getDiscountPercentage() != null && activity.getDiscountPercentage() > 0) {
             String priceStr = activity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
@@ -104,29 +99,36 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                     holder.originalPrice.setVisibility(View.VISIBLE);
                     holder.price.setText(FormatUtils.formatPrice(discountedPrice, "ARS"));
 
-                    holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
+                    holder.discountBadge.setText((int)activity.getDiscountPercentage() + "% OFF");
                     holder.discountBadge.setVisibility(View.VISIBLE);
                 } catch (NumberFormatException e) {
                     holder.originalPrice.setText(activity.getPrice());
                     holder.originalPrice.setVisibility(View.INVISIBLE);
-                    holder.discountBadge.setText("");
                     holder.discountBadge.setVisibility(View.INVISIBLE);
                     holder.price.setText(activity.getPrice());
                 }
             } else {
-                holder.originalPrice.setText(activity.getPrice());
                 holder.originalPrice.setVisibility(View.INVISIBLE);
-                holder.discountBadge.setText("");
                 holder.discountBadge.setVisibility(View.INVISIBLE);
                 holder.price.setText(activity.getPrice());
             }
         } else {
-            holder.originalPrice.setText(activity.getPrice());
+            // Ensure even base price is formatted (no decimals)
+            String priceStr = activity.getPrice();
+            if (priceStr != null && priceStr.startsWith("$")) {
+                try {
+                    double val = Double.parseDouble(priceStr.substring(1));
+                    holder.price.setText(FormatUtils.formatPrice(val, "ARS"));
+                } catch (Exception e) {
+                    holder.price.setText(priceStr);
+                }
+            } else {
+                holder.price.setText(priceStr);
+            }
             holder.originalPrice.setVisibility(View.INVISIBLE);
-            holder.discountBadge.setText("");
             holder.discountBadge.setVisibility(View.INVISIBLE);
-            holder.price.setText(activity.getPrice());
         }
+        
         holder.slots.setText(soldOut
                 ? holder.itemView.getContext().getString(R.string.sold_out)
                 : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));

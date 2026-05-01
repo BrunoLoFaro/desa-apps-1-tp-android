@@ -9,7 +9,7 @@ public final class FormatUtils {
     public static String formatPrice(double price, String currency) {
         if (price <= 0) return "Gratis";
         String symbol = "ARS".equals(currency) ? "$" : (currency != null ? currency + " " : "");
-        return symbol + String.format(Locale.US, "%.2f", price);
+        return symbol + String.format(Locale.US, "%.0f", price);
     }
 
     public static String formatShortDate(String isoDate) {
