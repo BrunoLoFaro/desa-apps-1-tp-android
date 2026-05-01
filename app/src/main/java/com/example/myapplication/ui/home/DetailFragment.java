@@ -3,6 +3,7 @@ package com.example.myapplication.ui.home;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -37,6 +38,7 @@ import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
+import com.example.myapplication.util.FormatUtils;
 import androidx.core.content.ContextCompat;
 import androidx.core.os.BundleCompat;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -563,12 +565,13 @@ public class DetailFragment extends Fragment {
                     double basePrice = Double.parseDouble(priceStr.substring(1));
                     double discountedPrice = basePrice * (1 - tourActivity.getDiscountPercentage() / 100.0);
                     if (originalPrice != null) {
-                        originalPrice.setText(String.format("$%.2f", basePrice));
+                        originalPrice.setText(FormatUtils.formatPrice(basePrice, "ARS"));
+                        originalPrice.setPaintFlags(originalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                         originalPrice.setVisibility(View.VISIBLE);
                     }
-                    price.setText(String.format("$%.2f", discountedPrice));
+                    price.setText(FormatUtils.formatPrice(discountedPrice, "ARS"));
                     if (discountBadge != null) {
-                        discountBadge.setText(tourActivity.getDiscountPercentage() + "% OFF");
+                        discountBadge.setText((int) tourActivity.getDiscountPercentage() + "% OFF");
                         discountBadge.setVisibility(View.VISIBLE);
                     }
                 } catch (NumberFormatException e) {
