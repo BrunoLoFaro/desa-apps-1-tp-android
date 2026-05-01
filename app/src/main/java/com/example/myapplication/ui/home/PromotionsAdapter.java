@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.NewsItem;
 import java.text.SimpleDateFormat;
+import java.text.Normalizer;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -61,10 +62,12 @@ public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.Pr
         
         // Load image
         String imageUrl = promotion.imageUrl;
-        if (imageUrl != null && !imageUrl.isEmpty()) {
+        String fallbackImageUrl = getFallbackImageUrl(promotion.title);
+        if ((imageUrl != null && !imageUrl.isEmpty()) || fallbackImageUrl != null) {
             Glide.with(holder.itemView.getContext())
-                    .load(imageUrl)
+                    .load((imageUrl != null && !imageUrl.isEmpty()) ? imageUrl : fallbackImageUrl)
                     .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_gallery)
                     .centerCrop()
                     .into(holder.image);
         } else {
@@ -127,6 +130,21 @@ public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.Pr
         } catch (Exception e) {
             return dateString;
         }
+    }
+
+    private String getFallbackImageUrl(String title) {
+        if (title == null) return null;
+        String normalized = Normalizer.normalize(title, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
+        if (normalized.contains("rutas de trekking") || normalized.contains("bariloche")) {
+            return "https://picsum.photos/seed/bariloche-trekking/1200/800";
+        }
+        if (normalized.contains("ballenas") || normalized.contains("puerto madryn")) {
+            return "https://picsum.photos/seed/puerto-madryn-ballenas/1200/800";
+        }
+        return null;
     }
 
     /**
