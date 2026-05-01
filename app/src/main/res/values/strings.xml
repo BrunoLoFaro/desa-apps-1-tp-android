@@ -181,6 +181,16 @@
     <string name="no_reviews">Sin reseñas</string>
 
     <!-- Profile -->
+    <string name="phone_code_hint">Código</string>
+    <string name="phone_number_hint">Número de teléfono</string>
+    <string name="phone_helper_text">Ingresá tu número de teléfono</string>
+    <string name="phone_country_picker_title">Seleccionar país</string>
+    <string name="phone_country_search_hint">Buscar país</string>
+    <string name="error_phone_country_required">Seleccioná el código de país.</string>
+    <string name="error_phone_number_required">Ingresá el número de teléfono.</string>
+    <string name="error_phone_exact_digits">El número debe tener %1$d dígitos.</string>
+    <string name="error_phone_range_digits">El número debe tener entre %1$d y %2$d dígitos.</string>
+    <string name="error_phone_missing_prefix">El número debe comenzar con %1$s.</string>
     <string name="profile_title">Mi perfil</string>
     <string name="profile_section_personal">Datos personales</string>
     <string name="profile_section_preferences">Mis preferencias</string>
