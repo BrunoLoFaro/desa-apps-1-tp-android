@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -28,6 +29,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -87,7 +89,6 @@ public class BookingsFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(BookingsViewModel.class);
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
         bindViews(view);
         setupAdapters(view);
@@ -306,7 +307,14 @@ public class BookingsFragment extends Fragment {
 
         viewModel.getMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null) {
-                Toast.makeText(requireContext(), msg.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+                Snackbar snackbar = Snackbar.make(
+                        requireActivity().findViewById(android.R.id.content),
+                        msg.resolve(requireContext()),
+                        Snackbar.LENGTH_LONG);
+                snackbar.setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.md_theme_primary));
+                snackbar.setTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.show();
                 viewModel.clearMessage();
             }
         });
