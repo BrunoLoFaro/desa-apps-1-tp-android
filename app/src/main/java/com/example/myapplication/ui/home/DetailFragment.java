@@ -119,16 +119,44 @@ public class DetailFragment extends Fragment {
         RecyclerView sessionsRecycler = view.findViewById(R.id.sessions_recycler_view);
         sessionsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         View bookingCard = view.findViewById(R.id.booking_card);
-        TextInputEditText participantsInput = view.findViewById(R.id.participants_input);
         MaterialButton bookButton = view.findViewById(R.id.book_button);
+        TextView participantsCountView = view.findViewById(R.id.participants_count);
+        MaterialButton btnDecrease = view.findViewById(R.id.btn_decrease);
+        MaterialButton btnIncrease = view.findViewById(R.id.btn_increase);
+        final int[] count = {1};
+
+        if (btnDecrease != null) {
+            btnDecrease.setOnClickListener(v -> {
+                if (count[0] > 1) {
+                    count[0]--;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                    int max = selectedSession != null && selectedSession.availableSpots > 0
+                            ? selectedSession.availableSpots : Integer.MAX_VALUE;
+                    if (btnIncrease != null) btnIncrease.setEnabled(count[0] < max);
+                }
+            });
+        }
+
+        if (btnIncrease != null) {
+            btnIncrease.setOnClickListener(v -> {
+                int max = selectedSession != null && selectedSession.availableSpots > 0
+                        ? selectedSession.availableSpots : Integer.MAX_VALUE;
+                if (count[0] < max) {
+                    count[0]++;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                    btnIncrease.setEnabled(count[0] < max);
+                }
+            });
+        }
 
         sessionAdapter = new SessionAdapter(session -> {
             if (fromHistory || fromBooking) return;
             selectedSession = session;
-            if (bookingCard != null) bookingCard.setVisibility(View.VISIBLE);
-            if (bookButton != null) {
-                bookButton.setEnabled(session.availableSpots > 0);
-            }
+            count[0] = 1;
+            if (participantsCountView != null) participantsCountView.setText("1");
+            if (bookingCard != null) bookingCard.setVisibility(session.availableSpots > 0 ? View.VISIBLE : View.GONE);
+            if (bookButton != null) bookButton.setEnabled(session.availableSpots > 0);
+            if (btnIncrease != null) btnIncrease.setEnabled(session.availableSpots > 1);
         });
         sessionsRecycler.setAdapter(sessionAdapter);
 
@@ -160,17 +188,7 @@ public class DetailFragment extends Fragment {
                     return;
                 }
 
-                int participants = 1;
-                if (participantsInput != null && participantsInput.getText() != null) {
-                    String value = participantsInput.getText().toString().trim();
-                    if (!value.isEmpty()) {
-                        try {
-                            participants = Integer.parseInt(value);
-                                        } catch (NumberFormatException ignored) {
-                                            // mantener valor por defecto (1) en caso de parse inválido
-                                        }
-                    }
-                }
+                int participants = count[0];
                 if (participants < 1) {
                     android.widget.Toast.makeText(requireContext(), "Participantes invalidos", android.widget.Toast.LENGTH_SHORT).show();
                     return;
@@ -210,8 +228,9 @@ public class DetailFragment extends Fragment {
                 if (tourActivity != null && tourActivity.getId() != null) {
                     detailViewModel.load(tourActivity.getId());
                 }
-                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
                 selectedSession = null;
+                count[0] = 1;
+                if (participantsCountView != null) participantsCountView.setText("1");
                 if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                 createBookingViewModel.clearBooking();
                 if (booking.id != null && booking.id > 0) {
@@ -287,6 +306,8 @@ public class DetailFragment extends Fragment {
                     if (fromHistory || fromBooking) return;
                     populateSessions(sessions);
                     selectedSession = null;
+                    count[0] = 1;
+                    if (participantsCountView != null) participantsCountView.setText("1");
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                     boolean hasSessions = sessions != null && !sessions.isEmpty();
                     boolean hasAvailableSpots = false;
