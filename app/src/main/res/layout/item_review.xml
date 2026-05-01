@@ -52,7 +52,9 @@
                 android:layout_marginStart="8dp"
                 android:isIndicator="true"
                 android:numStars="5"
-                android:stepSize="1.0" />
+                android:stepSize="1.0"
+                android:progressTint="@color/star_amber"
+                android:secondaryProgressTint="@color/star_amber" />
 
         </LinearLayout>
 
@@ -79,7 +81,9 @@
                 android:layout_marginStart="8dp"
                 android:isIndicator="true"
                 android:numStars="5"
-                android:stepSize="1.0" />
+                android:stepSize="1.0"
+                android:progressTint="@color/star_amber"
+                android:secondaryProgressTint="@color/star_amber" />
 
         </LinearLayout>
 
