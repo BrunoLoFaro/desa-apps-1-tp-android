@@ -61,9 +61,6 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         if (searchBarCard != null) searchBarCard.setOnClickListener(openExplore);
         if (searchEditText != null) {
             searchEditText.setOnClickListener(openExplore);
-            searchEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) openExplore.onClick(v);
-            });
         }
 
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);

@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricManager;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -25,7 +26,9 @@ import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
+import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
+import com.example.myapplication.util.BiometricHelper;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -40,10 +43,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class ProfileFragment extends Fragment {
 
+    @Inject
+    SessionManager sessionManager;
 
     private ProfileViewModel viewModel;
     private NavController navController;
@@ -86,6 +92,9 @@ public class ProfileFragment extends Fragment {
     private TextView recent2Meta;
     private TextView recent2Time;
     private ImageView recent2Avatar;
+
+    private MaterialButton btnEnableBiometric;
+    private MaterialButton btnLogout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -135,7 +144,65 @@ public class ProfileFragment extends Fragment {
         linkVerTodas.setOnClickListener(v ->
                 navController.navigate(R.id.action_profileFragment_to_bookingsFragment));
 
+        btnEnableBiometric.setOnClickListener(v -> onBiometricCtaClicked());
+
+        btnLogout.setOnClickListener(v -> {
+            sessionManager.clearSession();
+            navController.navigate(R.id.loginFragment);
+        });
+
+        updateBiometricCta();
         observeViewModel();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateBiometricCta();
+    }
+
+    private void updateBiometricCta() {
+        if (btnEnableBiometric == null) return;
+
+        boolean supported = canAuthenticate();
+        btnEnableBiometric.setEnabled(supported);
+        if (!supported) {
+            btnEnableBiometric.setText(R.string.profile_enable_biometric);
+            return;
+        }
+
+        boolean enabled = BiometricHelper.isBiometricEnabled(requireContext());
+        btnEnableBiometric.setText(enabled
+                ? R.string.profile_disable_biometric
+                : R.string.profile_enable_biometric);
+    }
+
+    private void onBiometricCtaClicked() {
+        if (!canAuthenticate()) {
+            Toast.makeText(requireContext(), R.string.biometric_enroll_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean enabled = BiometricHelper.isBiometricEnabled(requireContext());
+        if (enabled) {
+            BiometricHelper.setBiometricEnabled(requireContext(), false);
+            BiometricHelper.setBiometricSkipped(requireContext(), true);
+            updateBiometricCta();
+            return;
+        }
+
+        BiometricHelper.setBiometricSkipped(requireContext(), false);
+        BiometricHelper.setBiometricEnabled(requireContext(), false);
+        Bundle args = new Bundle();
+        args.putString("origin", "profile");
+        navController.navigate(R.id.action_profileFragment_to_biometricEnrollFragment, args);
+    }
+
+    private boolean canAuthenticate() {
+        int authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG
+                | BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+        return BiometricManager.from(requireContext()).canAuthenticate(authenticators)
+                == BiometricManager.BIOMETRIC_SUCCESS;
     }
 
     private void bindViews(@NonNull View view) {
@@ -173,6 +240,9 @@ public class ProfileFragment extends Fragment {
         recent2Meta    = view.findViewById(R.id.recent_2_meta);
         recent2Time    = view.findViewById(R.id.recent_2_time);
         recent2Avatar  = view.findViewById(R.id.recent_2_avatar);
+
+        btnEnableBiometric = view.findViewById(R.id.btn_enable_biometric);
+        btnLogout = view.findViewById(R.id.btn_logout);
     }
 
     private void observeViewModel() {

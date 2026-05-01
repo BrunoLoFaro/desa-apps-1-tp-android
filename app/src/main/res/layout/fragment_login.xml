@@ -87,6 +87,18 @@
                     android:text="@string/login_button_text" />
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/biometric_login_button"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/login_biometric_button_text"
+                    android:textAppearance="@style/TextAppearance.XploreNow.Button"
+                    android:textColor="?attr/colorPrimary"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/forgot_password_button"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"

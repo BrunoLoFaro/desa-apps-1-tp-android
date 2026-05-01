@@ -1,6 +1,7 @@
 gitignore
 # Gradle files
 .gradle/
+.gradle-user/
 build/
 
 # Kotlin/Java

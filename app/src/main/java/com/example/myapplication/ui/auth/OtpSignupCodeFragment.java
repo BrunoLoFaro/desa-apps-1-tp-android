@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
+import com.example.myapplication.util.BiometricHelper;
 import com.example.myapplication.util.ToolbarHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -156,7 +157,11 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     @Override
     protected void navigateToHome() {
-        navController.navigate(R.id.action_otpSignupCodeFragment_to_homeFragment);
+        if (BiometricHelper.shouldShowEnrollment(requireContext())) {
+            navController.navigate(R.id.action_otpSignupCodeFragment_to_biometricEnrollFragment);
+        } else {
+            navController.navigate(R.id.action_otpSignupCodeFragment_to_homeFragment);
+        }
     }
 
     private void verifyCode() {

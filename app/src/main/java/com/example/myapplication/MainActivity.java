@@ -4,11 +4,15 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
+import android.widget.ImageButton;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -16,6 +20,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.ui.main.MainViewModel;
+import com.example.myapplication.util.ThemePreferences;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.inject.Inject;
@@ -33,6 +38,23 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        final int initialLeft = toolbar.getPaddingLeft();
+        final int initialTop = toolbar.getPaddingTop();
+        final int initialRight = toolbar.getPaddingRight();
+        final int initialBottom = toolbar.getPaddingBottom();
+        final int initialHeight = toolbar.getLayoutParams() != null ? toolbar.getLayoutParams().height : 0;
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+            int topInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            v.setPadding(initialLeft, initialTop + topInset, initialRight, initialBottom);
+            ViewGroup.LayoutParams lp = v.getLayoutParams();
+            if (lp != null && initialHeight > 0) {
+                lp.height = initialHeight + topInset;
+                v.setLayoutParams(lp);
+            }
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(toolbar);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         new ViewModelProvider(this).get(MainViewModel.class);
@@ -126,28 +148,35 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.home_menu, menu);
+
+        MenuItem themeItem = menu.findItem(R.id.action_theme_toggle);
+        if (themeItem != null && themeItem.getActionView() != null) {
+            View actionView = themeItem.getActionView();
+            ImageButton button = actionView.findViewById(R.id.theme_toggle_button);
+            if (button != null) {
+                button.setOnClickListener(v -> toggleTheme());
+            } else {
+                actionView.setOnClickListener(v -> toggleTheme());
+            }
+        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_logout) {
-            sessionManager.clearSession();
-            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.nav_host_fragment);
-            NavController navController = navHostFragment.getNavController();
-            navController.navigate(R.id.loginFragment);
-            return true;
-        } else if (id == R.id.action_theme_toggle) {
-            int currentMode = AppCompatDelegate.getDefaultNightMode();
-            if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            }
+        if (id == R.id.action_theme_toggle) {
+            toggleTheme();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void toggleTheme() {
+        int currentMode = AppCompatDelegate.getDefaultNightMode();
+        int nextMode = currentMode == AppCompatDelegate.MODE_NIGHT_YES
+                ? AppCompatDelegate.MODE_NIGHT_NO
+                : AppCompatDelegate.MODE_NIGHT_YES;
+        ThemePreferences.setNightMode(this, nextMode);
     }
 }

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    tools:context=".ui.auth.BiometricEnrollFragment">
+
+    <ImageView
+        android:id="@+id/biometric_icon"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:contentDescription="@string/biometric_enroll_icon_desc"
+        android:src="@drawable/ic_fingerprint"
+        app:tint="?attr/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@id/biometric_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.44" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/biometric_title"
+        style="@style/TextAppearance.XploreNow.H1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="@string/biometric_enroll_title"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biometric_icon" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/biometric_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="@string/biometric_enroll_description"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biometric_title" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/biometric_activate_button"
+        style="@style/Widget.XploreNow.Button.Primary"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="28dp"
+        android:text="@string/biometric_enroll_activate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biometric_description" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/biometric_skip_button"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/biometric_enroll_skip"
+        android:textAppearance="@style/TextAppearance.XploreNow.Button"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biometric_activate_button"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
