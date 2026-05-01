@@ -38,17 +38,17 @@
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.LargeComponent"
                 tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <ImageView
                 android:id="@+id/favorite_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_margin="16dp"
                 android:contentDescription="@string/favorite_desc"
-                app:backgroundTint="@android:color/white"
-                app:fabSize="mini"
+                android:padding="6dp"
+                android:src="@drawable/ic_favorite_border"
+                android:background="@drawable/bg_heart_circle"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_favorite_border"
                 app:tint="?attr/colorPrimary" />
 
             <!-- Chips de cambio: solo visibles en la sección Favoritos -->

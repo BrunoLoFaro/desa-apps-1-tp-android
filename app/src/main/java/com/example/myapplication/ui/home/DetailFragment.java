@@ -541,7 +541,7 @@ public class DetailFragment extends Fragment {
         TextView meetingPoint = root.findViewById(R.id.activity_meeting_point);
         TextView includes = root.findViewById(R.id.activity_includes);
         TextView cancellation = root.findViewById(R.id.activity_cancellation);
-        com.google.android.material.floatingactionbutton.FloatingActionButton favoriteButton = root.findViewById(R.id.favorite_button);
+        android.widget.ImageView favoriteButton = root.findViewById(R.id.favorite_button);
 
         if (detailedContainer != null) {
             detailedContainer.setVisibility(View.VISIBLE);

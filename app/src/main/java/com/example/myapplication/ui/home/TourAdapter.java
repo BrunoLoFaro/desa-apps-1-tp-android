@@ -257,7 +257,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         LinearLayout chipsContainer;
         TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
         View detailedContainer;
-        FloatingActionButton favoriteBtn;
+        ImageView favoriteBtn;
         MaterialButton bookButton;
 
         public TourViewHolder(@NonNull View itemView) {
