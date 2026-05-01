@@ -19,7 +19,6 @@
   "preferences_endpoint": "users/preferences",
   "activity_summary_endpoint": "users/activities/summary",
   "categories_endpoint": "categories",
-  "news_endpoint": "news"
-}
+  "news_endpoint": "news",
   "my_reviews_endpoint": "users/{userId}/reviews/mine"
 }
