@@ -652,4 +652,8 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <include layout="@layout/layout_offline_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

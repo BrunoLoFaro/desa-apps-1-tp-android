@@ -17,6 +17,7 @@ import com.example.myapplication.data.network.NewsService;
 import com.example.myapplication.data.network.ProfileService;
 import com.example.myapplication.data.network.ReviewService;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.util.NetworkMonitor;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import com.squareup.moshi.Moshi;
 import dagger.Module;
@@ -247,5 +248,11 @@ public class AppModule {
     @Singleton
     static CachedActivityDao provideCachedActivityDao(AppDatabase db) {
         return db.cachedActivityDao();
+    }
+
+    @Provides
+    @Singleton
+    static NetworkMonitor provideNetworkMonitor(@ApplicationContext Context context) {
+        return new NetworkMonitor(context);
     }
 }

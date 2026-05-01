@@ -17,7 +17,7 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import com.example.myapplication.data.work.SyncCancellationsWorker;
-import com.example.myapplication.util.ConnectivityUtils;
+import com.example.myapplication.util.NetworkMonitor;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
@@ -41,6 +41,9 @@ public class BookingsViewModel extends ViewModel {
     private final ProfileRepository profileRepository;
     private final ReviewRepository reviewRepository;
     private final Context context;
+    private final NetworkMonitor networkMonitor;
+    private Observer<Boolean> connectivityObserver;
+    private boolean connectivityInitialized = false;
 
     private final MutableLiveData<List<BookingResponse>> _bookings =
             new MutableLiveData<>(Collections.emptyList());
@@ -83,13 +86,24 @@ public class BookingsViewModel extends ViewModel {
     public BookingsViewModel(BookingRepository bookingRepository,
                              ProfileRepository profileRepository,
                              ReviewRepository reviewRepository,
+                             NetworkMonitor networkMonitor,
                              @ApplicationContext Context context) {
         this.bookingRepository = bookingRepository;
         this.profileRepository = profileRepository;
         this.reviewRepository = reviewRepository;
         this.context = context;
-        this.offline = !ConnectivityUtils.isOnline(context);
+        this.networkMonitor = networkMonitor;
+        this.offline = !networkMonitor.isCurrentlyOnline();
         if (this.offline) _isOffline.setValue(true);
+
+        connectivityObserver = online -> {
+            if (!connectivityInitialized) {
+                connectivityInitialized = true;
+                return; // skip initial emission; initial load is triggered by the fragment
+            }
+            onConnectivityChanged(Boolean.TRUE.equals(online));
+        };
+        networkMonitor.isOnline().observeForever(connectivityObserver);
     }
 
     // ──────────────── Getters ────────────────────────────────────────────────────────────────
@@ -470,6 +484,10 @@ public class BookingsViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
+        if (connectivityObserver != null) {
+            networkMonitor.isOnline().removeObserver(connectivityObserver);
+            connectivityObserver = null;
+        }
         if (syncWorkInfoLiveData != null && syncWorkObserver != null) {
             syncWorkInfoLiveData.removeObserver(syncWorkObserver);
         }

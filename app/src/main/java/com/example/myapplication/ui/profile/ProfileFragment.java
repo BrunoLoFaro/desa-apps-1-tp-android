@@ -30,8 +30,10 @@ import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.ui.main.MainViewModel;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.example.myapplication.util.BiometricHelper;
+import com.example.myapplication.util.ConnectivityUtils;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.PhoneCountryCode;
 import com.example.myapplication.util.PhoneCountryCodes;
@@ -163,6 +165,15 @@ public class ProfileFragment extends Fragment
 
         updateBiometricCta();
         observeViewModel();
+
+        View offlineState = view.findViewById(R.id.offline_state);
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            wasOffline[0] = isOffline;
+        });
     }
 
     @Override
@@ -472,7 +483,7 @@ public class ProfileFragment extends Fragment
         viewModel.getProfile().observe(getViewLifecycleOwner(), this::populateProfileFields);
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
                 viewModel.errorConsumed();
             }

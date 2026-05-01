@@ -1,11 +1,7 @@
 package com.example.myapplication.di;
 
-import android.content.Context;
-import com.example.myapplication.data.session.SessionManager;
-
+// SessionManager is provided by Hilt via its @Inject constructor and @Singleton annotation.
+// Manual instantiation is not needed.
 public class SessionManagerProvider {
-    public static SessionManager provideSessionManager(Context context) {
-        // Devuelve una instancia singleton de SessionManager
-        return new SessionManager(context.getApplicationContext());
-    }
+    private SessionManagerProvider() {}
 }

@@ -19,6 +19,7 @@
             app:titleTextAppearance="@style/TextAppearance.XploreNow.H2" />
 
         <LinearLayout
+            android:id="@+id/filter_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -225,5 +226,9 @@
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="20dp"
         android:visibility="gone" />
+
+    <include layout="@layout/layout_offline_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

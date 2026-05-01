@@ -1,10 +1,6 @@
 package com.example.myapplication.ui.bookings;
 
 import android.app.DatePickerDialog;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,7 +24,7 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
-import com.example.myapplication.util.MainThreadUtils;
+
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -51,7 +47,6 @@ public class BookingsFragment extends Fragment {
 
     private BookingsViewModel viewModel;
     private View offlineBanner;
-    private ConnectivityManager.NetworkCallback networkCallback;
     private SwipeRefreshLayout swipeRefresh;
 
     // Activas views
@@ -100,7 +95,6 @@ public class BookingsFragment extends Fragment {
         setupFilters();
         setupTabs(view);
         observeViewModel(view);
-        registerNetworkCallback();
 
         viewModel.loadMyBookings("CONFIRMED");
     }
@@ -352,31 +346,6 @@ public class BookingsFragment extends Fragment {
         });
     }
 
-    private void registerNetworkCallback() {
-        ConnectivityManager cm = (ConnectivityManager)
-                requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-        if (cm == null) return;
-        networkCallback = new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                MainThreadUtils.post(() -> {
-                    if (isAdded()) viewModel.onConnectivityChanged(true);
-                });
-            }
-
-            @Override
-            public void onLost(Network network) {
-                MainThreadUtils.post(() -> {
-                    if (isAdded()) viewModel.onConnectivityChanged(false);
-                });
-            }
-        };
-        NetworkRequest request = new NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .build();
-        cm.registerNetworkCallback(request, networkCallback);
-    }
-
     // ── Grouping ─────────────────────────────────────────────────────────────
 
     private List<BookingListItem> buildGroupedList(List<BookingResponse> bookings) {
@@ -501,12 +470,6 @@ public class BookingsFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        if (networkCallback != null) {
-            ConnectivityManager cm = (ConnectivityManager)
-                    requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-            if (cm != null) cm.unregisterNetworkCallback(networkCallback);
-            networkCallback = null;
-        }
         offlineBanner     = null;
         swipeRefresh      = null;
         sectionActivas    = null;
