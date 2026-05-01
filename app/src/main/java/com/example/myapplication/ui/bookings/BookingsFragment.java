@@ -423,25 +423,26 @@ public class BookingsFragment extends Fragment {
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
-    private void navigateToDetail(BookingResponse booking) {
-        String destination = booking.destination != null ? booking.destination.name : "";
-        String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
-        String price = booking.currency != null
-                ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
+      private void navigateToDetail(BookingResponse booking) {
+          String destination = booking.destination != null ? booking.destination.name : "";
+          String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
+          String price = booking.currency != null
+                  ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
         TourActivity activity = new TourActivity(
                 booking.activityName != null ? booking.activityName : "",
                 destination, "", duration, price, 1, null,
                 null, 0f, 0, null, booking.meetingPoint,
                 booking.guideName, null, booking.cancellationPolicy, false);
-        if (booking.activityId != null) activity.setId(booking.activityId);
-        Bundle args = new Bundle();
-        args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", true);
-        args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
-        if (booking.id != null) args.putLong("booking_id", booking.id);
-        Navigation.findNavController(requireView())
-                .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
-    }
+          if (booking.activityId != null) activity.setId(booking.activityId);
+          Bundle args = new Bundle();
+          args.putSerializable("activity_data", activity);
+          args.putBoolean("from_history", true);
+          args.putBoolean("from_booking", true);
+          args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
+          if (booking.id != null) args.putLong("booking_id", booking.id);
+          Navigation.findNavController(requireView())
+                  .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
+      }
 
     private void navigateToVoucher(BookingResponse booking) {
         if (booking.id == null) return;
@@ -451,26 +452,27 @@ public class BookingsFragment extends Fragment {
                 .navigate(R.id.action_bookingsFragment_to_voucherFragment, args);
     }
 
-    private void navigateToHistoryDetail(BookingSummaryItem item) {
-        if (item.getActivityId() == null) return;
-        String duration = item.getDurationMinutes() > 0 ? item.getDurationMinutes() + " min" : "";
-        TourActivity activity = new TourActivity(
-                item.getActivityName() != null ? item.getActivityName() : "",
+      private void navigateToHistoryDetail(BookingSummaryItem item) {
+          if (item.getActivityId() == null) return;
+          String duration = item.getDurationMinutes() > 0 ? item.getDurationMinutes() + " min" : "";
+          TourActivity activity = new TourActivity(
+                  item.getActivityName() != null ? item.getActivityName() : "",
                 item.getDestination() != null ? item.getDestination() : "",
                 "", duration,
                 item.getPrice() != null ? item.getPrice() : "",
                 0, item.getImageUrl(),
                 null, 0f, 0, null, null,
                 item.getGuideName(), null, null, false);
-        activity.setId(item.getActivityId());
-        Bundle args = new Bundle();
-        args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", true);
-        args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
-        if (item.getId() != null) args.putLong("booking_id", item.getId());
-        Navigation.findNavController(requireView())
-                .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
-    }
+          activity.setId(item.getActivityId());
+          Bundle args = new Bundle();
+          args.putSerializable("activity_data", activity);
+          args.putBoolean("from_history", true);
+          args.putBoolean("from_booking", true);
+          args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
+          if (item.getId() != null) args.putLong("booking_id", item.getId());
+          Navigation.findNavController(requireView())
+                  .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
+      }
 
     private void showDatePicker(boolean isFrom) {
         Calendar cal = Calendar.getInstance();

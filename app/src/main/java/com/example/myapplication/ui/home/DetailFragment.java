@@ -90,6 +90,7 @@ public class DetailFragment extends Fragment {
                 tourActivity = BundleCompat.getSerializable(args, "activity_data", TourActivity.class);
             }
             fromHistory = args.getBoolean("from_history", false);
+            fromBooking = args.getBoolean("from_booking", false);
             bookingStatus = args.getString("booking_status");
             if (args.containsKey("booking_id")) {
                 bookingId = args.getLong("booking_id");
