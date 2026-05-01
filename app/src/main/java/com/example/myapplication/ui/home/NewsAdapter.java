@@ -57,10 +57,12 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         
         // Load image
         String imageUrl = news.imageUrl;
-        if (imageUrl != null && !imageUrl.isEmpty()) {
+        String fallbackImageUrl = getFallbackImageUrl(news.title);
+        if ((imageUrl != null && !imageUrl.isEmpty()) || fallbackImageUrl != null) {
             Glide.with(holder.itemView.getContext())
-                    .load(imageUrl)
+                    .load((imageUrl != null && !imageUrl.isEmpty()) ? imageUrl : fallbackImageUrl)
                     .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_gallery)
                     .centerCrop()
                     .into(holder.image);
         } else {
@@ -106,6 +108,18 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         } catch (Exception e) {
             return dateString;
         }
+    }
+
+    private String getFallbackImageUrl(String title) {
+        if (title == null) return null;
+        String normalized = title.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("rutas de trekking") || normalized.contains("bariloche")) {
+            return "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80";
+        }
+        if (normalized.contains("ballenas") || normalized.contains("puerto madryn")) {
+            return "https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&w=1200&q=80";
+        }
+        return null;
     }
 
     static class NewsViewHolder extends RecyclerView.ViewHolder {

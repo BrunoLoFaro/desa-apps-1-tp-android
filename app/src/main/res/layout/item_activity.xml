@@ -323,12 +323,15 @@
 
             <!-- FOOTER: CUPOS, PRECIO Y BOTÓN RESERVAR -->
             <LinearLayout
+                android:id="@+id/footer_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="16dp"
                 android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/detailed_info_container">
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/detailed_info_container"
+                app:layout_constraintVertical_bias="1.0">
 
                 <TextView
                     android:id="@+id/activity_slots"

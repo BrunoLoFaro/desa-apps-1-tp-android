@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="80dp">
+            android:paddingBottom="40dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -63,12 +63,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Novedades"
+                android:text="Promociones"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
                 android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/news_recycler_view"
+                android:id="@+id/promotions_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
@@ -83,12 +83,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Promociones"
+                android:text="Novedades"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
                 android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/promotions_recycler_view"
+                android:id="@+id/news_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"

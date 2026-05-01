@@ -56,12 +56,8 @@ public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.Pr
         String typeText = getPromotionTypeText(promotion.type);
         holder.type.setText(typeText);
         
-        // Set published date
-        if (promotion.publishedAt != null && !promotion.publishedAt.isEmpty()) {
-            holder.publishedAt.setText(formatDate(promotion.publishedAt));
-        } else {
-            holder.publishedAt.setVisibility(View.GONE);
-        }
+        // Promotions should not show published date in card.
+        holder.publishedAt.setVisibility(View.GONE);
         
         // Load image
         String imageUrl = promotion.imageUrl;
@@ -103,10 +99,31 @@ public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.Pr
 
     private String formatDate(String dateString) {
         try {
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM", Locale.getDefault());
-            Date date = inputFormat.parse(dateString);
-            return outputFormat.format(date);
+            Date date = null;
+            String[] patterns = new String[] {
+                    "yyyy-MM-dd'T'HH:mm:ss",
+                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ssX",
+                    "yyyy-MM-dd"
+            };
+            for (String pattern : patterns) {
+                try {
+                    SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.US);
+                    date = inputFormat.parse(dateString);
+                    if (date != null) break;
+                } catch (Exception ignored) {
+                }
+            }
+            if (date == null) return dateString;
+
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd 'de' MMMM", new Locale("es", "AR"));
+            String formatted = outputFormat.format(date);
+            int monthIndex = formatted.lastIndexOf(" de ");
+            if (monthIndex >= 0 && monthIndex + 4 < formatted.length()) {
+                char first = Character.toUpperCase(formatted.charAt(monthIndex + 4));
+                return formatted.substring(0, monthIndex + 4) + first + formatted.substring(monthIndex + 5);
+            }
+            return formatted;
         } catch (Exception e) {
             return dateString;
         }

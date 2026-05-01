@@ -96,18 +96,24 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                     holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
                     holder.discountBadge.setVisibility(View.VISIBLE);
                 } catch (NumberFormatException e) {
-                    holder.originalPrice.setVisibility(View.GONE);
-                    holder.discountBadge.setVisibility(View.GONE);
+                    holder.originalPrice.setText(activity.getPrice());
+                    holder.originalPrice.setVisibility(View.INVISIBLE);
+                    holder.discountBadge.setText("");
+                    holder.discountBadge.setVisibility(View.INVISIBLE);
                     holder.price.setText(activity.getPrice());
                 }
             } else {
-                holder.originalPrice.setVisibility(View.GONE);
-                holder.discountBadge.setVisibility(View.GONE);
+                holder.originalPrice.setText(activity.getPrice());
+                holder.originalPrice.setVisibility(View.INVISIBLE);
+                holder.discountBadge.setText("");
+                holder.discountBadge.setVisibility(View.INVISIBLE);
                 holder.price.setText(activity.getPrice());
             }
         } else {
-            holder.originalPrice.setVisibility(View.GONE);
-            holder.discountBadge.setVisibility(View.GONE);
+            holder.originalPrice.setText(activity.getPrice());
+            holder.originalPrice.setVisibility(View.INVISIBLE);
+            holder.discountBadge.setText("");
+            holder.discountBadge.setVisibility(View.INVISIBLE);
             holder.price.setText(activity.getPrice());
         }
         holder.slots.setText(soldOut
