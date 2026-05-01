@@ -73,7 +73,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         } else if (isCompact) {
             // For vertical compact layout (Explore), reduce FrameLayout height
             FrameLayout frameLayout = (FrameLayout) view;
-            int compactVerticalHeightDp = 360;
+            int compactVerticalHeightDp = 420;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactVerticalHeightDp, parent.getContext().getResources().getDisplayMetrics());
             frameLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, heightPx));
         }
