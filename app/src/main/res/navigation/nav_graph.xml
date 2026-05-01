@@ -246,22 +246,26 @@
             android:defaultValue="-1L" />
     </fragment>
 
-    <fragment
-        android:id="@+id/detailFragment"
-        android:name="com.example.myapplication.ui.home.DetailFragment"
-        android:label="Detail"
-        tools:layout="@layout/fragment_detail">
-        <argument
-            android:name="activity_data"
-            app:argType="com.example.myapplication.data.model.TourActivity" />
-        <argument
-            android:name="activity_id"
-            app:argType="long"
-            android:defaultValue="-1L" />
-        <action
-            android:id="@+id/action_detailFragment_to_voucherFragment"
-            app:destination="@id/voucherFragment" />
-    </fragment>
+      <fragment
+          android:id="@+id/detailFragment"
+          android:name="com.example.myapplication.ui.home.DetailFragment"
+          android:label="Detail"
+          tools:layout="@layout/fragment_detail">
+          <argument
+              android:name="activity_data"
+              app:argType="com.example.myapplication.data.model.TourActivity" />
+          <argument
+              android:name="activity_id"
+              app:argType="long"
+              android:defaultValue="-1L" />
+          <argument
+              android:name="from_booking"
+              app:argType="boolean"
+              android:defaultValue="false" />
+          <action
+              android:id="@+id/action_detailFragment_to_voucherFragment"
+              app:destination="@id/voucherFragment" />
+      </fragment>
 
     <fragment
         android:id="@+id/voucherFragment"
