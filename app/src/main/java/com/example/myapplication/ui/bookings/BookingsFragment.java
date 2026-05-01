@@ -178,6 +178,12 @@ public class BookingsFragment extends Fragment {
             btnLimpiar.setVisibility(View.GONE);
             updateBuscarState();
         });
+
+        filterDestination.setText(viewModel.getFilterDestination());
+        filterFromDate.setText(viewModel.getFilterFrom());
+        filterToDate.setText(viewModel.getFilterTo());
+        btnLimpiar.setVisibility(viewModel.hasActiveFilters() ? View.VISIBLE : View.GONE);
+        updateBuscarState();
     }
 
     private boolean hasAnyFilter() {

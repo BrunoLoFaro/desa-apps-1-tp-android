@@ -95,10 +95,10 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
             if (newsList != null) {
                 newsAdapter.updateData(newsList.stream()
                         .filter(item -> "NEWS".equals(item.type))
-                        .toList());
+                        .collect(java.util.stream.Collectors.toList()));
                 promotionsAdapter.updateData(newsList.stream()
                         .filter(item -> "OFFER".equals(item.type))
-                        .toList());
+                        .collect(java.util.stream.Collectors.toList()));
             }
         });
         newsViewModel.getError().observe(getViewLifecycleOwner(), error -> {

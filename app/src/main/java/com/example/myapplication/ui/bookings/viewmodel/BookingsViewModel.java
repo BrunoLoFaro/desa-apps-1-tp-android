@@ -344,6 +344,13 @@ public class BookingsViewModel extends ViewModel {
         });
     }
 
+    public String getFilterDestination() { return filterDestination; }
+    public String getFilterFrom() { return filterFrom; }
+    public String getFilterTo() { return filterTo; }
+    public boolean hasActiveFilters() {
+        return !filterDestination.isEmpty() || !filterFrom.isEmpty() || !filterTo.isEmpty();
+    }
+
     public void setFilterDestination(String destination) {
         filterDestination = destination != null ? destination.trim() : "";
         applyFilters();
