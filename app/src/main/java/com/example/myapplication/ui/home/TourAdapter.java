@@ -73,7 +73,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         } else if (isCompact) {
             // For vertical compact layout (Explore), reduce FrameLayout height
             FrameLayout frameLayout = (FrameLayout) view;
-            int compactVerticalHeightDp = 340;
+            int compactVerticalHeightDp = 360;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactVerticalHeightDp, parent.getContext().getResources().getDisplayMetrics());
             frameLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, heightPx));
         }
@@ -143,15 +143,15 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
             // Reduce visual whitespace for compact cards
-            int compactImageDp = 140;
+            int compactImageDp = 120;
             int compactPaddingBottomDp = 2;
             int compactPaddingTopDp = 2;
             int compactPaddingHorDp = 8;
-            int compactFooterTopDp = 0;
-            int compactRowTopDp = 6;
-            int compactTitleTopDp = 0;
+            int compactFooterTopDp = 6;
+            int compactRowTopDp = 4;
+            int compactTitleTopDp = 2;
             int compactDestinationTopDp = 2;
-            int compactDurationTopDp = 0;
+            int compactDurationTopDp = 2;
             int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
             holder.image.getLayoutParams().height = imgH;
             holder.image.requestLayout();
