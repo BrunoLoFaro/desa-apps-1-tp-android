@@ -15,7 +15,6 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_back"
             app:title="@string/nav_bookings"
             app:titleCentered="true"
             app:titleTextAppearance="@style/TextAppearance.XploreNow.H2" />
@@ -136,12 +135,10 @@
                             app:boxCornerRadiusTopEnd="12dp"
                             app:boxCornerRadiusBottomStart="12dp"
                             app:boxCornerRadiusBottomEnd="12dp"
-                            app:startIconDrawable="@drawable/ic_location"
-                            app:startIconTint="@color/md_theme_primary"
-                            app:endIconDrawable="@drawable/ic_chevron_down"
-                            app:endIconMode="custom"
-                            app:endIconTint="@color/md_theme_primary"
-                            app:boxBackgroundColor="?attr/colorSurface">
+                              app:startIconDrawable="@drawable/ic_location"
+                              app:startIconTint="@color/md_theme_primary"
+                              app:endIconMode="none"
+                              app:boxBackgroundColor="?attr/colorSurface">
 
                             <AutoCompleteTextView
                                 android:id="@+id/filter_destination"
