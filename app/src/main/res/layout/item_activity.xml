@@ -203,37 +203,42 @@
                 app:layout_constraintTop_toBottomOf="@id/activity_destination"
                 tools:text="6 horas" />
 
-            <!-- FOOTER: CUPOS, PRECIO Y BOTÓN RESERVAR -->
-            <LinearLayout
+            <!-- FOOTER: CUPOS, PRECIO Y DESCUENTO (esquinas) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/footer_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="6dp"
-                android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/activity_duration">
+                android:minHeight="80dp"
+                app:layout_constraintTop_toBottomOf="@id/activity_duration"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-                <TextView
-                    android:id="@+id/activity_slots"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="?attr/colorError"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    tools:text="¡Solo quedan 2 cupos!" />
-
+                <!-- ESQUINA INFERIOR IZQUIERDA: Cupos y Precios -->
                 <LinearLayout
                     android:id="@+id/price_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
                     android:orientation="vertical"
-                    android:gravity="center_vertical">
+                    android:gravity="start"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <TextView
+                        android:id="@+id/activity_slots"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorError"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="Quedan 2 cupos" />
 
                     <TextView
                         android:id="@+id/original_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp"
                         android:visibility="gone"
@@ -249,33 +254,39 @@
                         android:textSize="24sp"
                         android:textStyle="bold"
                         tools:text="$85.000" />
-
-                    <TextView
-                        android:id="@+id/discount_badge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/discount_badge_background"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="3dp"
-                        android:textColor="@android:color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:visibility="gone"
-                        tools:text="20% OFF"
-                        tools:visibility="visible" />
                 </LinearLayout>
 
+                <!-- ESQUINA INFERIOR DERECHA: Descuento -->
+                <TextView
+                    android:id="@+id/discount_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/discount_badge_background"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:text="20% OFF"
+                    tools:visibility="visible" />
+
+                <!-- BOTÓN RESERVAR: ancho completo debajo del footer -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_book_now"
                     style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/book_now"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@id/price_layout"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- CONTENEDOR DE DETALLES EXTRA (OCULTO EN COMPACTO) -->
             <LinearLayout

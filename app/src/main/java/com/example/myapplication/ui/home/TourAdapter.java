@@ -50,7 +50,18 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     }
 
     public void updateData(List<TourActivity> newData) {
-        this.tourActivities = newData;
+        // Filter out activities with no available slots for compact/explore view
+        if (isCompact && newData != null) {
+            List<TourActivity> filtered = new java.util.ArrayList<>();
+            for (TourActivity activity : newData) {
+                if (activity.getAvailableSlots() > 0) {
+                    filtered.add(activity);
+                }
+            }
+            this.tourActivities = filtered;
+        } else {
+            this.tourActivities = newData;
+        }
         notifyDataSetChanged();
     }
 
@@ -65,7 +76,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
             // Ensure fixed height for horizontal carousel items to keep uniform card heights
-            int heightDp = isCompact ? 480 : 600;
+            int heightDp = isCompact ? 460 : 600;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightDp, parent.getContext().getResources().getDisplayMetrics());
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
             params.setMargins(0, 0, 32, 0);
@@ -73,7 +84,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         } else if (isCompact) {
             // For vertical compact layout (Explore), reduce FrameLayout height
             FrameLayout frameLayout = (FrameLayout) view;
-            int compactVerticalHeightDp = 540;
+            int compactVerticalHeightDp = 520;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactVerticalHeightDp, parent.getContext().getResources().getDisplayMetrics());
             frameLayout.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, heightPx));
         }
@@ -144,7 +155,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
             // Reduce visual whitespace for compact cards
             int compactImageDp = 140;
-            int compactPaddingBottomDp = 2;
+            int compactPaddingBottomDp = 1;
             int compactPaddingTopDp = 2;
             int compactPaddingHorDp = 8;
             int compactFooterTopDp = 6;
@@ -327,7 +338,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
         View detailedContainer;
         View mainContentLayout;
-        LinearLayout footerContent;
+        ViewGroup footerContent;
         ImageView favoriteBtn;
         MaterialButton bookButton;
 
