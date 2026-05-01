@@ -199,16 +199,16 @@ public class BookingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         String label;
         int bgColor;
         int textColor;
-        switch (status.toUpperCase()) {
-            case "CONFIRMED":
-                label = ctx.getString(R.string.status_confirmed);
-                bgColor = 0xFFE3F2FD;
-                textColor = 0xFF1565C0;
-                break;
-            case "COMPLETED":
-                label = ctx.getString(R.string.status_completed);
-                bgColor = 0xFFE8F5E9;
-                textColor = 0xFF2E7D32;
+            switch (status.toUpperCase()) {
+                case "CONFIRMED":
+                    label = ctx.getString(R.string.status_confirmed);
+                    bgColor = 0xFFE8F5E9;
+                    textColor = 0xFF2E7D32;
+                    break;
+                case "COMPLETED":
+                    label = ctx.getString(R.string.status_completed);
+                    bgColor = 0xFFE8F5E9;
+                    textColor = 0xFF2E7D32;
                 break;
             case "CANCELLED":
                 label = ctx.getString(R.string.status_cancelled);
