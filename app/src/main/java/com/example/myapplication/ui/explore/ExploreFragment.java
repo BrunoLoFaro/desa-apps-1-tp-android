@@ -23,6 +23,8 @@ import com.example.myapplication.ui.home.TourAdapter;
 import com.example.myapplication.ui.main.MainViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
@@ -62,6 +64,10 @@ public class ExploreFragment extends Fragment {
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.nav_explore));
 
+        // UI Components
+        View filtersContainer = view.findViewById(R.id.filters_container);
+        MaterialButton btnToggleFilters = view.findViewById(R.id.btn_toggle_filters);
+        
         MaterialAutoCompleteTextView destinationDropdown = view.findViewById(R.id.destination_dropdown);
         MaterialAutoCompleteTextView categoryDropdown = view.findViewById(R.id.category_dropdown);
         TextInputEditText dateInput = view.findViewById(R.id.date_input);
@@ -75,11 +81,19 @@ public class ExploreFragment extends Fragment {
         ProgressBar loading = view.findViewById(R.id.loading_spinner);
         ProgressBar pagingLoading = view.findViewById(R.id.paging_loading_spinner);
         View emptyContainer = view.findViewById(R.id.empty_state_container);
-        MaterialButton emptyClearButton = view.findViewById(R.id.empty_clear_filters_button);
         RecyclerView recycler = view.findViewById(R.id.activities_recycler_view);
+        
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         TourAdapter adapter = new TourAdapter(false, true);
         recycler.setAdapter(adapter);
+
+        // Filter Toggle Logic
+        btnToggleFilters.setOnClickListener(v -> {
+            boolean isVisible = filtersContainer.getVisibility() == View.VISIBLE;
+            filtersContainer.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+            btnToggleFilters.setIconResource(isVisible ? R.drawable.ic_chevron_down : R.drawable.ic_chevron_up);
+        });
+
         adapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
             if (activity.getId() == null) return;
             viewModel.toggleFavorite(activity.getId(), targetFavorite, null);
@@ -100,11 +114,16 @@ public class ExploreFragment extends Fragment {
             }
         });
 
-        // Date picker (ISO yyyy-MM-dd)
+        // Date picker (ISO yyyy-MM-dd) with constraint for future dates only
+        CalendarConstraints constraints = new CalendarConstraints.Builder()
+                .setValidator(DateValidatorPointForward.now())
+                .build();
+
         SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         iso.setTimeZone(TimeZone.getTimeZone("UTC"));
         MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText(getString(R.string.explore_date_picker_title))
+                .setCalendarConstraints(constraints)
                 .build();
 
         if (dateInput != null) {
@@ -219,7 +238,6 @@ public class ExploreFragment extends Fragment {
             String minPrice = normalizePriceInput(minRaw);
             String maxPrice = normalizePriceInput(maxRaw);
 
-            // basic validation: only send valid decimals (backend expects decimal with "." separator)
             if ((!TextUtils.isEmpty(minRaw) && minPrice == null) || (!TextUtils.isEmpty(maxRaw) && maxPrice == null)) {
                 if (!TextUtils.isEmpty(minRaw) && minPrice == null && minPriceLayout != null) {
                     minPriceLayout.setError(getString(R.string.explore_invalid_price));
@@ -264,7 +282,6 @@ public class ExploreFragment extends Fragment {
         };
 
         clearButton.setOnClickListener(clearAction);
-        if (emptyClearButton != null) emptyClearButton.setOnClickListener(clearAction);
 
         // initial load
         viewModel.loadMeta();
@@ -286,33 +303,15 @@ public class ExploreFragment extends Fragment {
         });
     }
 
-    private static boolean isValidDecimal(String value) {
-        if (value == null) return true;
-        if (value.isEmpty()) return true;
-        // allow "." decimal separator
-        return value.matches("^\\d+(\\.\\d+)?$");
-    }
-
-    /**
-     * Accepts common user formats:
-     * - "1000" -> "1000"
-     * - "1.000" (thousands) -> "1000"
-     * - "1000,50" (es_AR decimal) -> "1000.50"
-     * - "1.000,50" -> "1000.50"
-     *
-     * Returns null when invalid (non-empty input but not parseable).
-     */
     private static String normalizePriceInput(String raw) {
         if (raw == null) return null;
         String value = raw.trim().replace(" ", "");
         if (value.isEmpty()) return null;
 
-        // es_AR: thousands "." and decimal ","
         if (value.contains(",")) {
             value = value.replace(".", "");
             value = value.replace(",", ".");
         } else {
-            // If it's only thousands grouping (e.g., 1.000 or 10.000.000), remove dots.
             if (value.matches("^\\d{1,3}(\\.\\d{3})+$")) {
                 value = value.replace(".", "");
             }
