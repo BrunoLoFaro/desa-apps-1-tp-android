@@ -64,7 +64,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
             // Ensure fixed height for horizontal carousel items to keep uniform card heights
-            int heightDp = isCompact ? 620 : 680;
+            int heightDp = isCompact ? 310 : 340;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightDp, parent.getContext().getResources().getDisplayMetrics());
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
             params.setMargins(0, 0, 32, 0);
