@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="600dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="4dp">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
                 android:id="@+id/main_content_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="12dp">
+                android:paddingBottom="8dp">
 
             <!-- Imagen principal -->
             <com.google.android.material.imageview.ShapeableImageView
@@ -180,7 +180,7 @@
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
                 app:drawableTint="?attr/colorPrimary"
                 app:layout_constraintTop_toBottomOf="@id/activity_name"
@@ -196,7 +196,7 @@
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="19sp"
+                android:textSize="17sp"
                 app:drawableStartCompat="@android:drawable/ic_menu_recent_history"
                 app:drawableTint="?attr/colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
@@ -218,7 +218,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="?attr/colorError"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     tools:text="¡Solo quedan 2 cupos!" />
 
@@ -235,7 +235,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:visibility="gone"
                         tools:text="$100.000"
                         tools:visibility="visible" />
@@ -246,7 +246,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:textColor="@android:color/black"
-                        android:textSize="28sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         tools:text="$85.000" />
 
@@ -259,7 +259,7 @@
                         android:paddingHorizontal="6dp"
                         android:paddingVertical="3dp"
                         android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:visibility="gone"
                         tools:text="20% OFF"
