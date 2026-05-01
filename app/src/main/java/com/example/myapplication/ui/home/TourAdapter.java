@@ -18,6 +18,7 @@ import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import android.util.TypedValue;
 import java.util.List;
 
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
@@ -62,7 +63,10 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
-            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            // Ensure fixed height for horizontal carousel items to keep uniform card heights
+            int heightDp = 680; // matches item_activity root FrameLayout height
+            int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightDp, parent.getContext().getResources().getDisplayMetrics());
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
             params.setMargins(0, 0, 32, 0);
             view.setLayoutParams(params);
         }
