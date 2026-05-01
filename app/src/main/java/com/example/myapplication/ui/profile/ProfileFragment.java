@@ -4,11 +4,16 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.util.TypedValue;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,7 +35,9 @@ import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.example.myapplication.util.BiometricHelper;
 import com.example.myapplication.util.FormatUtils;
-import com.google.android.material.appbar.MaterialToolbar;
+import com.example.myapplication.util.PhoneCountryCode;
+import com.example.myapplication.util.PhoneCountryCodes;
+import com.example.myapplication.util.SimpleTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
@@ -46,7 +53,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 @AndroidEntryPoint
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment
+        implements CountryPickerBottomSheet.CountrySelectedListener {
 
     @Inject
     SessionManager sessionManager;
@@ -63,7 +71,17 @@ public class ProfileFragment extends Fragment {
     private TextInputLayout layoutLastName;
     private TextInputEditText editFirstName;
     private TextInputEditText editLastName;
-    private TextInputEditText editPhone;
+
+    // Phone group
+    private MaterialCardView cardPhoneContainer;
+    private LinearLayout btnCountryPicker;
+    private TextView tvCountryFlag;
+    private TextView tvCountryCodeDisplay;
+    private EditText editPhoneNumber;
+    private TextView tvPhoneError;
+    private TextView tvPhoneHelper;
+    private PhoneCountryCode selectedCountry;
+
     private MaterialButton btnSave;
     private ProgressBar loadingSpinner;
     private View scrollView;
@@ -133,11 +151,8 @@ public class ProfileFragment extends Fragment {
         navController = Navigation.findNavController(view);
 
         bindViews(view);
-
         loadSavedImage();
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+        setupPhoneSection();
 
         view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());
@@ -160,6 +175,20 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         updateBiometricCta();
     }
+
+    // ── CountryPickerBottomSheet.CountrySelectedListener ─────────────────────
+
+    @Override
+    public void onCountrySelected(PhoneCountryCode country) {
+        selectedCountry = country;
+        tvCountryFlag.setText(country.getFlagEmoji());
+        tvCountryCodeDisplay.setText(country.getCode());
+        setPhoneError(null);
+        updatePhoneMaxLength();
+        if (!getText(editPhoneNumber).isEmpty()) validatePhoneInline();
+    }
+
+    // ── Biometric ─────────────────────────────────────────────────────────────
 
     private void updateBiometricCta() {
         if (btnEnableBiometric == null) return;
@@ -205,6 +234,8 @@ public class ProfileFragment extends Fragment {
                 == BiometricManager.BIOMETRIC_SUCCESS;
     }
 
+    // ── View binding ──────────────────────────────────────────────────────────
+
     private void bindViews(@NonNull View view) {
         profilePhoto    = view.findViewById(R.id.profile_photo);
         emailText       = view.findViewById(R.id.profile_email);
@@ -212,7 +243,15 @@ public class ProfileFragment extends Fragment {
         layoutLastName  = view.findViewById(R.id.layout_last_name);
         editFirstName   = view.findViewById(R.id.edit_first_name);
         editLastName    = view.findViewById(R.id.edit_last_name);
-        editPhone       = view.findViewById(R.id.edit_phone);
+
+        cardPhoneContainer   = view.findViewById(R.id.card_phone_container);
+        btnCountryPicker     = view.findViewById(R.id.btn_country_picker);
+        tvCountryFlag        = view.findViewById(R.id.tv_country_flag);
+        tvCountryCodeDisplay = view.findViewById(R.id.tv_country_code_display);
+        editPhoneNumber      = view.findViewById(R.id.edit_phone_number);
+        tvPhoneError         = view.findViewById(R.id.tv_phone_error);
+        tvPhoneHelper        = view.findViewById(R.id.tv_phone_helper);
+
         btnSave             = view.findViewById(R.id.btn_save);
         loadingSpinner      = view.findViewById(R.id.loading_spinner);
         scrollView          = view.findViewById(R.id.scroll_view);
@@ -244,6 +283,176 @@ public class ProfileFragment extends Fragment {
         btnEnableBiometric = view.findViewById(R.id.btn_enable_biometric);
         btnLogout = view.findViewById(R.id.btn_logout);
     }
+
+    // ── Phone section setup ───────────────────────────────────────────────────
+
+    private void setupPhoneSection() {
+        btnCountryPicker.setOnClickListener(v -> {
+            String currentCode = selectedCountry != null ? selectedCountry.getCode() : null;
+            CountryPickerBottomSheet.newInstance(currentCode)
+                    .show(getChildFragmentManager(), "country_picker");
+        });
+
+        editPhoneNumber.addTextChangedListener(new SimpleTextWatcher() {
+            private boolean inChange = false;
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (inChange) return;
+                String raw = s.toString();
+                String digits = raw.replaceAll("[^\\d]", "");
+                if (!raw.equals(digits)) {
+                    inChange = true;
+                    s.replace(0, s.length(), digits);
+                    inChange = false;
+                }
+                // Clear error as soon as user corrects
+                if (tvPhoneError != null && tvPhoneError.getVisibility() == View.VISIBLE) {
+                    validatePhoneInline();
+                }
+                // Hide helper while there's content in the field
+                if (tvPhoneHelper != null
+                        && (tvPhoneError == null || tvPhoneError.getVisibility() != View.VISIBLE)) {
+                    tvPhoneHelper.setVisibility(digits.isEmpty() ? View.VISIBLE : View.GONE);
+                }
+            }
+        });
+    }
+
+    private void updatePhoneMaxLength() {
+        if (editPhoneNumber == null || selectedCountry == null) return;
+        editPhoneNumber.setFilters(new InputFilter[]{
+                new InputFilter.LengthFilter(selectedCountry.getMaxDigits())
+        });
+    }
+
+    /** Real-time validation shown while user is typing (only clears/updates existing errors). */
+    private void validatePhoneInline() {
+        if (tvPhoneError == null || selectedCountry == null) return;
+        String number = getText(editPhoneNumber);
+        if (number.isEmpty() || isPhoneLengthValid(number)) {
+            setPhoneError(null);
+        } else {
+            setPhoneError(buildLengthError(selectedCountry));
+        }
+    }
+
+    private void setPhoneError(@Nullable String error) {
+        if (tvPhoneError == null || cardPhoneContainer == null) return;
+        if (error == null || error.isEmpty()) {
+            tvPhoneError.setVisibility(View.GONE);
+            tvPhoneError.setText("");
+            cardPhoneContainer.setStrokeColor(resolveAttrColor(com.google.android.material.R.attr.colorOutline));
+            if (tvPhoneHelper != null) {
+                String number = editPhoneNumber != null ? getText(editPhoneNumber) : "";
+                tvPhoneHelper.setVisibility(number.isEmpty() ? View.VISIBLE : View.GONE);
+            }
+        } else {
+            tvPhoneError.setText(error);
+            tvPhoneError.setVisibility(View.VISIBLE);
+            if (tvPhoneHelper != null) tvPhoneHelper.setVisibility(View.GONE);
+            cardPhoneContainer.setStrokeColor(resolveAttrColor(com.google.android.material.R.attr.colorError));
+        }
+    }
+
+    private boolean isPhoneLengthValid(String number) {
+        if (selectedCountry == null) return true;
+        int len = number.length();
+        return len >= selectedCountry.getMinDigits() && len <= selectedCountry.getMaxDigits();
+    }
+
+    private String buildLengthError(PhoneCountryCode cc) {
+        if (cc.getMinDigits() == cc.getMaxDigits()) {
+            return getString(R.string.error_phone_exact_digits, cc.getMinDigits());
+        }
+        return getString(R.string.error_phone_range_digits, cc.getMinDigits(), cc.getMaxDigits());
+    }
+
+    private int resolveAttrColor(int attr) {
+        TypedValue tv = new TypedValue();
+        requireContext().getTheme().resolveAttribute(attr, tv, true);
+        return tv.data;
+    }
+
+    private void parseAndSetPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) return;
+        for (PhoneCountryCode cc : PhoneCountryCodes.sortedByCodeLength()) {
+            if (phone.startsWith(cc.getCode())) {
+                selectedCountry = cc;
+                tvCountryFlag.setText(cc.getFlagEmoji());
+                tvCountryCodeDisplay.setText(cc.getCode());
+                String number = phone.substring(cc.getCode().length()).replaceAll("[^\\d]", "");
+                editPhoneNumber.setText(number);
+                updatePhoneMaxLength();
+                return;
+            }
+        }
+        editPhoneNumber.setText(phone.replaceAll("[^\\d]", ""));
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+
+    private void onSaveClicked() {
+        String firstName = getText(editFirstName);
+        String lastName  = getText(editLastName);
+
+        boolean valid = true;
+        layoutFirstName.setError(null);
+        layoutLastName.setError(null);
+
+        if (firstName.length() < 2 || firstName.length() > 80) {
+            layoutFirstName.setError(getString(R.string.error_invalid_first_name));
+            valid = false;
+        }
+        if (lastName.length() < 2 || lastName.length() > 80) {
+            layoutLastName.setError(getString(R.string.error_invalid_last_name));
+            valid = false;
+        }
+
+        String phone = buildPhone();
+        if (phone == null) valid = false;
+
+        if (!valid) return;
+
+        viewModel.saveAll(firstName, lastName, phone, getSelectedCategories());
+    }
+
+    /**
+     * Returns assembled phone string if valid, empty string if omitted, null if invalid
+     * (errors already displayed in the phone group).
+     */
+    @Nullable
+    private String buildPhone() {
+        String codeValue = selectedCountry != null ? selectedCountry.getCode() : "";
+        String number = getText(editPhoneNumber);
+
+        setPhoneError(null);
+
+        boolean codeEmpty   = codeValue.isEmpty();
+        boolean numberEmpty = number.isEmpty();
+
+        if (codeEmpty && numberEmpty) return ""; // phone is optional
+
+        if (codeEmpty) {
+            setPhoneError(getString(R.string.error_phone_country_required));
+            return null;
+        }
+        if (numberEmpty) {
+            setPhoneError(getString(R.string.error_phone_number_required));
+            return null;
+        }
+        if (!isPhoneLengthValid(number)) {
+            setPhoneError(buildLengthError(selectedCountry));
+            return null;
+        }
+
+        return selectedCountry.getCode() + number;
+    }
+
+    // ── ViewModel observation ─────────────────────────────────────────────────
 
     private void observeViewModel() {
         viewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
@@ -304,10 +513,14 @@ public class ProfileFragment extends Fragment {
         if (editLastName.getText() == null || editLastName.getText().toString().isEmpty()) {
             editLastName.setText(profile.getLastName());
         }
-        if (editPhone.getText() == null || editPhone.getText().toString().isEmpty()) {
-            editPhone.setText(profile.getPhone());
+        boolean numberEmpty = editPhoneNumber.getText() == null
+                || editPhoneNumber.getText().toString().isEmpty();
+        if (numberEmpty && selectedCountry == null) {
+            parseAndSetPhone(profile.getPhone());
         }
     }
+
+    // ── Recent activities ─────────────────────────────────────────────────────
 
     private void bindRecentActivities(List<BookingSummaryItem> items) {
         if (items == null || items.isEmpty()) {
@@ -373,6 +586,8 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // ── Categories ────────────────────────────────────────────────────────────
+
     private void rebuildCategoryChips(List<String> categories, List<String> selectedPrefs) {
         if (chipGroupCategories == null) return;
         chipGroupCategories.removeAllViews();
@@ -412,29 +627,9 @@ public class ProfileFragment extends Fragment {
         return selected;
     }
 
-    private void onSaveClicked() {
-        String firstName = getText(editFirstName);
-        String lastName  = getText(editLastName);
-        String phone     = getText(editPhone);
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-        boolean valid = true;
-        layoutFirstName.setError(null);
-        layoutLastName.setError(null);
-
-        if (firstName.length() < 2 || firstName.length() > 80) {
-            layoutFirstName.setError(getString(R.string.error_invalid_first_name));
-            valid = false;
-        }
-        if (lastName.length() < 2 || lastName.length() > 80) {
-            layoutLastName.setError(getString(R.string.error_invalid_last_name));
-            valid = false;
-        }
-        if (!valid) return;
-
-        viewModel.saveAll(firstName, lastName, phone, getSelectedCategories());
-    }
-
-    private String getText(TextInputEditText field) {
+    private String getText(EditText field) {
         return field.getText() != null ? field.getText().toString().trim() : "";
     }
 
@@ -473,41 +668,52 @@ public class ProfileFragment extends Fragment {
         galleryLauncher.launch("image/*");
     }
 
+    // ── Lifecycle cleanup ─────────────────────────────────────────────────────
+
     @Override
     public void onDestroyView() {
-        navController    = null;
-        profilePhoto     = null;
-        emailText        = null;
-        layoutFirstName  = null;
-        layoutLastName   = null;
-        editFirstName    = null;
-        editLastName     = null;
-        editPhone        = null;
-        btnSave             = null;
-        loadingSpinner      = null;
-        scrollView          = null;
-        chipGroupCategories = null;
-        statCompleted    = null;
-        statPending      = null;
-        badgeHoy         = null;
-        linkVerTodas     = null;
-        recentItem1      = null;
-        recentItem2      = null;
-        recentDivider    = null;
-        recent1IconBg    = null;
-        recent2IconBg    = null;
-        recent1Icon      = null;
-        recent2Icon      = null;
-        recent1Name      = null;
-        recent1Dest      = null;
-        recent1Meta      = null;
-        recent1Time      = null;
-        recent1Avatar    = null;
-        recent2Name      = null;
-        recent2Dest      = null;
-        recent2Meta      = null;
-        recent2Time      = null;
-        recent2Avatar    = null;
+        navController        = null;
+        profilePhoto         = null;
+        emailText            = null;
+        layoutFirstName      = null;
+        layoutLastName       = null;
+        editFirstName        = null;
+        editLastName         = null;
+        cardPhoneContainer   = null;
+        btnCountryPicker     = null;
+        tvCountryFlag        = null;
+        tvCountryCodeDisplay = null;
+        editPhoneNumber      = null;
+        tvPhoneError         = null;
+        tvPhoneHelper        = null;
+        selectedCountry      = null;
+        btnSave              = null;
+        loadingSpinner       = null;
+        scrollView           = null;
+        chipGroupCategories  = null;
+        statCompleted        = null;
+        statPending          = null;
+        badgeHoy             = null;
+        linkVerTodas         = null;
+        recentItem1          = null;
+        recentItem2          = null;
+        recentDivider        = null;
+        recent1IconBg        = null;
+        recent2IconBg        = null;
+        recent1Icon          = null;
+        recent2Icon          = null;
+        recent1Name          = null;
+        recent1Dest          = null;
+        recent1Meta          = null;
+        recent1Time          = null;
+        recent1Avatar        = null;
+        recent2Name          = null;
+        recent2Dest          = null;
+        recent2Meta          = null;
+        recent2Time          = null;
+        recent2Avatar        = null;
+        btnEnableBiometric   = null;
+        btnLogout            = null;
         super.onDestroyView();
     }
 }
