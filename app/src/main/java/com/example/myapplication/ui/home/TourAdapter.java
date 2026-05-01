@@ -136,8 +136,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
             // Reduce visual whitespace for compact cards
-            int compactImageDp = 110;
-            int compactPaddingBottomDp = 6;
+            int compactImageDp = 140;
+            int compactPaddingBottomDp = 2;
             int compactPaddingTopDp = 2;
             int compactPaddingHorDp = 8;
             int compactFooterTopDp = 0;

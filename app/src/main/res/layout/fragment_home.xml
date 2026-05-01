@@ -45,6 +45,7 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/home_featured_title"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textSize="26sp"
                 android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -65,6 +66,7 @@
                 android:layout_marginTop="16dp"
                 android:text="Promociones"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textSize="26sp"
                 android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -85,6 +87,7 @@
                 android:layout_marginTop="16dp"
                 android:text="Novedades"
                 android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textSize="26sp"
                 android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
