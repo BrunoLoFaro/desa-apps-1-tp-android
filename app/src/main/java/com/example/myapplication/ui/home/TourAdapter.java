@@ -64,7 +64,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
             // Ensure fixed height for horizontal carousel items to keep uniform card heights
-            int heightDp = isCompact ? 540 : 600;
+            int heightDp = isCompact ? 520 : 580;
             int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, heightDp, parent.getContext().getResources().getDisplayMetrics());
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, heightPx);
             params.setMargins(0, 0, 32, 0);
@@ -136,7 +136,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
             // Reduce visual whitespace for compact cards
-            int compactImageDp = 125;
+            int compactImageDp = 80;
             int compactPaddingBottomDp = 8;
             int compactPaddingTopDp = 4;
             int compactPaddingHorDp = 8;
