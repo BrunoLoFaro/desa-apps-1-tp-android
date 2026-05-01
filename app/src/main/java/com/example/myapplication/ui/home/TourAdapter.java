@@ -135,6 +135,25 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
+            // Reduce visual whitespace for compact cards
+            int compactImageDp = 160;
+            int compactPaddingBottomDp = 12;
+            int compactPaddingTopDp = 8;
+            int compactPaddingHorDp = 12;
+            int compactFooterTopDp = 8;
+            int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+            holder.image.getLayoutParams().height = imgH;
+            holder.image.requestLayout();
+            if (holder.mainContentLayout != null) {
+                int padL = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingHorDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                int padT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                int padB = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingBottomDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.mainContentLayout.setPadding(padL, padT, padL, padB);
+            }
+            if (holder.footerContent != null) {
+                int padTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactFooterTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.footerContent.setPadding(holder.footerContent.getPaddingLeft(), padTop, holder.footerContent.getPaddingRight(), holder.footerContent.getPaddingBottom());
+            }
         } else {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
             if (holder.description != null) holder.description.setText(activity.getDescription());
@@ -154,6 +173,21 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                 holder.includes.setText(formatList(activity.getWhatIncluded()));
             }
             if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
+        }
+
+        // Restore normal paddings/heights for non-compact layout when needed
+        if (!isCompact) {
+            int normalImageDp = 200;
+            int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, normalImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+            holder.image.getLayoutParams().height = imgH;
+            holder.image.requestLayout();
+            if (holder.mainContentLayout != null) {
+                int padB = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.mainContentLayout.setPadding(0, 0, 0, padB);
+            }
+            if (holder.footerContent != null) {
+                holder.footerContent.setPadding(holder.footerContent.getPaddingLeft(), 0, holder.footerContent.getPaddingRight(), holder.footerContent.getPaddingBottom());
+            }
         }
 
         Glide.with(holder.itemView.getContext())
@@ -261,6 +295,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         LinearLayout chipsContainer;
         TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
         View detailedContainer;
+        View mainContentLayout;
+        LinearLayout footerContent;
         ImageView favoriteBtn;
         MaterialButton bookButton;
 
@@ -275,6 +311,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             originalPrice = itemView.findViewById(R.id.original_price);
             discountBadge = itemView.findViewById(R.id.discount_badge);
             slots = itemView.findViewById(R.id.activity_slots);
+
+            mainContentLayout = itemView.findViewById(R.id.main_content_layout);
+            footerContent = itemView.findViewById(R.id.footer_content);
 
             detailedContainer = itemView.findViewById(R.id.detailed_info_container);
             description = itemView.findViewById(R.id.activity_description);
