@@ -66,4 +66,7 @@ public class ActivityDetailResponse {
 
     @Json(name = "discountPercentage")
     public Integer discountPercentage;
+
+    @Json(name = "galleryUrls")
+    public java.util.List<String> galleryUrls;
 }
