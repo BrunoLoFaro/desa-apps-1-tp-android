@@ -190,6 +190,7 @@
     <string name="error_phone_number_required">Ingresá el número de teléfono.</string>
     <string name="error_phone_exact_digits">El número debe tener %1$d dígitos.</string>
     <string name="error_phone_range_digits">El número debe tener entre %1$d y %2$d dígitos.</string>
+    <string name="error_phone_missing_prefix">El número debe comenzar con %1$s.</string>
     <string name="profile_title">Mi perfil</string>
     <string name="profile_section_personal">Datos personales</string>
     <string name="profile_section_preferences">Mis preferencias</string>

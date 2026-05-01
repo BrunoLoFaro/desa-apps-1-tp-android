@@ -144,123 +144,43 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:orientation="vertical">
+                        android:orientation="horizontal">
 
-                        <!-- Outlined container with floating "Teléfono" label -->
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_country_code"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/phone_code_hint">
 
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/card_phone_container"
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_country_display"
                                 android:layout_width="match_parent"
-                                android:layout_height="56dp"
-                                android:layout_marginTop="8dp"
-                                app:cardCornerRadius="4dp"
-                                app:cardElevation="0dp"
-                                app:strokeColor="?attr/colorOutline"
-                                app:strokeWidth="1dp">
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:orientation="horizontal">
-
-                                    <!-- Country picker button -->
-                                    <LinearLayout
-                                        android:id="@+id/btn_country_picker"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="match_parent"
-                                        android:background="?attr/selectableItemBackground"
-                                        android:clickable="true"
-                                        android:focusable="true"
-                                        android:gravity="center_vertical"
-                                        android:orientation="horizontal"
-                                        android:paddingStart="12dp"
-                                        android:paddingEnd="6dp">
-
-                                        <TextView
-                                            android:id="@+id/tv_country_flag"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:textSize="20sp" />
-
-                                        <TextView
-                                            android:id="@+id/tv_country_code_display"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginStart="6dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="16sp" />
-
-                                        <ImageView
-                                            android:layout_width="18dp"
-                                            android:layout_height="18dp"
-                                            android:layout_marginStart="2dp"
-                                            android:contentDescription="@null"
-                                            android:src="@drawable/ic_dropdown_arrow"
-                                            app:tint="?attr/colorOnSurfaceVariant" />
-
-                                    </LinearLayout>
-
-                                    <!-- Vertical divider -->
-                                    <View
-                                        android:layout_width="1dp"
-                                        android:layout_height="match_parent"
-                                        android:layout_marginVertical="10dp"
-                                        android:background="?attr/colorOutlineVariant" />
-
-                                    <!-- Phone number input -->
-                                    <EditText
-                                        android:id="@+id/edit_phone_number"
-                                        android:layout_width="0dp"
-                                        android:layout_height="match_parent"
-                                        android:layout_weight="1"
-                                        android:background="@null"
-                                        android:hint="@string/phone_number_hint"
-                                        android:inputType="number"
-                                        android:maxLength="15"
-                                        android:paddingHorizontal="12dp"
-                                        android:textSize="16sp" />
-
-                                </LinearLayout>
-
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <!-- Floating "Teléfono" label -->
-                            <TextView
-                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:background="?android:attr/windowBackground"
-                                android:paddingHorizontal="4dp"
-                                android:text="@string/phone_hint"
-                                android:textColor="?attr/colorPrimary"
-                                android:textSize="12sp" />
+                                android:focusable="false"
+                                android:inputType="none"
+                                android:maxLines="1" />
 
-                        </FrameLayout>
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Phone error -->
-                        <TextView
-                            android:id="@+id/tv_phone_error"
-                            android:layout_width="match_parent"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_phone_number"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginStart="16dp"
-                            android:textColor="?attr/colorError"
-                            android:textSize="12sp"
-                            android:visibility="gone" />
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="2"
+                            android:hint="@string/phone_number_hint">
 
-                        <!-- Helper text -->
-                        <TextView
-                            android:id="@+id/tv_phone_helper"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginStart="16dp"
-                            android:text="@string/phone_helper_text"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="12sp" />
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_phone_number"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:maxLength="15" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
 

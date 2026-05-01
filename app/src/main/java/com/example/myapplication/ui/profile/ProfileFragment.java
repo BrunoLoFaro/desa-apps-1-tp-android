@@ -6,14 +6,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputFilter;
-import android.util.TypedValue;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,13 +71,10 @@ public class ProfileFragment extends Fragment
     private TextInputEditText editLastName;
 
     // Phone group
-    private MaterialCardView cardPhoneContainer;
-    private LinearLayout btnCountryPicker;
-    private TextView tvCountryFlag;
-    private TextView tvCountryCodeDisplay;
-    private EditText editPhoneNumber;
-    private TextView tvPhoneError;
-    private TextView tvPhoneHelper;
+    private TextInputLayout layoutCountryCode;
+    private TextInputLayout layoutPhoneNumber;
+    private TextInputEditText editCountryDisplay;
+    private TextInputEditText editPhoneNumber;
     private PhoneCountryCode selectedCountry;
 
     private MaterialButton btnSave;
@@ -180,12 +175,23 @@ public class ProfileFragment extends Fragment
 
     @Override
     public void onCountrySelected(PhoneCountryCode country) {
+        String currentNumber = getText(editPhoneNumber);
+        String prevDefault   = selectedCountry != null ? selectedCountry.getDefaultPrefix() : "";
+
         selectedCountry = country;
-        tvCountryFlag.setText(country.getFlagEmoji());
-        tvCountryCodeDisplay.setText(country.getCode());
+        editCountryDisplay.setText(country.getFlagEmoji() + " " + country.getCode());
+        if (layoutCountryCode != null) layoutCountryCode.setError(null);
         setPhoneError(null);
         updatePhoneMaxLength();
-        if (!getText(editPhoneNumber).isEmpty()) validatePhoneInline();
+
+        // Pre-fill default prefix when field is empty or user hasn't typed past the previous default
+        String newDefault = country.getDefaultPrefix();
+        if (currentNumber.isEmpty() || currentNumber.equals(prevDefault)) {
+            editPhoneNumber.setText(newDefault);
+            if (!newDefault.isEmpty()) editPhoneNumber.setSelection(newDefault.length());
+        } else {
+            validatePhoneInline();
+        }
     }
 
     // ── Biometric ─────────────────────────────────────────────────────────────
@@ -244,13 +250,10 @@ public class ProfileFragment extends Fragment
         editFirstName   = view.findViewById(R.id.edit_first_name);
         editLastName    = view.findViewById(R.id.edit_last_name);
 
-        cardPhoneContainer   = view.findViewById(R.id.card_phone_container);
-        btnCountryPicker     = view.findViewById(R.id.btn_country_picker);
-        tvCountryFlag        = view.findViewById(R.id.tv_country_flag);
-        tvCountryCodeDisplay = view.findViewById(R.id.tv_country_code_display);
-        editPhoneNumber      = view.findViewById(R.id.edit_phone_number);
-        tvPhoneError         = view.findViewById(R.id.tv_phone_error);
-        tvPhoneHelper        = view.findViewById(R.id.tv_phone_helper);
+        layoutCountryCode  = view.findViewById(R.id.layout_country_code);
+        layoutPhoneNumber  = view.findViewById(R.id.layout_phone_number);
+        editCountryDisplay = view.findViewById(R.id.edit_country_display);
+        editPhoneNumber    = view.findViewById(R.id.edit_phone_number);
 
         btnSave             = view.findViewById(R.id.btn_save);
         loadingSpinner      = view.findViewById(R.id.loading_spinner);
@@ -287,10 +290,23 @@ public class ProfileFragment extends Fragment
     // ── Phone section setup ───────────────────────────────────────────────────
 
     private void setupPhoneSection() {
-        btnCountryPicker.setOnClickListener(v -> {
+        layoutPhoneNumber.setHelperText(getString(R.string.phone_helper_text));
+
+        View.OnClickListener openPicker = v -> {
             String currentCode = selectedCountry != null ? selectedCountry.getCode() : null;
             CountryPickerBottomSheet.newInstance(currentCode)
                     .show(getChildFragmentManager(), "country_picker");
+        };
+        layoutCountryCode.setOnClickListener(openPicker);
+        editCountryDisplay.setOnClickListener(openPicker);
+
+        editPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus || selectedCountry == null) return;
+            String prefix = selectedCountry.getDefaultPrefix();
+            if (!prefix.isEmpty() && getText(editPhoneNumber).isEmpty()) {
+                editPhoneNumber.setText(prefix);
+                editPhoneNumber.setSelection(prefix.length());
+            }
         });
 
         editPhoneNumber.addTextChangedListener(new SimpleTextWatcher() {
@@ -309,14 +325,12 @@ public class ProfileFragment extends Fragment
                     s.replace(0, s.length(), digits);
                     inChange = false;
                 }
-                // Clear error as soon as user corrects
-                if (tvPhoneError != null && tvPhoneError.getVisibility() == View.VISIBLE) {
+                if (layoutPhoneNumber != null && layoutPhoneNumber.getError() != null) {
                     validatePhoneInline();
                 }
-                // Hide helper while there's content in the field
-                if (tvPhoneHelper != null
-                        && (tvPhoneError == null || tvPhoneError.getVisibility() != View.VISIBLE)) {
-                    tvPhoneHelper.setVisibility(digits.isEmpty() ? View.VISIBLE : View.GONE);
+                if (layoutPhoneNumber != null) {
+                    layoutPhoneNumber.setHelperText(
+                            digits.isEmpty() ? getString(R.string.phone_helper_text) : null);
                 }
             }
         });
@@ -331,7 +345,7 @@ public class ProfileFragment extends Fragment
 
     /** Real-time validation shown while user is typing (only clears/updates existing errors). */
     private void validatePhoneInline() {
-        if (tvPhoneError == null || selectedCountry == null) return;
+        if (layoutPhoneNumber == null || selectedCountry == null) return;
         String number = getText(editPhoneNumber);
         if (number.isEmpty() || isPhoneLengthValid(number)) {
             setPhoneError(null);
@@ -341,20 +355,14 @@ public class ProfileFragment extends Fragment
     }
 
     private void setPhoneError(@Nullable String error) {
-        if (tvPhoneError == null || cardPhoneContainer == null) return;
+        if (layoutPhoneNumber == null) return;
+        layoutPhoneNumber.setError(error);
         if (error == null || error.isEmpty()) {
-            tvPhoneError.setVisibility(View.GONE);
-            tvPhoneError.setText("");
-            cardPhoneContainer.setStrokeColor(resolveAttrColor(com.google.android.material.R.attr.colorOutline));
-            if (tvPhoneHelper != null) {
-                String number = editPhoneNumber != null ? getText(editPhoneNumber) : "";
-                tvPhoneHelper.setVisibility(number.isEmpty() ? View.VISIBLE : View.GONE);
-            }
+            String number = editPhoneNumber != null ? getText(editPhoneNumber) : "";
+            layoutPhoneNumber.setHelperText(
+                    number.isEmpty() ? getString(R.string.phone_helper_text) : null);
         } else {
-            tvPhoneError.setText(error);
-            tvPhoneError.setVisibility(View.VISIBLE);
-            if (tvPhoneHelper != null) tvPhoneHelper.setVisibility(View.GONE);
-            cardPhoneContainer.setStrokeColor(resolveAttrColor(com.google.android.material.R.attr.colorError));
+            layoutPhoneNumber.setHelperText(null);
         }
     }
 
@@ -371,19 +379,12 @@ public class ProfileFragment extends Fragment
         return getString(R.string.error_phone_range_digits, cc.getMinDigits(), cc.getMaxDigits());
     }
 
-    private int resolveAttrColor(int attr) {
-        TypedValue tv = new TypedValue();
-        requireContext().getTheme().resolveAttribute(attr, tv, true);
-        return tv.data;
-    }
-
     private void parseAndSetPhone(String phone) {
         if (phone == null || phone.trim().isEmpty()) return;
         for (PhoneCountryCode cc : PhoneCountryCodes.sortedByCodeLength()) {
             if (phone.startsWith(cc.getCode())) {
                 selectedCountry = cc;
-                tvCountryFlag.setText(cc.getFlagEmoji());
-                tvCountryCodeDisplay.setText(cc.getCode());
+                editCountryDisplay.setText(cc.getFlagEmoji() + " " + cc.getCode());
                 String number = phone.substring(cc.getCode().length()).replaceAll("[^\\d]", "");
                 editPhoneNumber.setText(number);
                 updatePhoneMaxLength();
@@ -426,10 +427,11 @@ public class ProfileFragment extends Fragment
      */
     @Nullable
     private String buildPhone() {
+        if (layoutCountryCode != null) layoutCountryCode.setError(null);
+        setPhoneError(null);
+
         String codeValue = selectedCountry != null ? selectedCountry.getCode() : "";
         String number = getText(editPhoneNumber);
-
-        setPhoneError(null);
 
         boolean codeEmpty   = codeValue.isEmpty();
         boolean numberEmpty = number.isEmpty();
@@ -437,11 +439,17 @@ public class ProfileFragment extends Fragment
         if (codeEmpty && numberEmpty) return ""; // phone is optional
 
         if (codeEmpty) {
-            setPhoneError(getString(R.string.error_phone_country_required));
+            if (layoutCountryCode != null)
+                layoutCountryCode.setError(getString(R.string.error_phone_country_required));
             return null;
         }
         if (numberEmpty) {
             setPhoneError(getString(R.string.error_phone_number_required));
+            return null;
+        }
+        String prefix = selectedCountry.getDefaultPrefix();
+        if (!prefix.isEmpty() && !number.startsWith(prefix)) {
+            setPhoneError(getString(R.string.error_phone_missing_prefix, prefix));
             return null;
         }
         if (!isPhoneLengthValid(number)) {
@@ -679,14 +687,11 @@ public class ProfileFragment extends Fragment
         layoutLastName       = null;
         editFirstName        = null;
         editLastName         = null;
-        cardPhoneContainer   = null;
-        btnCountryPicker     = null;
-        tvCountryFlag        = null;
-        tvCountryCodeDisplay = null;
-        editPhoneNumber      = null;
-        tvPhoneError         = null;
-        tvPhoneHelper        = null;
-        selectedCountry      = null;
+        layoutCountryCode  = null;
+        layoutPhoneNumber  = null;
+        editCountryDisplay = null;
+        editPhoneNumber    = null;
+        selectedCountry    = null;
         btnSave              = null;
         loadingSpinner       = null;
         scrollView           = null;
