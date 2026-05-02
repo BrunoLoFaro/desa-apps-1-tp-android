@@ -1,4 +1,7 @@
-package com.example.myapplication.ui.home;import android.annotation.SuppressLint;
+package com.example.myapplication.ui.home;
+
+import android.annotation.SuppressLint;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +15,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.TourActivity;
+import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.card.MaterialCardView;
+import androidx.core.content.ContextCompat;
+import com.google.android.material.color.MaterialColors;
+import android.util.TypedValue;
+import android.widget.FrameLayout;
 import java.util.List;
 
 public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder> {
@@ -58,9 +67,14 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity, parent, false);
         if (isHorizontal) {
             int width = (int) (parent.getContext().getResources().getDisplayMetrics().widthPixels * 0.85);
-            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, RecyclerView.LayoutParams.MATCH_PARENT);
             params.setMargins(0, 0, 32, 0);
             view.setLayoutParams(params);
+        } else if (isCompact) {
+            view.setLayoutParams(new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            ));
         }
         return new TourViewHolder(view);
     }
@@ -76,39 +90,54 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         boolean soldOut = activity.getAvailableSlots() <= 0;
         
         // Handle discount pricing
-        // API price is the ORIGINAL price. Discounted price = original * (1 - discount/100)
         if (activity.getDiscountPercentage() != null && activity.getDiscountPercentage() > 0) {
             String priceStr = activity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
                 try {
-                    double originalPrice = Double.parseDouble(priceStr.substring(1));
+                    Double parsed = FormatUtils.parsePriceToDouble(priceStr);
+                    if (parsed == null) throw new NumberFormatException("Invalid price: " + priceStr);
+                    double originalPrice = parsed;
                     double discountedPrice = originalPrice * (1 - activity.getDiscountPercentage() / 100.0);
 
-                    holder.originalPrice.setText(String.format("$%.2f", originalPrice));
+                    holder.originalPrice.setText(FormatUtils.formatPrice(originalPrice, "ARS"));
+                    holder.originalPrice.setPaintFlags(holder.originalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                     holder.originalPrice.setVisibility(View.VISIBLE);
-                    holder.price.setText(String.format("$%.2f", discountedPrice));
+                    holder.price.setText(FormatUtils.formatPrice(discountedPrice, "ARS"));
 
-                    holder.discountBadge.setText(activity.getDiscountPercentage() + "% OFF");
+                    holder.discountBadge.setText((int)activity.getDiscountPercentage() + "% OFF");
                     holder.discountBadge.setVisibility(View.VISIBLE);
                 } catch (NumberFormatException e) {
-                    holder.originalPrice.setVisibility(View.GONE);
-                    holder.discountBadge.setVisibility(View.GONE);
+                    holder.originalPrice.setText(activity.getPrice());
+                    holder.originalPrice.setVisibility(View.INVISIBLE);
+                    holder.discountBadge.setVisibility(View.INVISIBLE);
                     holder.price.setText(activity.getPrice());
                 }
             } else {
-                holder.originalPrice.setVisibility(View.GONE);
-                holder.discountBadge.setVisibility(View.GONE);
+                holder.originalPrice.setVisibility(View.INVISIBLE);
+                holder.discountBadge.setVisibility(View.INVISIBLE);
                 holder.price.setText(activity.getPrice());
             }
         } else {
-            holder.originalPrice.setVisibility(View.GONE);
-            holder.discountBadge.setVisibility(View.GONE);
-            holder.price.setText(activity.getPrice());
+            // Ensure even base price is formatted (no decimals)
+            String priceStr = activity.getPrice();
+            if (priceStr != null && priceStr.startsWith("$")) {
+                Double parsed = FormatUtils.parsePriceToDouble(priceStr);
+                holder.price.setText(parsed != null ? FormatUtils.formatPrice(parsed, "ARS") : priceStr);
+            } else {
+                holder.price.setText(priceStr);
+            }
+            holder.originalPrice.setVisibility(View.INVISIBLE);
+            holder.discountBadge.setVisibility(View.INVISIBLE);
         }
+        
         holder.slots.setText(soldOut
-                ? holder.itemView.getContext().getString(R.string.sold_out)
-                : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
+            ? holder.itemView.getContext().getString(R.string.sold_out)
+            : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         holder.itemView.setAlpha(soldOut ? 0.65f : 1f);
+        if ((isCompact || isFavoritesSection) && holder.card != null) {
+            int surfaceColor = MaterialColors.getColor(holder.itemView, com.google.android.material.R.attr.colorSurface, ContextCompat.getColor(holder.itemView.getContext(), android.R.color.white));
+            holder.card.setCardBackgroundColor(surfaceColor);
+        }
 
         if (holder.rating != null) {
             if (activity.getReviewsCount() <= 0) {
@@ -120,6 +149,49 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
         if (isCompact) {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.GONE);
+            // Reduce visual whitespace for compact cards
+            int compactImageDp = 140;
+            int compactPaddingBottomDp = 1;
+            int compactPaddingTopDp = 2;
+            int compactPaddingHorDp = 8;
+            int compactFooterTopDp = 6;
+            int compactRowTopDp = 4;
+            int compactTitleTopDp = 2;
+            int compactDestinationTopDp = 2;
+            int compactDurationTopDp = 2;
+            int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+            holder.image.getLayoutParams().height = imgH;
+            holder.image.requestLayout();
+            if (holder.mainContentLayout != null) {
+                int padL = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingHorDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                int padT = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                int padB = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactPaddingBottomDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.mainContentLayout.setPadding(padL, padT, padL, padB);
+            }
+            if (holder.category != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.category.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactRowTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.category.setLayoutParams(lp);
+            }
+            if (holder.name != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.name.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactTitleTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.name.setLayoutParams(lp);
+            }
+            if (holder.destination != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.destination.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactDestinationTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.destination.setLayoutParams(lp);
+            }
+            if (holder.duration != null) {
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) holder.duration.getLayoutParams();
+                lp.topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactDurationTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.duration.setLayoutParams(lp);
+            }
+            if (holder.footerContent != null) {
+                int padTop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, compactFooterTopDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.footerContent.setPadding(holder.footerContent.getPaddingLeft(), padTop, holder.footerContent.getPaddingRight(), holder.footerContent.getPaddingBottom());
+            }
         } else {
             if (holder.detailedContainer != null) holder.detailedContainer.setVisibility(View.VISIBLE);
             if (holder.description != null) holder.description.setText(activity.getDescription());
@@ -139,6 +211,21 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
                 holder.includes.setText(formatList(activity.getWhatIncluded()));
             }
             if (holder.cancellation != null) holder.cancellation.setText(activity.getCancellationPolicy());
+        }
+
+        // Restore normal paddings/heights for non-compact layout when needed
+        if (!isCompact) {
+            int normalImageDp = 200;
+            int imgH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, normalImageDp, holder.itemView.getContext().getResources().getDisplayMetrics());
+            holder.image.getLayoutParams().height = imgH;
+            holder.image.requestLayout();
+            if (holder.mainContentLayout != null) {
+                int padB = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, holder.itemView.getContext().getResources().getDisplayMetrics());
+                holder.mainContentLayout.setPadding(0, 0, 0, padB);
+            }
+            if (holder.footerContent != null) {
+                holder.footerContent.setPadding(holder.footerContent.getPaddingLeft(), 0, holder.footerContent.getPaddingRight(), holder.footerContent.getPaddingBottom());
+            }
         }
 
         Glide.with(holder.itemView.getContext())
@@ -246,8 +333,11 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         LinearLayout chipsContainer;
         TextView chipSoldOut, chipSlotsAvailable, chipNewPrice;
         View detailedContainer;
-        FloatingActionButton favoriteBtn;
+        View mainContentLayout;
+        ViewGroup footerContent;
+        ImageView favoriteBtn;
         MaterialButton bookButton;
+        MaterialCardView card;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -260,6 +350,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             originalPrice = itemView.findViewById(R.id.original_price);
             discountBadge = itemView.findViewById(R.id.discount_badge);
             slots = itemView.findViewById(R.id.activity_slots);
+
+            mainContentLayout = itemView.findViewById(R.id.main_content_layout);
+            footerContent = itemView.findViewById(R.id.footer_content);
 
             detailedContainer = itemView.findViewById(R.id.detailed_info_container);
             description = itemView.findViewById(R.id.activity_description);
@@ -275,6 +368,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             chipSlotsAvailable = itemView.findViewById(R.id.chip_slots_available);
             chipNewPrice = itemView.findViewById(R.id.chip_new_price);
             bookButton = itemView.findViewById(R.id.btn_book_now);
+            card = itemView.findViewById(R.id.card_view);
         }
     }
 }

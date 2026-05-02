@@ -233,7 +233,7 @@ public class AppModule {
     @Singleton
     static AppDatabase provideDatabase(@ApplicationContext Context context) {
         return Room.databaseBuilder(context, AppDatabase.class, "xplorenow_db")
-                .addMigrations(AppDatabase.MIGRATION_4_5)
+                .addMigrations(AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6)
                 .fallbackToDestructiveMigration()
                 .build();
     }

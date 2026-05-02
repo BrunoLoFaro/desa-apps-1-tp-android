@@ -12,6 +12,10 @@ public class CachedActivityEntity {
     public String category;
     public String description;
     public String imageUrl;
+    /** JSON string with itinerary points for offline maps (may be null). */
+    public String itineraryJson;
+    /** JSON string with gallery urls for offline carousel (may be null). */
+    public String galleryJson;
     public int durationMinutes;
     public double basePrice;
     public String currency;

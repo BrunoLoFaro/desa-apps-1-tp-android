@@ -3,6 +3,7 @@ package com.example.myapplication.ui.home;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -38,6 +39,7 @@ import com.example.myapplication.data.model.ReviewResponse;
 import com.example.myapplication.ui.home.viewmodel.CreateBookingViewModel;
 import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
+import com.example.myapplication.util.FormatUtils;
 import androidx.core.content.ContextCompat;
 import androidx.core.os.BundleCompat;
 import androidx.core.widget.NestedScrollView;
@@ -93,6 +95,7 @@ public class DetailFragment extends Fragment {
                 tourActivity = BundleCompat.getSerializable(args, "activity_data", TourActivity.class);
             }
             fromHistory = args.getBoolean("from_history", false);
+            fromBooking = args.getBoolean("from_booking", false);
             scrollToBooking = args.getBoolean("scroll_to_booking", false);
             bookingStatus = args.getString("booking_status");
             if (args.containsKey("booking_id")) {
@@ -396,7 +399,8 @@ public class DetailFragment extends Fragment {
         final String meeting = safeTrim(tourActivity.getMeetingPoint());
         final List<ItineraryPoint> itinerary = tourActivity.getItineraryPoints();
 
-        if (meeting.isEmpty()) {
+        boolean hasItinerary = itinerary != null && !itinerary.isEmpty();
+        if (meeting.isEmpty() && !hasItinerary) {
             if (meetingMapError != null) meetingMapError.setVisibility(View.VISIBLE);
             return;
         }
@@ -410,9 +414,11 @@ public class DetailFragment extends Fragment {
         new Thread(() -> {
             List<MarkerData> markers = new ArrayList<>();
             try {
-                LatLng meetingLatLng = geocodeFirst(geocoder, withDestination(meeting, destination));
-                if (meetingLatLng != null) {
-                    markers.add(new MarkerData(meetingLatLng, "Punto de encuentro", meeting));
+                if (!meeting.isEmpty()) {
+                    LatLng meetingLatLng = geocodeFirst(geocoder, withDestination(meeting, destination));
+                    if (meetingLatLng != null) {
+                        markers.add(new MarkerData(meetingLatLng, "Punto de encuentro", meeting));
+                    }
                 }
 
                 if (itinerary != null) {
@@ -497,7 +503,16 @@ public class DetailFragment extends Fragment {
         if (tourActivity == null) return;
         String meeting = safeTrim(tourActivity.getMeetingPoint());
         if (meeting.isEmpty()) {
-            android.widget.Toast.makeText(requireContext(), "Punto de encuentro no disponible", android.widget.Toast.LENGTH_SHORT).show();
+            List<ItineraryPoint> itinerary = tourActivity.getItineraryPoints();
+            if (itinerary != null && !itinerary.isEmpty()) {
+                ItineraryPoint first = itinerary.get(0);
+                String candidate = first != null ? safeTrim(first.getAddress()) : "";
+                if (candidate.isEmpty() && first != null) candidate = safeTrim(first.getName());
+                meeting = candidate;
+            }
+        }
+        if (meeting.isEmpty()) {
+            android.widget.Toast.makeText(requireContext(), "Ubicación no disponible", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
         String destination = safeTrim(tourActivity.getDestination());
@@ -550,7 +565,9 @@ public class DetailFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void populateDetails(View root) {
-        ImageView image = root.findViewById(R.id.activity_image);
+        View activityImageView = root.findViewById(R.id.activity_image);
+        ImageView image = activityImageView instanceof ImageView ? (ImageView) activityImageView : null;
+        ViewPager2 existingCarousel = activityImageView instanceof ViewPager2 ? (ViewPager2) activityImageView : null;
         TextView category = root.findViewById(R.id.activity_category);
         TextView name = root.findViewById(R.id.activity_name);
         TextView destination = root.findViewById(R.id.activity_destination);
@@ -566,7 +583,7 @@ public class DetailFragment extends Fragment {
         TextView meetingPoint = root.findViewById(R.id.activity_meeting_point);
         TextView includes = root.findViewById(R.id.activity_includes);
         TextView cancellation = root.findViewById(R.id.activity_cancellation);
-        com.google.android.material.floatingactionbutton.FloatingActionButton favoriteButton = root.findViewById(R.id.favorite_button);
+        android.widget.ImageView favoriteButton = root.findViewById(R.id.favorite_button);
 
         if (detailedContainer != null) {
             detailedContainer.setVisibility(View.VISIBLE);
@@ -587,15 +604,18 @@ public class DetailFragment extends Fragment {
             String priceStr = tourActivity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
                 try {
-                    double basePrice = Double.parseDouble(priceStr.substring(1));
+                    Double parsed = FormatUtils.parsePriceToDouble(priceStr);
+                    if (parsed == null) throw new NumberFormatException("Invalid price: " + priceStr);
+                    double basePrice = parsed;
                     double discountedPrice = basePrice * (1 - tourActivity.getDiscountPercentage() / 100.0);
                     if (originalPrice != null) {
-                        originalPrice.setText(String.format("$%.2f", basePrice));
+                        originalPrice.setText(FormatUtils.formatPrice(basePrice, "ARS"));
+                        originalPrice.setPaintFlags(originalPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                         originalPrice.setVisibility(View.VISIBLE);
                     }
-                    price.setText(String.format("$%.2f", discountedPrice));
+                    price.setText(FormatUtils.formatPrice(discountedPrice, "ARS"));
                     if (discountBadge != null) {
-                        discountBadge.setText(tourActivity.getDiscountPercentage() + "% OFF");
+                        discountBadge.setText((int) tourActivity.getDiscountPercentage() + "% OFF");
                         discountBadge.setVisibility(View.VISIBLE);
                     }
                 } catch (NumberFormatException e) {
@@ -660,7 +680,7 @@ public class DetailFragment extends Fragment {
         if (includes != null) includes.setText(tourActivity.getWhatIncluded());
         if (cancellation != null) cancellation.setText(tourActivity.getCancellationPolicy());
 
-        if (image != null) {
+        if (activityImageView != null) {
             // Armar galería: si no viene desde API, usar imageUrl como fallback (0/1).
             List<String> gallery = tourActivity.getGalleryUrls();
             List<String> sanitizedGallery = new ArrayList<>();
@@ -684,6 +704,13 @@ public class DetailFragment extends Fragment {
             final int targetHeightPx = (int) (240 * getResources().getDisplayMetrics().density);
 
             if (sanitizedGallery.size() > 1) {
+                if (existingCarousel != null) {
+                    ViewGroup.LayoutParams lp = existingCarousel.getLayoutParams();
+                    lp.height = targetHeightPx;
+                    existingCarousel.setLayoutParams(lp);
+                    existingCarousel.setAdapter(new ActivityImageCarouselAdapter(sanitizedGallery));
+                    return;
+                }
                 ViewGroup parent = (ViewGroup) image.getParent();
                 if (parent instanceof androidx.constraintlayout.widget.ConstraintLayout) {
                     androidx.constraintlayout.widget.ConstraintLayout constraintParent =
@@ -719,6 +746,13 @@ public class DetailFragment extends Fragment {
                             .into(image);
                 }
             } else {
+                if (existingCarousel != null) {
+                    ViewGroup.LayoutParams lp = existingCarousel.getLayoutParams();
+                    lp.height = targetHeightPx;
+                    existingCarousel.setLayoutParams(lp);
+                    existingCarousel.setAdapter(new ActivityImageCarouselAdapter(sanitizedGallery));
+                    return;
+                }
                 ViewGroup.LayoutParams lp = image.getLayoutParams();
                 lp.height = targetHeightPx;
                 image.setLayoutParams(lp);

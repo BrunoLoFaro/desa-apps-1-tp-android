@@ -57,7 +57,9 @@ public class HomeViewModel extends ViewModel {
         tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
-                _featuredTours.setValue(data);
+                List<TourActivity> filtered = filterWithSpots(data);
+                _featuredTours.setValue(filtered);
+                tourRepository.preloadDetailsCache(filtered, 25);
             }
             @Override
             public void onError(UiMessage error) {
@@ -73,7 +75,9 @@ public class HomeViewModel extends ViewModel {
         tourRepository.getRecommendedTours(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
-                _featuredTours.setValue(data);
+                List<TourActivity> filtered = filterWithSpots(data);
+                _featuredTours.setValue(filtered);
+                tourRepository.preloadDetailsCache(filtered, 25);
                 onCallFinished();
             }
 
@@ -87,7 +91,9 @@ public class HomeViewModel extends ViewModel {
         tourRepository.getAllTours(new RepositoryCallback<List<TourActivity>>() {
             @Override
             public void onSuccess(List<TourActivity> data) {
-                _allTours.setValue(data);
+                List<TourActivity> filtered = filterWithSpots(data);
+                _allTours.setValue(filtered);
+                tourRepository.preloadDetailsCache(filtered, 50);
                 onCallFinished();
             }
 
@@ -105,9 +111,19 @@ public class HomeViewModel extends ViewModel {
             if (cached != null && !cached.isEmpty()) {
                 List<TourActivity> result = new ArrayList<>(cached.size());
                 for (CachedActivityEntity e : cached) result.add(TourRepository.mapFromCache(e));
-                _allTours.postValue(result);
+                _allTours.postValue(filterWithSpots(result));
             }
         });
+    }
+
+    private static List<TourActivity> filterWithSpots(List<TourActivity> data) {
+        if (data == null || data.isEmpty()) return data;
+        List<TourActivity> out = new ArrayList<>();
+        for (TourActivity a : data) {
+            if (a == null) continue;
+            if (a.getAvailableSlots() > 0) out.add(a);
+        }
+        return out;
     }
 
     public void toggleFavorite(long activityId, boolean targetFavorite, FavoriteToggleCallback callback) {

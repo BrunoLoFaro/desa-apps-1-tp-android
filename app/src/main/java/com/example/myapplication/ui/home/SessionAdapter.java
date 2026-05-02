@@ -32,7 +32,29 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
     }
 
     public void updateData(List<ActivitySessionResponse> newData) {
-        sessions = newData != null ? newData : Collections.emptyList();
+        if (newData == null) {
+            sessions = Collections.emptyList();
+        } else {
+            java.util.ArrayList<ActivitySessionResponse> filtered = new java.util.ArrayList<>();
+            java.util.Date now = new java.util.Date();
+            String[] patterns = new String[] {"yyyy-MM-dd'T'HH:mm:ss","yyyy-MM-dd'T'HH:mm:ss'Z'","yyyy-MM-dd'T'HH:mm:ssX","yyyy-MM-dd"};
+            for (ActivitySessionResponse s : newData) {
+                if (s == null) continue;
+                if (s.availableSpots <= 0) continue; // skip no spots
+                java.util.Date start = null;
+                for (String p : patterns) {
+                    try {
+                        java.text.SimpleDateFormat f = new java.text.SimpleDateFormat(p, java.util.Locale.US);
+                        start = f.parse(s.startTime);
+                        if (start != null) break;
+                    } catch (Exception ignored) {}
+                }
+                if (start == null) continue; // skip if cannot parse
+                if (!start.after(now)) continue; // skip past or current
+                filtered.add(s);
+            }
+            sessions = filtered;
+        }
         selectedPosition = RecyclerView.NO_POSITION;
         notifyDataSetChanged();
     }
@@ -49,10 +71,12 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
     public void onBindViewHolder(@NonNull SessionViewHolder holder, int position) {
         ActivitySessionResponse session = sessions.get(position);
 
-        holder.dateTime.setText(FormatUtils.formatStartTime(session.startTime));
+        String date = FormatUtils.formatShortDate(session.startTime);
+        String time = FormatUtils.extractTime(session.startTime);
+        holder.dateTime.setText(date + " | " + time);
         holder.spots.setText(holder.itemView.getContext().getString(
-                R.string.slots_available, Math.max(0, session.availableSpots)));
-        holder.price.setText(FormatUtils.formatPrice(session.price, "ARS"));
+            R.string.slots_available, Math.max(0, session.availableSpots)));
+        // price intentionally hidden in session cards
 
         holder.itemView.setSelected(position == selectedPosition);
         if (holder.card != null) {

@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -54,7 +55,7 @@ public class ProfileImageManager {
     public void saveFromUri(long userId, Uri uri, ContentResolver cr) throws IOException {
         try (InputStream is = cr.openInputStream(uri)) {
             if (is == null) throw new IOException("No se pudo abrir URI: " + uri);
-            saveBytes(userId, is.readAllBytes());
+            saveBytes(userId, readAllBytesCompat(is));
         }
     }
 
@@ -65,5 +66,15 @@ public class ProfileImageManager {
 
     private File getPhotoDir() {
         return new File(context.getFilesDir(), PHOTO_DIR);
+    }
+
+    private static byte[] readAllBytesCompat(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8 * 1024];
+        int read;
+        while ((read = inputStream.read(buffer)) != -1) {
+            output.write(buffer, 0, read);
+        }
+        return output.toByteArray();
     }
 }
