@@ -116,14 +116,19 @@ public class MainActivity extends AppCompatActivity {
                 bottomNav.setVisibility(View.GONE);
             }
 
-            // Hide global app bar for login and signup so fragments can render a full-image header
+            // Hide global app bar for auth screens so fragments can render a full-image header
             View appBar = findViewById(R.id.app_bar_layout);
             if (appBar != null) {
-                if (destId == R.id.loginFragment || destId == R.id.signupFragment) {
-                    appBar.setVisibility(View.GONE);
-                } else {
-                    appBar.setVisibility(View.VISIBLE);
-                }
+                boolean isAuthScreen = destId == R.id.loginFragment
+                        || destId == R.id.signupFragment
+                        || destId == R.id.classicRegisterFragment
+                        || destId == R.id.otpSignupCodeFragment
+                        || destId == R.id.otpSignupCompleteFragment
+                        || destId == R.id.forgotPasswordRequestFragment
+                        || destId == R.id.forgotPasswordCodeFragment
+                        || destId == R.id.forgotPasswordNewPasswordFragment
+                        || destId == R.id.biometricEnrollFragment;
+                appBar.setVisibility(isAuthScreen ? View.GONE : View.VISIBLE);
             }
 
             boolean isTopLevel = destId == R.id.loginFragment || destId == R.id.homeFragment

@@ -20,7 +20,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.concurrent.Executor;
@@ -41,7 +40,6 @@ public class LoginFragment extends BaseAuthFragment {
 
     private LoginViewModel viewModel;
     private boolean biometricPromptShownOnce;
-    private Toolbar previousToolbar;
 
     @Nullable
     @Override
@@ -109,20 +107,11 @@ public class LoginFragment extends BaseAuthFragment {
             navigateToHomeDirect();
         }
 
-        // Setup local toolbar (image header has local_toolbar)
+        // Setup local toolbar directly — no back arrow, no setSupportActionBar needed
         Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
         if (localToolbar != null) {
-            AppCompatActivity activity = (AppCompatActivity) requireActivity();
-            // Save previous toolbar to restore later
-            previousToolbar = activity.findViewById(R.id.toolbar);
-            activity.setSupportActionBar(localToolbar);
-            if (activity.getSupportActionBar() != null) {
-                activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
-            }
-            localToolbar.setTitle(R.string.app_name);
-            localToolbar.setTitleTextColor(getResources().getColor(android.R.color.white, requireContext().getTheme()));
-
-            // Login no debe mostrar flecha
+            localToolbar.setTitle(getString(R.string.app_name));
+            localToolbar.setTitleTextColor(android.graphics.Color.WHITE);
             localToolbar.setNavigationIcon(null);
         }
     }
@@ -235,11 +224,6 @@ public class LoginFragment extends BaseAuthFragment {
 
     @Override
     public void onDestroyView() {
-        // Restore global toolbar if we replaced it
-        if (previousToolbar != null) {
-            AppCompatActivity activity = (AppCompatActivity) requireActivity();
-            activity.setSupportActionBar(previousToolbar);
-        }
         emailLayout = null;
         passwordLayout = null;
         emailEditText = null;
