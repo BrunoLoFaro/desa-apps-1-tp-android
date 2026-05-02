@@ -1,6 +1,9 @@
 package com.example.myapplication.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public final class FormatUtils {
 
@@ -50,5 +53,32 @@ public final class FormatUtils {
         if (iso == null) return "";
         String s = formatStartTime(iso);
         return s.length() >= 16 ? s.substring(11, 16) : "";
+    }
+
+    /**
+     * Convierte un timestamp ISO a formato local con zona horaria UTC+3.
+     * Ejemplo entrada: "2024-01-15T14:30:00Z"
+     * Ejemplo salida: "15/01/2024 17:30" (UTC+3)
+     */
+    public static String formatStartTimeWithUTC3(String iso) {
+        if (iso == null || iso.isEmpty()) return "";
+        try {
+            // Parsear el ISO timestamp en UTC
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = isoFormat.parse(iso);
+            
+            if (date == null) {
+                return formatStartTime(iso);
+            }
+            
+            // Convertir a UTC+3
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", new Locale("es", "AR"));
+            outputFormat.setTimeZone(TimeZone.getTimeZone("UTC+03:00"));
+            return outputFormat.format(date);
+        } catch (Exception e) {
+            // Si hay error en el parsing, retornar el formato simple
+            return formatStartTime(iso);
+        }
     }
 }

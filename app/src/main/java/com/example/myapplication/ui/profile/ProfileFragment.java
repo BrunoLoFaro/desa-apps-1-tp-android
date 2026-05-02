@@ -149,7 +149,6 @@ public class ProfileFragment extends Fragment
 
         bindViews(view);
         loadSavedImage();
-        setupPhoneSection();
 
         view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());

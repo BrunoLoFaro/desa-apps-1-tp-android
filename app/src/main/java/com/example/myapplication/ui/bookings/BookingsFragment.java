@@ -96,8 +96,6 @@ public class BookingsFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(BookingsViewModel.class);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-
         bindViews(view);
         setupAdapters(view);
         setupFilters();

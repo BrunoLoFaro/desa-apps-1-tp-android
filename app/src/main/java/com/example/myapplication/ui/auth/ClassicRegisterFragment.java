@@ -12,12 +12,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.RegisterViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -62,9 +61,11 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
 
         super.onViewCreated(view, savedInstanceState);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+            localToolbar.setNavigationOnClickListener(v -> navController.popBackStack(R.id.loginFragment, false));
+        }
 
         viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
 

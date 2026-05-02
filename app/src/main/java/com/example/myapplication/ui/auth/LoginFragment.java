@@ -20,6 +20,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.concurrent.Executor;
 
@@ -105,16 +106,25 @@ public class LoginFragment extends BaseAuthFragment {
         if (hasSession) {
             navigateToHomeDirect();
         }
+
+        // Setup local toolbar directly — no back arrow, no setSupportActionBar needed
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            localToolbar.setTitle(getString(R.string.app_name));
+            localToolbar.setTitleTextColor(android.graphics.Color.WHITE);
+            localToolbar.setNavigationIcon(null);
+        }
     }
 
     private void handleError(UiMessage error) {
         if (error instanceof UiMessage.ResMessage) {
             int resId = ((UiMessage.ResMessage) error).resId;
             if (resId == R.string.error_invalid_email) {
-                emailLayout.setError(getString(resId));
+                emailLayout.setError(getString(R.string.error_login_email_invalid));
                 return;
             } else if (resId == R.string.error_invalid_credentials) {
-                showError(getString(resId));
+                passwordLayout.setError(getString(R.string.error_login_password_invalid));
+                if (passwordEditText != null) passwordEditText.setText("");
                 return;
             }
         }
@@ -157,7 +167,7 @@ public class LoginFragment extends BaseAuthFragment {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                showError(errString != null ? errString.toString() : getString(R.string.biometric_login_error));
+                showError(errString.toString());
             }
         };
 
@@ -185,16 +195,20 @@ public class LoginFragment extends BaseAuthFragment {
         String password = passwordEditText.getText() != null
                 ? passwordEditText.getText().toString() : "";
 
+        boolean valid = true;
         if (email.isEmpty()) {
-            emailLayout.setError(getString(R.string.error_empty_fields));
-            return;
+            emailLayout.setError(getString(R.string.error_field_required));
+            valid = false;
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailLayout.setError(getString(R.string.error_login_email_invalid));
+            valid = false;
         }
         if (password.isEmpty()) {
-            passwordLayout.setError(getString(R.string.error_empty_fields));
-            return;
+            passwordLayout.setError(getString(R.string.error_field_required));
+            valid = false;
         }
+        if (!valid) return;
 
-        // Cerrar el teclado antes de hacer la llamada para que el Snackbar de error sea visible
         hideKeyboard();
         viewModel.login(email, password);
     }

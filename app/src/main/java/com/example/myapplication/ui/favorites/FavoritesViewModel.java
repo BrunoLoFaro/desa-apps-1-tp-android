@@ -10,7 +10,9 @@ import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.repository.TourRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import android.util.Log;
 
 import javax.inject.Inject;
@@ -19,6 +21,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class FavoritesViewModel extends ViewModel {
+
+    // Track chip visit counts across Fragment recreations (tab switches)
+    private static final Set<Long> priceChangedSeen = new HashSet<>();
+    private static final Set<Long> priceChangedDone = new HashSet<>();
+    private static final Set<Long> slotsChangedSeen = new HashSet<>();
+    private static final Set<Long> slotsChangedDone = new HashSet<>();
 
     private final TourRepository tourRepository;
     private final MutableLiveData<List<TourActivity>> _favorites = new MutableLiveData<>();
@@ -40,7 +48,11 @@ public class FavoritesViewModel extends ViewModel {
             @Override
             public void onSuccess(List<TourActivity> data) {
                 Log.d("FavoritesViewModel", "Favorites loaded: " + (data != null ? data.size() : 0));
-                _favorites.setValue(data != null ? data : new ArrayList<>());
+                List<TourActivity> list = data != null ? data : new ArrayList<>();
+                for (TourActivity item : list) {
+                    processChipVisibility(item);
+                }
+                _favorites.setValue(list);
                 _loading.setValue(false);
             }
 
@@ -51,6 +63,35 @@ public class FavoritesViewModel extends ViewModel {
                 _loading.setValue(false);
             }
         });
+    }
+
+    private void processChipVisibility(TourActivity item) {
+        if (item.getId() == null) return;
+        long id = item.getId();
+
+        if (item.isPriceChanged()) {
+            if (priceChangedDone.contains(id)) {
+                item.setPriceChanged(false);
+                priceChangedDone.remove(id);
+                priceChangedSeen.remove(id);
+            } else if (priceChangedSeen.contains(id)) {
+                priceChangedDone.add(id);
+            } else {
+                priceChangedSeen.add(id);
+            }
+        }
+
+        if (item.isSlotsChanged()) {
+            if (slotsChangedDone.contains(id)) {
+                item.setSlotsChanged(false);
+                slotsChangedDone.remove(id);
+                slotsChangedSeen.remove(id);
+            } else if (slotsChangedSeen.contains(id)) {
+                slotsChangedDone.add(id);
+            } else {
+                slotsChangedSeen.add(id);
+            }
+        }
     }
 
     public void toggleFavorite(long activityId, boolean isFavorite) {

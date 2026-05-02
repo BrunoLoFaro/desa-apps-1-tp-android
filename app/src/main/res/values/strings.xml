@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">XploreNow</string>
+    <string name="auth_header_desc">Imagen decorativa del encabezado</string>
     <string name="login_title">Bienvenido</string>
     <string name="password_hint">Contraseña</string>
     <string name="login_button_text">Iniciar sesión</string>
@@ -12,6 +13,7 @@
     <string name="otp_login_subtitle">Ingresá tu correo y te enviaremos un código de acceso.</string>
     <string name="otp_login_send_button">Enviar código</string>
     <string name="register_create_account_title">Crear cuenta</string>
+    <string name="register_explore_title">Regístrate para explorar actividades</string>
     <string name="register_create_account_button">Crear cuenta</string>
     <string name="phone_placeholder_hint">Ej: +54 9 11 1234-5678</string>
     <string name="otp_verify_title">Verificar identidad</string>
@@ -19,10 +21,11 @@
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
     <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
     <string name="error_empty_fields">Por favor, completa todos los campos.</string>
+    <string name="error_field_required">Por favor, completa este campo.</string>
 
     <string name="logout">Cerrar sesión</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
-    <string name="error_invalid_credentials">Las credenciales son incorrectas. Verificá tu correo y contraseña.</string>
+    <string name="error_invalid_credentials">Credenciales inválidas.</string>
 
     <!-- Biometric enroll -->
     <string name="biometric_enroll_title">Acceso rápido con huella</string>
@@ -71,6 +74,8 @@
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
+    <string name="error_login_email_invalid">El correo ingresado no es válido.</string>
+    <string name="error_login_password_invalid">La contraseña es inválida.</string>
     <string name="error_email_required">El correo electrónico es obligatorio.</string>
     <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
     <string name="error_password_required">La contraseña es obligatoria.</string>

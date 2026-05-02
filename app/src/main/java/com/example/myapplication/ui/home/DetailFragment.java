@@ -40,13 +40,13 @@ import com.example.myapplication.ui.home.viewmodel.DetailViewModel;
 import com.example.myapplication.ui.home.viewmodel.HistoryReviewViewModel;
 import androidx.core.content.ContextCompat;
 import androidx.core.os.BundleCompat;
+import androidx.core.widget.NestedScrollView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
@@ -64,6 +64,7 @@ public class DetailFragment extends Fragment {
     private TourActivity tourActivity;
     private boolean fromHistory;
     private boolean fromBooking;
+    private boolean scrollToBooking;
     private String bookingStatus;
     private Long bookingId;
     private DetailViewModel detailViewModel;
@@ -92,7 +93,7 @@ public class DetailFragment extends Fragment {
                 tourActivity = BundleCompat.getSerializable(args, "activity_data", TourActivity.class);
             }
             fromHistory = args.getBoolean("from_history", false);
-            fromBooking = args.getBoolean("from_booking", false);
+            scrollToBooking = args.getBoolean("scroll_to_booking", false);
             bookingStatus = args.getString("booking_status");
             if (args.containsKey("booking_id")) {
                 bookingId = args.getLong("booking_id");
@@ -112,9 +113,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
         RecyclerView sessionsRecycler = view.findViewById(R.id.sessions_recycler_view);
         sessionsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -271,8 +269,6 @@ public class DetailFragment extends Fragment {
         }
 
         if (tourActivity != null) {
-            toolbar.setTitle(tourActivity.getName());
-
             // Buscamos la vista incluida
             View content = view.findViewById(R.id.detail_content);
             if (content != null) {
@@ -295,7 +291,6 @@ public class DetailFragment extends Fragment {
                 detailViewModel.getActivity().observe(getViewLifecycleOwner(), activity -> {
                     if (activity != null) {
                         tourActivity = activity;
-                        toolbar.setTitle(activity.getName());
                         if (content != null) {
                             populateDetails(content);
                         }
@@ -324,6 +319,14 @@ public class DetailFragment extends Fragment {
                     }
                     if (sessionsTitle != null) sessionsTitle.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
                     sessionsRecycler.setVisibility(hasSessions ? View.VISIBLE : View.GONE);
+
+                    if (scrollToBooking && hasSessions && sessionsTitle != null) {
+                        NestedScrollView scrollView = view.findViewById(R.id.detail_scroll_view);
+                        if (scrollView != null) {
+                            scrollView.post(() -> scrollView.smoothScrollTo(0, sessionsTitle.getTop()));
+                        }
+                        scrollToBooking = false;
+                    }
                 });
 
                 detailViewModel.isOfflineCacheMiss().observe(getViewLifecycleOwner(), miss -> {

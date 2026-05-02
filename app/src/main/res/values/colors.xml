@@ -74,6 +74,7 @@
     <color name="text_primary">#1A1A2E</color>
     <color name="text_secondary">#6E6B82</color>
     <color name="star_amber">#F5B400</color>
+    <color name="overlay_violet_translucent">#1A7C5CFA</color>
     <color name="star_amber_light">#FFECB3</color>
     <color name="star_grey">#BDBDBD</color>
 </resources>

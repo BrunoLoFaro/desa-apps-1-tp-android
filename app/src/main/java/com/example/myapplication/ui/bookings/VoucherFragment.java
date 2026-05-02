@@ -24,7 +24,6 @@ import androidx.navigation.Navigation;
 import com.example.myapplication.R;
 import com.example.myapplication.data.local.OfflineBookingEntity;
 import com.example.myapplication.util.FormatUtils;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.io.IOException;
@@ -46,9 +45,6 @@ public class VoucherFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.voucher_toolbar);
-        toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
         MaterialButton downloadButton = view.findViewById(R.id.voucher_download_button);
         downloadButton.setOnClickListener(v -> generatePdf());

@@ -15,8 +15,6 @@ import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
 import com.example.myapplication.util.BiometricHelper;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
@@ -87,10 +85,6 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
         };
 
         super.onViewCreated(view, savedInstanceState);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
         if (subtitleText != null && email != null) {
             subtitleText.setText(getString(R.string.otp_verify_subtitle_format, email));

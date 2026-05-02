@@ -5,9 +5,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import android.widget.ImageButton;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
@@ -16,20 +14,21 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.ui.main.MainViewModel;
 import com.example.myapplication.util.ThemePreferences;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.inject.Inject;
+import java.util.Objects;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
     @Inject
     SessionManager sessionManager;
+
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
 
         final int initialLeft = toolbar.getPaddingLeft();
         final int initialTop = toolbar.getPaddingTop();
@@ -61,16 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
-        NavController navController = navHostFragment.getNavController();
-
-        // AppBarConfiguration: define qué destinos son top-level (mostrados en el nav bar)
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.homeFragment,
-                R.id.exploreFragment,
-                R.id.favoritesFragment,
-                R.id.bookingsFragment,
-                R.id.profileFragment
-        ).build();
+        navController = Objects.requireNonNull(navHostFragment, "NavHostFragment not found").getNavController();
 
         // Setup bottom nav
         bottomNav.setOnItemSelectedListener(item -> {
@@ -123,6 +116,29 @@ public class MainActivity extends AppCompatActivity {
                 bottomNav.setVisibility(View.GONE);
             }
 
+            // Hide global app bar for auth screens so fragments can render a full-image header
+            View appBar = findViewById(R.id.app_bar_layout);
+            if (appBar != null) {
+                boolean isAuthScreen = destId == R.id.loginFragment
+                        || destId == R.id.signupFragment
+                        || destId == R.id.classicRegisterFragment
+                        || destId == R.id.otpSignupCodeFragment
+                        || destId == R.id.otpSignupCompleteFragment
+                        || destId == R.id.forgotPasswordRequestFragment
+                        || destId == R.id.forgotPasswordCodeFragment
+                        || destId == R.id.forgotPasswordNewPasswordFragment
+                        || destId == R.id.biometricEnrollFragment;
+                appBar.setVisibility(isAuthScreen ? View.GONE : View.VISIBLE);
+            }
+
+            boolean isTopLevel = destId == R.id.loginFragment || destId == R.id.homeFragment
+                    || destId == R.id.exploreFragment || destId == R.id.favoritesFragment
+                    || destId == R.id.bookingsFragment || destId == R.id.profileFragment;
+            boolean hasPrevious = controller.getPreviousBackStackEntry() != null;
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(!isTopLevel && hasPrevious);
+            }
+
             if (destId == R.id.homeFragment) {
                 bottomNav.getMenu().findItem(R.id.homeFragment).setChecked(true);
             } else if (destId == R.id.exploreFragment) {
@@ -143,6 +159,15 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.loginFragment);
             }
         });
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        if (navController.getCurrentDestination() != null
+                && navController.getCurrentDestination().getId() == R.id.otpSignupCodeFragment) {
+            return navController.popBackStack(R.id.loginFragment, false);
+        }
+        return navController.navigateUp();
     }
 
     @Override
