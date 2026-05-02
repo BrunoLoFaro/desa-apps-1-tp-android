@@ -135,6 +135,7 @@ public class ExploreViewModel extends ViewModel {
                         List<TourActivity> mapped = data != null
                                 ? ExploreRepository.mapToTourActivities(data.items)
                                 : Collections.emptyList();
+                        mapped = filterWithSpots(mapped);
 
                         if (replace) {
                             _activities.setValue(mapped);
@@ -144,6 +145,8 @@ public class ExploreViewModel extends ViewModel {
                             merged.addAll(mapped);
                             _activities.setValue(merged);
                         }
+
+                        tourRepository.preloadDetailsCache(mapped, 25);
                     }
 
                     @Override
@@ -152,6 +155,16 @@ public class ExploreViewModel extends ViewModel {
                         _error.setValue(error);
                     }
                 });
+    }
+
+    private static List<TourActivity> filterWithSpots(List<TourActivity> data) {
+        if (data == null || data.isEmpty()) return data;
+        List<TourActivity> out = new ArrayList<>();
+        for (TourActivity a : data) {
+            if (a == null) continue;
+            if (a.getAvailableSlots() > 0) out.add(a);
+        }
+        return out;
     }
 
     @Override

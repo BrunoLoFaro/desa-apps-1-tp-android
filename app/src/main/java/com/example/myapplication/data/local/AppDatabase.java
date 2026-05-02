@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 @Database(
     entities = {OfflineBookingEntity.class, CachedActivityEntity.class},
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -38,6 +38,14 @@ public abstract class AppDatabase extends RoomDatabase {
                 "`availableSpots` INTEGER NOT NULL DEFAULT 0, " +
                 "PRIMARY KEY(`id`))"
             );
+        }
+    };
+
+    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `cached_activities` ADD COLUMN `itineraryJson` TEXT");
+            database.execSQL("ALTER TABLE `cached_activities` ADD COLUMN `galleryJson` TEXT");
         }
     };
 }

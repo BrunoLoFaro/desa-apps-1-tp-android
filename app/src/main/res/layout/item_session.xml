@@ -17,15 +17,6 @@
         android:paddingHorizontal="16dp"
         android:paddingVertical="14dp">
 
-        <TextView
-            android:id="@+id/session_datetime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.XploreNow.H2"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:text="2026-04-01 10:00" />
-
         <!-- Date/time + spots (left) -->
         <LinearLayout
             android:layout_width="0dp"
@@ -37,18 +28,16 @@
                 android:id="@+id/session_datetime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginTop="4dp"
-                android:textColor="?attr/colorTertiary"
-                android:textSize="13sp"
+                android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:text="¡Solo quedan 10 cupos!" />
+                android:text="2026-04-01 10:00" />
 
             <TextView
                 android:id="@+id/session_spots"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:layout_marginTop="4dp"
                 android:textColor="?attr/colorTertiary"
                 android:textSize="13sp"
@@ -63,6 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:visibility="gone"
             android:textColor="?attr/colorTertiary"
             android:textSize="16sp"
             android:textStyle="bold"

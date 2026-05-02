@@ -94,7 +94,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             String priceStr = activity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
                 try {
-                    double originalPrice = Double.parseDouble(priceStr.substring(1));
+                    Double parsed = FormatUtils.parsePriceToDouble(priceStr);
+                    if (parsed == null) throw new NumberFormatException("Invalid price: " + priceStr);
+                    double originalPrice = parsed;
                     double discountedPrice = originalPrice * (1 - activity.getDiscountPercentage() / 100.0);
 
                     holder.originalPrice.setText(FormatUtils.formatPrice(originalPrice, "ARS"));
@@ -119,12 +121,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             // Ensure even base price is formatted (no decimals)
             String priceStr = activity.getPrice();
             if (priceStr != null && priceStr.startsWith("$")) {
-                try {
-                    double val = Double.parseDouble(priceStr.substring(1));
-                    holder.price.setText(FormatUtils.formatPrice(val, "ARS"));
-                } catch (Exception e) {
-                    holder.price.setText(priceStr);
-                }
+                Double parsed = FormatUtils.parsePriceToDouble(priceStr);
+                holder.price.setText(parsed != null ? FormatUtils.formatPrice(parsed, "ARS") : priceStr);
             } else {
                 holder.price.setText(priceStr);
             }

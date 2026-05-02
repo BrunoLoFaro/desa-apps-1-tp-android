@@ -444,12 +444,11 @@ public class BookingsFragment extends Fragment {
       private void navigateToDetail(BookingResponse booking) {
           String destination = booking.destination != null ? booking.destination.name : "";
           String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
-          String price = booking.currency != null
-                  ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
+          String price = com.example.myapplication.util.FormatUtils.formatPrice(booking.totalPrice, booking.currency);
         TourActivity activity = new TourActivity(
-                booking.activityName != null ? booking.activityName : "",
-                destination, "", duration, price, 1, null,
-                null, 0f, 0, null, booking.meetingPoint,
+                 booking.activityName != null ? booking.activityName : "",
+                 destination, "", duration, price, 1, null,
+                 null, 0f, 0, null, booking.meetingPoint,
                 booking.guideName, null, booking.cancellationPolicy, false);
           if (booking.activityId != null) activity.setId(booking.activityId);
           Bundle args = new Bundle();

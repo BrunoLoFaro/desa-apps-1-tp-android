@@ -10,7 +10,6 @@
     <style name="TextAppearance.XploreNow.H2" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">@font/poppins_family</item>
-        <item name="android:textFontWeight">600</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
@@ -23,7 +22,6 @@
     <style name="TextAppearance.XploreNow.Button" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">@font/poppins_family</item>
-        <item name="android:textFontWeight">500</item>
     </style>
 
 </resources>

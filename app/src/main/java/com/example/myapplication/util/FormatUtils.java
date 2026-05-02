@@ -1,5 +1,7 @@
 package com.example.myapplication.util;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -12,7 +14,36 @@ public final class FormatUtils {
     public static String formatPrice(double price, String currency) {
         if (price <= 0) return "Gratis";
         String symbol = "ARS".equals(currency) ? "$" : (currency != null ? currency + " " : "");
-        return symbol + String.format(Locale.US, "%.0f", price);
+
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("es", "AR"));
+        symbols.setGroupingSeparator('.');
+        symbols.setDecimalSeparator(',');
+
+        DecimalFormat df = new DecimalFormat("#,##0", symbols);
+        df.setGroupingUsed(true);
+        df.setMaximumFractionDigits(0);
+        df.setMinimumFractionDigits(0);
+        return symbol + df.format(price);
+    }
+
+    /**
+     * Parsea un precio formateado para AR (ej: "$16.000" o "16.000") a double (16000).
+     * Soporta separador de miles '.' y separador decimal ','.
+     */
+    public static Double parsePriceToDouble(String formattedPrice) {
+        if (formattedPrice == null) return null;
+        String s = formattedPrice.trim();
+        if (s.isEmpty()) return null;
+        // Remover símbolo y espacios (ej: "$", "ARS ")
+        s = s.replace("$", "").trim();
+        // Quitar separadores de miles y normalizar decimal
+        s = s.replace(".", "");
+        s = s.replace(",", ".");
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public static String formatShortDate(String isoDate) {

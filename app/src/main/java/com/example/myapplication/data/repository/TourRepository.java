@@ -10,13 +10,18 @@ import com.example.myapplication.data.local.CachedActivityEntity;
 import com.example.myapplication.data.model.ActivitiesPageResponse;
 import com.example.myapplication.data.model.ActivityDetailResponse;
 import com.example.myapplication.data.model.ActivitySummaryResponse;
+import com.example.myapplication.data.model.ItineraryPointResponse;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.data.network.ActivityService;
 import com.example.myapplication.util.FormatUtils;
 import com.example.myapplication.util.NetworkErrorParser;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
@@ -31,6 +36,7 @@ public class TourRepository extends BaseRepository {
     private final ConfigLoader configLoader;
     private final CachedActivityDao cachedActivityDao;
     private final Executor dbExecutor = Executors.newSingleThreadExecutor();
+    private final Set<Long> preloadingDetails = Collections.synchronizedSet(new HashSet<>());
 
     @Inject
     public TourRepository(ActivityService activityService, ConfigLoader configLoader,
@@ -234,6 +240,8 @@ public class TourRepository extends BaseRepository {
         e.destinationName = d.destination != null ? d.destination.name : null;
         e.category = d.category;
         e.imageUrl = d.imageUrl;
+        e.galleryJson = toJsonArray(d.galleryUrls);
+        e.itineraryJson = toItineraryJson(d.itineraryPoints);
         e.durationMinutes = d.durationMinutes;
         e.basePrice = d.basePrice;
         e.currency = d.currency;
@@ -272,7 +280,93 @@ public class TourRepository extends BaseRepository {
                  false
          );
         a.setId(e.id);
+        List<String> gallery = fromJsonArray(e.galleryJson);
+        if (gallery != null && !gallery.isEmpty()) a.setGalleryUrls(gallery);
+        a.setItineraryPoints(fromItineraryJson(e.itineraryJson));
         return a;
+    }
+
+    /**
+     * Best-effort: precarga detalles para llenar cache offline (maps/carrusel).
+     * Se limita a maxItems para evitar spamear al backend.
+     */
+    public void preloadDetailsCache(List<TourActivity> activities, int maxItems) {
+        if (activities == null || activities.isEmpty() || maxItems <= 0) return;
+        int count = 0;
+        for (TourActivity a : activities) {
+            if (a == null || a.getId() == null) continue;
+            long id = a.getId();
+            if (preloadingDetails.contains(id)) continue;
+            preloadingDetails.add(id);
+            getActivityDetail(id, new RepositoryCallback<ActivityDetailResponse>() {
+                @Override public void onSuccess(ActivityDetailResponse data) { preloadingDetails.remove(id); }
+                @Override public void onError(UiMessage error) { preloadingDetails.remove(id); }
+            });
+            count++;
+            if (count >= maxItems) break;
+        }
+    }
+
+    private static String toJsonArray(List<String> values) {
+        if (values == null || values.isEmpty()) return null;
+        JSONArray arr = new JSONArray();
+        for (String v : values) {
+            if (v == null) continue;
+            String t = v.trim();
+            if (!t.isEmpty()) arr.put(t);
+        }
+        return arr.length() > 0 ? arr.toString() : null;
+    }
+
+    private static List<String> fromJsonArray(String json) {
+        if (json == null || json.trim().isEmpty()) return Collections.emptyList();
+        try {
+            JSONArray arr = new JSONArray(json);
+            List<String> out = new ArrayList<>(arr.length());
+            for (int i = 0; i < arr.length(); i++) {
+                String v = arr.optString(i, null);
+                if (v != null && !v.trim().isEmpty()) out.add(v);
+            }
+            return out;
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private static String toItineraryJson(List<ItineraryPointResponse> points) {
+        if (points == null || points.isEmpty()) return null;
+        JSONArray arr = new JSONArray();
+        for (ItineraryPointResponse p : points) {
+            if (p == null) continue;
+            JSONObject o = new JSONObject();
+            try {
+                if (p.position != null) o.put("position", p.position);
+                if (p.name != null) o.put("name", p.name);
+                if (p.address != null) o.put("address", p.address);
+            } catch (Exception ignored) {
+            }
+            arr.put(o);
+        }
+        return arr.length() > 0 ? arr.toString() : null;
+    }
+
+    private static List<com.example.myapplication.data.model.ItineraryPoint> fromItineraryJson(String json) {
+        if (json == null || json.trim().isEmpty()) return Collections.emptyList();
+        try {
+            JSONArray arr = new JSONArray(json);
+            List<com.example.myapplication.data.model.ItineraryPoint> out = new ArrayList<>(arr.length());
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                String name = o.optString("name", "");
+                String address = o.optString("address", "");
+                int position = o.optInt("position", 0);
+                out.add(new com.example.myapplication.data.model.ItineraryPoint(name, address, position));
+            }
+            return out;
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     private <T> AppConfig getConfig(RepositoryCallback<T> callback) {

@@ -26,3 +26,6 @@ Thumbs.db
 
 # AI / Agent files (Optional - see previous discussion)
 # .agentLplan.md 
+
+.gradle-user-home/
+.gradle/
