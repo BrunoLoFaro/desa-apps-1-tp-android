@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.home;
 
-import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StrikethroughSpan;
@@ -10,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
@@ -26,9 +24,18 @@ import java.util.regex.Pattern;
 public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.PromotionViewHolder> {
 
     private List<NewsItem> promotionItems;
+    private OnPromotionClickListener clickListener;
+
+    public interface OnPromotionClickListener {
+        void onPromotionClick(NewsItem promotion);
+    }
 
     public PromotionsAdapter() {
         this.promotionItems = java.util.Collections.emptyList();
+    }
+
+    public void setOnPromotionClickListener(OnPromotionClickListener listener) {
+        this.clickListener = listener;
     }
 
     public void updateData(List<NewsItem> newData) {
@@ -74,13 +81,9 @@ public class PromotionsAdapter extends RecyclerView.Adapter<PromotionsAdapter.Pr
             holder.image.setImageResource(android.R.drawable.ic_menu_gallery);
         }
         
-        // Click listener - Navigate directly to DetailFragment with activity_id
-        // relatedActivityId is the activity ID for promotions
         holder.itemView.setOnClickListener(v -> {
-            if (promotion.relatedActivityId != null) {
-                Bundle bundle = new Bundle();
-                bundle.putLong("activity_id", promotion.relatedActivityId);
-                Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
+            if (clickListener != null) {
+                clickListener.onPromotionClick(promotion);
             }
         });
     }

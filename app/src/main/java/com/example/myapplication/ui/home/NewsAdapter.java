@@ -1,13 +1,11 @@
 package com.example.myapplication.ui.home;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
@@ -21,9 +19,18 @@ import java.util.Locale;
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
 
     private List<NewsItem> newsItems;
+    private OnNewsClickListener clickListener;
+
+    public interface OnNewsClickListener {
+        void onNewsClick(NewsItem news);
+    }
 
     public NewsAdapter() {
         this.newsItems = java.util.Collections.emptyList();
+    }
+
+    public void setOnNewsClickListener(OnNewsClickListener listener) {
+        this.clickListener = listener;
     }
 
     public void updateData(List<NewsItem> newData) {
@@ -70,14 +77,10 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
             holder.image.setImageResource(android.R.drawable.ic_menu_gallery);
         }
         
-        // Click listener
         holder.itemView.setOnClickListener(v -> {
-            Bundle bundle = new Bundle();
-            bundle.putLong("news_id", news.id);
-            if (news.relatedActivityId != null) {
-                bundle.putLong("related_activity_id", news.relatedActivityId);
+            if (clickListener != null) {
+                clickListener.onNewsClick(news);
             }
-            Navigation.findNavController(v).navigate(R.id.newsDetailFragment, bundle);
         });
     }
 

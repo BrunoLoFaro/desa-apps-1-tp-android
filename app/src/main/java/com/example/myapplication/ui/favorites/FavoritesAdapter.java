@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.favorites;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,11 +25,17 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
         void onRemoveRequested(TourActivity activity);
     }
 
+    public interface OnFavoriteClickListener {
+        void onOpenDetail(TourActivity activity, boolean scrollToBooking);
+    }
+
     private List<TourActivity> items = new ArrayList<>();
     private final OnFavoriteRemoveListener removeListener;
+    private final OnFavoriteClickListener clickListener;
 
-    public FavoritesAdapter(OnFavoriteRemoveListener removeListener) {
+    public FavoritesAdapter(OnFavoriteRemoveListener removeListener, OnFavoriteClickListener clickListener) {
         this.removeListener = removeListener;
+        this.clickListener = clickListener;
     }
 
     public void updateData(List<TourActivity> newData) {
@@ -90,16 +94,15 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
         holder.bookButton.setAlpha(soldOut ? 0.5f : 1f);
 
         View.OnClickListener goToDetail = v -> {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("activity_data", activity);
-            Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
+            if (clickListener != null) {
+                clickListener.onOpenDetail(activity, false);
+            }
         };
 
         holder.bookButton.setOnClickListener(soldOut ? null : v -> {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("activity_data", activity);
-            bundle.putBoolean("scroll_to_booking", true);
-            Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
+            if (clickListener != null) {
+                clickListener.onOpenDetail(activity, true);
+            }
         });
         holder.detailButton.setOnClickListener(goToDetail);
         holder.itemView.setOnClickListener(goToDetail);

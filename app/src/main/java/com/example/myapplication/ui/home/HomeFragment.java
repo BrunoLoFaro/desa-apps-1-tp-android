@@ -57,6 +57,12 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         TourAdapter featuredAdapter = new TourAdapter(true, true);
         featuredRecycler.setAdapter(featuredAdapter);
 
+        featuredAdapter.setOnTourClickListener(activity -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("activity_data", activity);
+            navController.navigate(R.id.detailFragment, bundle);
+        });
+
         featuredAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
             if (activity.getId() == null) return;
             homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
@@ -70,11 +76,27 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         newsAdapter = new NewsAdapter();
         newsRecycler.setAdapter(newsAdapter);
 
+        newsAdapter.setOnNewsClickListener(news -> {
+            Bundle bundle = new Bundle();
+            bundle.putLong("news_id", news.id);
+            if (news.relatedActivityId != null) {
+                bundle.putLong("related_activity_id", news.relatedActivityId);
+            }
+            navController.navigate(R.id.newsDetailFragment, bundle);
+        });
+
         RecyclerView promotionsRecycler = view.findViewById(R.id.promotions_recycler_view);
         promotionsRecycler.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         promotionsAdapter = new PromotionsAdapter();
         promotionsRecycler.setAdapter(promotionsAdapter);
+
+        promotionsAdapter.setOnPromotionClickListener(promotion -> {
+            if (promotion.relatedActivityId == null) return;
+            Bundle bundle = new Bundle();
+            bundle.putLong("activity_id", promotion.relatedActivityId);
+            navController.navigate(R.id.detailFragment, bundle);
+        });
 
         newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsList -> {
             if (newsList != null) {
