@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
+import com.example.myapplication.ui.main.MainViewModel;
+import com.example.myapplication.util.ConnectivityUtils;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -71,9 +73,19 @@ public class FavoritesFragment extends Fragment {
         });
 
         viewModel.error.observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(getContext(), error.resolve(getContext()), Toast.LENGTH_SHORT).show();
             }
+        });
+
+        View offlineState = root != null ? root.findViewById(R.id.offline_state) : null;
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            if (!isOffline && wasOffline[0]) viewModel.loadFavorites();
+            wasOffline[0] = isOffline;
         });
     }
 

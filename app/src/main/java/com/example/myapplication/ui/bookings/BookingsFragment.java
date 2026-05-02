@@ -1,10 +1,12 @@
 package com.example.myapplication.ui.bookings;
 
-import android.app.DatePickerDialog;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.DateValidatorPointForward;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -27,10 +30,14 @@ import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
-import com.example.myapplication.util.MainThreadUtils;
+
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -48,7 +55,6 @@ public class BookingsFragment extends Fragment {
 
     private BookingsViewModel viewModel;
     private View offlineBanner;
-    private ConnectivityManager.NetworkCallback networkCallback;
     private SwipeRefreshLayout swipeRefresh;
 
     // Activas views
@@ -95,7 +101,6 @@ public class BookingsFragment extends Fragment {
         setupFilters();
         setupTabs(view);
         observeViewModel(view);
-        registerNetworkCallback();
 
         viewModel.loadMyBookings("CONFIRMED");
     }
@@ -150,8 +155,43 @@ public class BookingsFragment extends Fragment {
             }
         });
 
-        filterFromDate.setOnClickListener(v -> showDatePicker(true));
-        filterToDate.setOnClickListener(v -> showDatePicker(false));
+        java.text.SimpleDateFormat isoUtc = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+        isoUtc.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+        filterFromDate.setFocusable(false);
+        filterFromDate.setOnClickListener(v -> {
+            MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Fecha desde")
+                    .build();
+            picker.addOnPositiveButtonClickListener(selection -> {
+                filterFromDate.setText(isoUtc.format(new java.util.Date(selection)));
+                filterToDate.setText("");
+                updateBuscarState();
+            });
+            picker.show(getParentFragmentManager(), "picker_from");
+        });
+
+        filterToDate.setFocusable(false);
+        filterToDate.setOnClickListener(v -> {
+            MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Fecha hasta");
+            String fromText = filterFromDate.getText() != null ? filterFromDate.getText().toString() : "";
+            if (!fromText.isEmpty()) {
+                try {
+                    long fromMs = isoUtc.parse(fromText).getTime();
+                    CalendarConstraints constraints = new CalendarConstraints.Builder()
+                            .setValidator(DateValidatorPointForward.from(fromMs))
+                            .build();
+                    builder.setCalendarConstraints(constraints);
+                } catch (Exception ignored) {}
+            }
+            MaterialDatePicker<Long> picker = builder.build();
+            picker.addOnPositiveButtonClickListener(selection -> {
+                filterToDate.setText(isoUtc.format(new java.util.Date(selection)));
+                updateBuscarState();
+            });
+            picker.show(getParentFragmentManager(), "picker_to");
+        });
 
         btnBuscar.setOnClickListener(v -> {
             String dest = filterDestination.getText() != null
@@ -308,7 +348,14 @@ public class BookingsFragment extends Fragment {
 
         viewModel.getMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null) {
-                Toast.makeText(requireContext(), msg.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+                Snackbar snackbar = Snackbar.make(
+                        requireActivity().findViewById(android.R.id.content),
+                        msg.resolve(requireContext()),
+                        Snackbar.LENGTH_LONG);
+                snackbar.setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.md_theme_primary));
+                snackbar.setTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.md_theme_onPrimary));
+                snackbar.show();
                 viewModel.clearMessage();
             }
         });
@@ -338,31 +385,6 @@ public class BookingsFragment extends Fragment {
                         : R.string.bookings_empty_activas);
             }
         });
-    }
-
-    private void registerNetworkCallback() {
-        ConnectivityManager cm = (ConnectivityManager)
-                requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-        if (cm == null) return;
-        networkCallback = new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                MainThreadUtils.post(() -> {
-                    if (isAdded()) viewModel.onConnectivityChanged(true);
-                });
-            }
-
-            @Override
-            public void onLost(Network network) {
-                MainThreadUtils.post(() -> {
-                    if (isAdded()) viewModel.onConnectivityChanged(false);
-                });
-            }
-        };
-        NetworkRequest request = new NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .build();
-        cm.registerNetworkCallback(request, networkCallback);
     }
 
     // ── Grouping ─────────────────────────────────────────────────────────────
@@ -419,25 +441,26 @@ public class BookingsFragment extends Fragment {
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
-    private void navigateToDetail(BookingResponse booking) {
-        String destination = booking.destination != null ? booking.destination.name : "";
-        String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
-        String price = booking.currency != null
-                ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
+      private void navigateToDetail(BookingResponse booking) {
+          String destination = booking.destination != null ? booking.destination.name : "";
+          String duration = booking.durationMinutes > 0 ? booking.durationMinutes + " min" : "";
+          String price = booking.currency != null
+                  ? booking.totalPrice + " " + booking.currency : String.valueOf(booking.totalPrice);
         TourActivity activity = new TourActivity(
                 booking.activityName != null ? booking.activityName : "",
                 destination, "", duration, price, 1, null,
                 null, 0f, 0, null, booking.meetingPoint,
                 booking.guideName, null, booking.cancellationPolicy, false);
-        if (booking.activityId != null) activity.setId(booking.activityId);
-        Bundle args = new Bundle();
-        args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", true);
-        args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
-        if (booking.id != null) args.putLong("booking_id", booking.id);
-        Navigation.findNavController(requireView())
-                .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
-    }
+          if (booking.activityId != null) activity.setId(booking.activityId);
+          Bundle args = new Bundle();
+          args.putSerializable("activity_data", activity);
+          args.putBoolean("from_history", true);
+          args.putBoolean("from_booking", true);
+          args.putString("booking_status", booking.status != null ? booking.status : "CONFIRMED");
+          if (booking.id != null) args.putLong("booking_id", booking.id);
+          Navigation.findNavController(requireView())
+                  .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
+      }
 
     private void navigateToVoucher(BookingResponse booking) {
         if (booking.id == null) return;
@@ -447,52 +470,30 @@ public class BookingsFragment extends Fragment {
                 .navigate(R.id.action_bookingsFragment_to_voucherFragment, args);
     }
 
-    private void navigateToHistoryDetail(BookingSummaryItem item) {
-        if (item.getActivityId() == null) return;
-        String duration = item.getDurationMinutes() > 0 ? item.getDurationMinutes() + " min" : "";
-        TourActivity activity = new TourActivity(
-                item.getActivityName() != null ? item.getActivityName() : "",
+      private void navigateToHistoryDetail(BookingSummaryItem item) {
+          if (item.getActivityId() == null) return;
+          String duration = item.getDurationMinutes() > 0 ? item.getDurationMinutes() + " min" : "";
+          TourActivity activity = new TourActivity(
+                  item.getActivityName() != null ? item.getActivityName() : "",
                 item.getDestination() != null ? item.getDestination() : "",
                 "", duration,
                 item.getPrice() != null ? item.getPrice() : "",
                 0, item.getImageUrl(),
                 null, 0f, 0, null, null,
                 item.getGuideName(), null, null, false);
-        activity.setId(item.getActivityId());
-        Bundle args = new Bundle();
-        args.putSerializable("activity_data", activity);
-        args.putBoolean("from_history", true);
-        args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
-        if (item.getId() != null) args.putLong("booking_id", item.getId());
-        Navigation.findNavController(requireView())
-                .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
-    }
-
-    private void showDatePicker(boolean isFrom) {
-        Calendar cal = Calendar.getInstance();
-        new DatePickerDialog(
-                requireContext(),
-                (dp, year, month, day) -> {
-                    String date = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day);
-                    if (isFrom) {
-                        filterFromDate.setText(date);
-                    } else {
-                        filterToDate.setText(date);
-                    }
-                    updateBuscarState();
-                },
-                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-        ).show();
-    }
+          activity.setId(item.getActivityId());
+          Bundle args = new Bundle();
+          args.putSerializable("activity_data", activity);
+          args.putBoolean("from_history", true);
+          args.putBoolean("from_booking", true);
+          args.putString("booking_status", item.getStatus() != null ? item.getStatus() : "");
+          if (item.getId() != null) args.putLong("booking_id", item.getId());
+          Navigation.findNavController(requireView())
+                  .navigate(R.id.action_bookingsFragment_to_detailFragment, args);
+      }
 
     @Override
     public void onDestroyView() {
-        if (networkCallback != null) {
-            ConnectivityManager cm = (ConnectivityManager)
-                    requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
-            if (cm != null) cm.unregisterNetworkCallback(networkCallback);
-            networkCallback = null;
-        }
         offlineBanner     = null;
         swipeRefresh      = null;
         sectionActivas    = null;
@@ -534,29 +535,63 @@ public class BookingsFragment extends Fragment {
 
     private void showReviewDialogForSummary(BookingSummaryItem item) {
         if (item == null) return;
-        showReviewDialog(item.getId(), item.getActivityName());
+        showReviewDialog(item.getId(), item.getActivityName(), item.getImageUrl(), item.getDate());
     }
 
     private void showReviewDialog(Long bookingId, String name) {
+        showReviewDialog(bookingId, name, null, null);
+    }
+
+    private void showReviewDialog(Long bookingId, String name, String imageUrl, String date) {
         if (bookingId == null) return;
 
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_review, null);
-        RatingBar activityRating = dialogView.findViewById(R.id.review_activity_rating);
-        RatingBar guideRating = dialogView.findViewById(R.id.review_guide_rating);
-        TextInputEditText commentInput = dialogView.findViewById(R.id.review_comment_input);
 
-        String title = getString(R.string.review_title);
+        ShapeableImageView activityImage = dialogView.findViewById(R.id.review_activity_image);
+        TextView titleView              = dialogView.findViewById(R.id.review_activity_title);
+        TextView dateView               = dialogView.findViewById(R.id.review_activity_date);
+        RatingBar activityRating        = dialogView.findViewById(R.id.review_activity_rating);
+        TextView activityFeedback       = dialogView.findViewById(R.id.review_activity_feedback);
+        RatingBar guideRating           = dialogView.findViewById(R.id.review_guide_rating);
+        TextView guideFeedback          = dialogView.findViewById(R.id.review_guide_feedback);
+        TextInputEditText commentInput  = dialogView.findViewById(R.id.review_comment_input);
+        MaterialButton cancelButton     = dialogView.findViewById(R.id.review_cancel_button);
+        MaterialButton sendButton       = dialogView.findViewById(R.id.review_send_button);
+
         String activityName = name != null ? name.trim() : "";
-        if (!activityName.isEmpty()) title = activityName;
+        titleView.setText(activityName.isEmpty() ? getString(R.string.review_title) : activityName);
+
+        String formattedDate = formatReviewDate(date);
+        dateView.setText(formattedDate);
+        dateView.setVisibility(formattedDate.isEmpty() ? View.GONE : View.VISIBLE);
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(this).load(imageUrl).centerCrop().into(activityImage);
+        }
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(title)
                 .setView(dialogView)
-                .setNegativeButton(R.string.review_cancel, (d, which) -> d.dismiss())
-                .setPositiveButton(R.string.review_send, null)
-                .show();
+                .create();
+        dialog.show();
 
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+        activityRating.setOnRatingBarChangeListener((bar, rating, fromUser) -> {
+            int r = Math.round(rating);
+            activityFeedback.setVisibility(r > 0 ? View.VISIBLE : View.INVISIBLE);
+            activityFeedback.setText(getRatingFeedback(r));
+        });
+        guideRating.setOnRatingBarChangeListener((bar, rating, fromUser) -> {
+            int r = Math.round(rating);
+            guideFeedback.setVisibility(r > 0 ? View.VISIBLE : View.INVISIBLE);
+            guideFeedback.setText(getRatingFeedback(r));
+        });
+
+        commentInput.setOnTouchListener((v, event) -> {
+            v.getParent().requestDisallowInterceptTouchEvent(true);
+            return false;
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        sendButton.setOnClickListener(v -> {
             int a = Math.round(activityRating.getRating());
             if (a < 1) {
                 Toast.makeText(requireContext(), getString(R.string.review_error_activity_required),
@@ -565,15 +600,37 @@ public class BookingsFragment extends Fragment {
             }
             int g = Math.round(guideRating.getRating());
             Integer guide = g >= 1 ? g : null;
-
             String comment = null;
             if (commentInput.getText() != null) {
                 String raw = commentInput.getText().toString().trim();
                 if (!raw.isEmpty()) comment = raw;
             }
-
             viewModel.submitReview(bookingId, a, guide, comment);
             dialog.dismiss();
         });
+    }
+
+    private String getRatingFeedback(int rating) {
+        switch (rating) {
+            case 1: return getString(R.string.review_feedback_1);
+            case 2: return getString(R.string.review_feedback_2);
+            case 3: return getString(R.string.review_feedback_3);
+            case 4: return getString(R.string.review_feedback_4);
+            case 5: return getString(R.string.review_feedback_5);
+            default: return "";
+        }
+    }
+
+    private String formatReviewDate(String date) {
+        if (date == null || date.isEmpty()) return "";
+        try {
+            java.text.SimpleDateFormat input = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            java.util.Date d = input.parse(date);
+            java.text.SimpleDateFormat output = new java.text.SimpleDateFormat(
+                    "d 'de' MMMM 'de' yyyy", new Locale("es"));
+            return getString(R.string.review_performed_prefix) + output.format(d);
+        } catch (Exception e) {
+            return date;
+        }
     }
 }

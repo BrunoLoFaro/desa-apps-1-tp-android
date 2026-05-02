@@ -4,6 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -27,9 +30,14 @@ import com.example.myapplication.R;
 import com.example.myapplication.data.model.BookingSummaryItem;
 import com.example.myapplication.data.model.UserProfileData;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.ui.main.MainViewModel;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.example.myapplication.util.BiometricHelper;
+import com.example.myapplication.util.ConnectivityUtils;
 import com.example.myapplication.util.FormatUtils;
+import com.example.myapplication.util.PhoneCountryCode;
+import com.example.myapplication.util.PhoneCountryCodes;
+import com.example.myapplication.util.SimpleTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
@@ -45,7 +53,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 @AndroidEntryPoint
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment
+        implements CountryPickerBottomSheet.CountrySelectedListener {
 
     @Inject
     SessionManager sessionManager;
@@ -62,7 +71,14 @@ public class ProfileFragment extends Fragment {
     private TextInputLayout layoutLastName;
     private TextInputEditText editFirstName;
     private TextInputEditText editLastName;
-    private TextInputEditText editPhone;
+
+    // Phone group
+    private TextInputLayout layoutCountryCode;
+    private TextInputLayout layoutPhoneNumber;
+    private TextInputEditText editCountryDisplay;
+    private TextInputEditText editPhoneNumber;
+    private PhoneCountryCode selectedCountry;
+
     private MaterialButton btnSave;
     private ProgressBar loadingSpinner;
     private View scrollView;
@@ -132,7 +148,6 @@ public class ProfileFragment extends Fragment {
         navController = Navigation.findNavController(view);
 
         bindViews(view);
-
         loadSavedImage();
 
         view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
@@ -149,6 +164,15 @@ public class ProfileFragment extends Fragment {
 
         updateBiometricCta();
         observeViewModel();
+
+        View offlineState = view.findViewById(R.id.offline_state);
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            wasOffline[0] = isOffline;
+        });
     }
 
     @Override
@@ -156,6 +180,31 @@ public class ProfileFragment extends Fragment {
         super.onResume();
         updateBiometricCta();
     }
+
+    // ── CountryPickerBottomSheet.CountrySelectedListener ─────────────────────
+
+    @Override
+    public void onCountrySelected(PhoneCountryCode country) {
+        String currentNumber = getText(editPhoneNumber);
+        String prevDefault   = selectedCountry != null ? selectedCountry.getDefaultPrefix() : "";
+
+        selectedCountry = country;
+        editCountryDisplay.setText(country.getFlagEmoji() + " " + country.getCode());
+        if (layoutCountryCode != null) layoutCountryCode.setError(null);
+        setPhoneError(null);
+        updatePhoneMaxLength();
+
+        // Pre-fill default prefix when field is empty or user hasn't typed past the previous default
+        String newDefault = country.getDefaultPrefix();
+        if (currentNumber.isEmpty() || currentNumber.equals(prevDefault)) {
+            editPhoneNumber.setText(newDefault);
+            if (!newDefault.isEmpty()) editPhoneNumber.setSelection(newDefault.length());
+        } else {
+            validatePhoneInline();
+        }
+    }
+
+    // ── Biometric ─────────────────────────────────────────────────────────────
 
     private void updateBiometricCta() {
         if (btnEnableBiometric == null) return;
@@ -201,6 +250,8 @@ public class ProfileFragment extends Fragment {
                 == BiometricManager.BIOMETRIC_SUCCESS;
     }
 
+    // ── View binding ──────────────────────────────────────────────────────────
+
     private void bindViews(@NonNull View view) {
         profilePhoto    = view.findViewById(R.id.profile_photo);
         emailText       = view.findViewById(R.id.profile_email);
@@ -208,7 +259,12 @@ public class ProfileFragment extends Fragment {
         layoutLastName  = view.findViewById(R.id.layout_last_name);
         editFirstName   = view.findViewById(R.id.edit_first_name);
         editLastName    = view.findViewById(R.id.edit_last_name);
-        editPhone       = view.findViewById(R.id.edit_phone);
+
+        layoutCountryCode  = view.findViewById(R.id.layout_country_code);
+        layoutPhoneNumber  = view.findViewById(R.id.layout_phone_number);
+        editCountryDisplay = view.findViewById(R.id.edit_country_display);
+        editPhoneNumber    = view.findViewById(R.id.edit_phone_number);
+
         btnSave             = view.findViewById(R.id.btn_save);
         loadingSpinner      = view.findViewById(R.id.loading_spinner);
         scrollView          = view.findViewById(R.id.scroll_view);
@@ -241,6 +297,181 @@ public class ProfileFragment extends Fragment {
         btnLogout = view.findViewById(R.id.btn_logout);
     }
 
+    // ── Phone section setup ───────────────────────────────────────────────────
+
+    private void setupPhoneSection() {
+        layoutPhoneNumber.setHelperText(getString(R.string.phone_helper_text));
+
+        View.OnClickListener openPicker = v -> {
+            String currentCode = selectedCountry != null ? selectedCountry.getCode() : null;
+            CountryPickerBottomSheet.newInstance(currentCode)
+                    .show(getChildFragmentManager(), "country_picker");
+        };
+        layoutCountryCode.setOnClickListener(openPicker);
+        editCountryDisplay.setOnClickListener(openPicker);
+
+        editPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus || selectedCountry == null) return;
+            String prefix = selectedCountry.getDefaultPrefix();
+            if (!prefix.isEmpty() && getText(editPhoneNumber).isEmpty()) {
+                editPhoneNumber.setText(prefix);
+                editPhoneNumber.setSelection(prefix.length());
+            }
+        });
+
+        editPhoneNumber.addTextChangedListener(new SimpleTextWatcher() {
+            private boolean inChange = false;
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (inChange) return;
+                String raw = s.toString();
+                String digits = raw.replaceAll("[^\\d]", "");
+                if (!raw.equals(digits)) {
+                    inChange = true;
+                    s.replace(0, s.length(), digits);
+                    inChange = false;
+                }
+                if (layoutPhoneNumber != null && layoutPhoneNumber.getError() != null) {
+                    validatePhoneInline();
+                }
+                if (layoutPhoneNumber != null) {
+                    layoutPhoneNumber.setHelperText(
+                            digits.isEmpty() ? getString(R.string.phone_helper_text) : null);
+                }
+            }
+        });
+    }
+
+    private void updatePhoneMaxLength() {
+        if (editPhoneNumber == null || selectedCountry == null) return;
+        editPhoneNumber.setFilters(new InputFilter[]{
+                new InputFilter.LengthFilter(selectedCountry.getMaxDigits())
+        });
+    }
+
+    /** Real-time validation shown while user is typing (only clears/updates existing errors). */
+    private void validatePhoneInline() {
+        if (layoutPhoneNumber == null || selectedCountry == null) return;
+        String number = getText(editPhoneNumber);
+        if (number.isEmpty() || isPhoneLengthValid(number)) {
+            setPhoneError(null);
+        } else {
+            setPhoneError(buildLengthError(selectedCountry));
+        }
+    }
+
+    private void setPhoneError(@Nullable String error) {
+        if (layoutPhoneNumber == null) return;
+        layoutPhoneNumber.setError(error);
+        if (error == null || error.isEmpty()) {
+            String number = editPhoneNumber != null ? getText(editPhoneNumber) : "";
+            layoutPhoneNumber.setHelperText(
+                    number.isEmpty() ? getString(R.string.phone_helper_text) : null);
+        } else {
+            layoutPhoneNumber.setHelperText(null);
+        }
+    }
+
+    private boolean isPhoneLengthValid(String number) {
+        if (selectedCountry == null) return true;
+        int len = number.length();
+        return len >= selectedCountry.getMinDigits() && len <= selectedCountry.getMaxDigits();
+    }
+
+    private String buildLengthError(PhoneCountryCode cc) {
+        if (cc.getMinDigits() == cc.getMaxDigits()) {
+            return getString(R.string.error_phone_exact_digits, cc.getMinDigits());
+        }
+        return getString(R.string.error_phone_range_digits, cc.getMinDigits(), cc.getMaxDigits());
+    }
+
+    private void parseAndSetPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) return;
+        for (PhoneCountryCode cc : PhoneCountryCodes.sortedByCodeLength()) {
+            if (phone.startsWith(cc.getCode())) {
+                selectedCountry = cc;
+                editCountryDisplay.setText(cc.getFlagEmoji() + " " + cc.getCode());
+                String number = phone.substring(cc.getCode().length()).replaceAll("[^\\d]", "");
+                editPhoneNumber.setText(number);
+                updatePhoneMaxLength();
+                return;
+            }
+        }
+        editPhoneNumber.setText(phone.replaceAll("[^\\d]", ""));
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+
+    private void onSaveClicked() {
+        String firstName = getText(editFirstName);
+        String lastName  = getText(editLastName);
+
+        boolean valid = true;
+        layoutFirstName.setError(null);
+        layoutLastName.setError(null);
+
+        if (firstName.length() < 2 || firstName.length() > 80) {
+            layoutFirstName.setError(getString(R.string.error_invalid_first_name));
+            valid = false;
+        }
+        if (lastName.length() < 2 || lastName.length() > 80) {
+            layoutLastName.setError(getString(R.string.error_invalid_last_name));
+            valid = false;
+        }
+
+        String phone = buildPhone();
+        if (phone == null) valid = false;
+
+        if (!valid) return;
+
+        viewModel.saveAll(firstName, lastName, phone, getSelectedCategories());
+    }
+
+    /**
+     * Returns assembled phone string if valid, empty string if omitted, null if invalid
+     * (errors already displayed in the phone group).
+     */
+    @Nullable
+    private String buildPhone() {
+        if (layoutCountryCode != null) layoutCountryCode.setError(null);
+        setPhoneError(null);
+
+        String codeValue = selectedCountry != null ? selectedCountry.getCode() : "";
+        String number = getText(editPhoneNumber);
+
+        boolean codeEmpty   = codeValue.isEmpty();
+        boolean numberEmpty = number.isEmpty();
+
+        if (codeEmpty && numberEmpty) return ""; // phone is optional
+
+        if (codeEmpty) {
+            if (layoutCountryCode != null)
+                layoutCountryCode.setError(getString(R.string.error_phone_country_required));
+            return null;
+        }
+        if (numberEmpty) {
+            setPhoneError(getString(R.string.error_phone_number_required));
+            return null;
+        }
+        String prefix = selectedCountry.getDefaultPrefix();
+        if (!prefix.isEmpty() && !number.startsWith(prefix)) {
+            setPhoneError(getString(R.string.error_phone_missing_prefix, prefix));
+            return null;
+        }
+        if (!isPhoneLengthValid(number)) {
+            setPhoneError(buildLengthError(selectedCountry));
+            return null;
+        }
+
+        return selectedCountry.getCode() + number;
+    }
+
+    // ── ViewModel observation ─────────────────────────────────────────────────
+
     private void observeViewModel() {
         viewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
             loadingSpinner.setVisibility(loading ? View.VISIBLE : View.GONE);
@@ -251,7 +482,7 @@ public class ProfileFragment extends Fragment {
         viewModel.getProfile().observe(getViewLifecycleOwner(), this::populateProfileFields);
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
                 viewModel.errorConsumed();
             }
@@ -300,10 +531,14 @@ public class ProfileFragment extends Fragment {
         if (editLastName.getText() == null || editLastName.getText().toString().isEmpty()) {
             editLastName.setText(profile.getLastName());
         }
-        if (editPhone.getText() == null || editPhone.getText().toString().isEmpty()) {
-            editPhone.setText(profile.getPhone());
+        boolean numberEmpty = editPhoneNumber.getText() == null
+                || editPhoneNumber.getText().toString().isEmpty();
+        if (numberEmpty && selectedCountry == null) {
+            parseAndSetPhone(profile.getPhone());
         }
     }
+
+    // ── Recent activities ─────────────────────────────────────────────────────
 
     private void bindRecentActivities(List<BookingSummaryItem> items) {
         if (items == null || items.isEmpty()) {
@@ -369,6 +604,8 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // ── Categories ────────────────────────────────────────────────────────────
+
     private void rebuildCategoryChips(List<String> categories, List<String> selectedPrefs) {
         if (chipGroupCategories == null) return;
         chipGroupCategories.removeAllViews();
@@ -408,29 +645,9 @@ public class ProfileFragment extends Fragment {
         return selected;
     }
 
-    private void onSaveClicked() {
-        String firstName = getText(editFirstName);
-        String lastName  = getText(editLastName);
-        String phone     = getText(editPhone);
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-        boolean valid = true;
-        layoutFirstName.setError(null);
-        layoutLastName.setError(null);
-
-        if (firstName.length() < 2 || firstName.length() > 80) {
-            layoutFirstName.setError(getString(R.string.error_invalid_first_name));
-            valid = false;
-        }
-        if (lastName.length() < 2 || lastName.length() > 80) {
-            layoutLastName.setError(getString(R.string.error_invalid_last_name));
-            valid = false;
-        }
-        if (!valid) return;
-
-        viewModel.saveAll(firstName, lastName, phone, getSelectedCategories());
-    }
-
-    private String getText(TextInputEditText field) {
+    private String getText(EditText field) {
         return field.getText() != null ? field.getText().toString().trim() : "";
     }
 
@@ -469,41 +686,49 @@ public class ProfileFragment extends Fragment {
         galleryLauncher.launch("image/*");
     }
 
+    // ── Lifecycle cleanup ─────────────────────────────────────────────────────
+
     @Override
     public void onDestroyView() {
-        navController    = null;
-        profilePhoto     = null;
-        emailText        = null;
-        layoutFirstName  = null;
-        layoutLastName   = null;
-        editFirstName    = null;
-        editLastName     = null;
-        editPhone        = null;
-        btnSave             = null;
-        loadingSpinner      = null;
-        scrollView          = null;
-        chipGroupCategories = null;
-        statCompleted    = null;
-        statPending      = null;
-        badgeHoy         = null;
-        linkVerTodas     = null;
-        recentItem1      = null;
-        recentItem2      = null;
-        recentDivider    = null;
-        recent1IconBg    = null;
-        recent2IconBg    = null;
-        recent1Icon      = null;
-        recent2Icon      = null;
-        recent1Name      = null;
-        recent1Dest      = null;
-        recent1Meta      = null;
-        recent1Time      = null;
-        recent1Avatar    = null;
-        recent2Name      = null;
-        recent2Dest      = null;
-        recent2Meta      = null;
-        recent2Time      = null;
-        recent2Avatar    = null;
+        navController        = null;
+        profilePhoto         = null;
+        emailText            = null;
+        layoutFirstName      = null;
+        layoutLastName       = null;
+        editFirstName        = null;
+        editLastName         = null;
+        layoutCountryCode  = null;
+        layoutPhoneNumber  = null;
+        editCountryDisplay = null;
+        editPhoneNumber    = null;
+        selectedCountry    = null;
+        btnSave              = null;
+        loadingSpinner       = null;
+        scrollView           = null;
+        chipGroupCategories  = null;
+        statCompleted        = null;
+        statPending          = null;
+        badgeHoy             = null;
+        linkVerTodas         = null;
+        recentItem1          = null;
+        recentItem2          = null;
+        recentDivider        = null;
+        recent1IconBg        = null;
+        recent2IconBg        = null;
+        recent1Icon          = null;
+        recent2Icon          = null;
+        recent1Name          = null;
+        recent1Dest          = null;
+        recent1Meta          = null;
+        recent1Time          = null;
+        recent1Avatar        = null;
+        recent2Name          = null;
+        recent2Dest          = null;
+        recent2Meta          = null;
+        recent2Time          = null;
+        recent2Avatar        = null;
+        btnEnableBiometric   = null;
+        btnLogout            = null;
         super.onDestroyView();
     }
 }

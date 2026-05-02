@@ -142,6 +142,16 @@ public class DetailViewModel extends ViewModel {
         activity.setFavorite(data.isFavorite);
         activity.setItineraryPoints(mapItineraryPoints(data.itineraryPoints));
         if (data.discountPercentage != null) activity.setDiscountPercentage(data.discountPercentage);
+        if (data.galleryUrls != null && !data.galleryUrls.isEmpty()) {
+            List<String> sanitized = new ArrayList<>();
+            for (String url : data.galleryUrls) {
+                if (url == null) continue;
+                String trimmed = url.trim();
+                if (trimmed.isEmpty()) continue;
+                if (!sanitized.contains(trimmed)) sanitized.add(trimmed);
+            }
+            if (!sanitized.isEmpty()) activity.setGalleryUrls(sanitized);
+        }
         return activity;
     }
 

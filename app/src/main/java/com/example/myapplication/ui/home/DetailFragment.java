@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
@@ -49,11 +50,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import dagger.hilt.android.AndroidEntryPoint;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import dagger.hilt.android.AndroidEntryPoint; 
+import java.io.IOException; 
+import java.util.ArrayList; 
+import java.util.Collections;
+import java.util.List; 
+import java.util.Locale; 
 
 @AndroidEntryPoint
 public class DetailFragment extends Fragment {
@@ -115,16 +117,44 @@ public class DetailFragment extends Fragment {
         RecyclerView sessionsRecycler = view.findViewById(R.id.sessions_recycler_view);
         sessionsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         View bookingCard = view.findViewById(R.id.booking_card);
-        TextInputEditText participantsInput = view.findViewById(R.id.participants_input);
         MaterialButton bookButton = view.findViewById(R.id.book_button);
+        TextView participantsCountView = view.findViewById(R.id.participants_count);
+        MaterialButton btnDecrease = view.findViewById(R.id.btn_decrease);
+        MaterialButton btnIncrease = view.findViewById(R.id.btn_increase);
+        final int[] count = {1};
+
+        if (btnDecrease != null) {
+            btnDecrease.setOnClickListener(v -> {
+                if (count[0] > 1) {
+                    count[0]--;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                    int max = selectedSession != null && selectedSession.availableSpots > 0
+                            ? selectedSession.availableSpots : Integer.MAX_VALUE;
+                    if (btnIncrease != null) btnIncrease.setEnabled(count[0] < max);
+                }
+            });
+        }
+
+        if (btnIncrease != null) {
+            btnIncrease.setOnClickListener(v -> {
+                int max = selectedSession != null && selectedSession.availableSpots > 0
+                        ? selectedSession.availableSpots : Integer.MAX_VALUE;
+                if (count[0] < max) {
+                    count[0]++;
+                    if (participantsCountView != null) participantsCountView.setText(String.valueOf(count[0]));
+                    btnIncrease.setEnabled(count[0] < max);
+                }
+            });
+        }
 
         sessionAdapter = new SessionAdapter(session -> {
             if (fromHistory || fromBooking) return;
             selectedSession = session;
-            if (bookingCard != null) bookingCard.setVisibility(View.VISIBLE);
-            if (bookButton != null) {
-                bookButton.setEnabled(session.availableSpots > 0);
-            }
+            count[0] = 1;
+            if (participantsCountView != null) participantsCountView.setText("1");
+            if (bookingCard != null) bookingCard.setVisibility(session.availableSpots > 0 ? View.VISIBLE : View.GONE);
+            if (bookButton != null) bookButton.setEnabled(session.availableSpots > 0);
+            if (btnIncrease != null) btnIncrease.setEnabled(session.availableSpots > 1);
         });
         sessionsRecycler.setAdapter(sessionAdapter);
 
@@ -156,17 +186,7 @@ public class DetailFragment extends Fragment {
                     return;
                 }
 
-                int participants = 1;
-                if (participantsInput != null && participantsInput.getText() != null) {
-                    String value = participantsInput.getText().toString().trim();
-                    if (!value.isEmpty()) {
-                        try {
-                            participants = Integer.parseInt(value);
-                                        } catch (NumberFormatException ignored) {
-                                            // mantener valor por defecto (1) en caso de parse inválido
-                                        }
-                    }
-                }
+                int participants = count[0];
                 if (participants < 1) {
                     android.widget.Toast.makeText(requireContext(), "Participantes invalidos", android.widget.Toast.LENGTH_SHORT).show();
                     return;
@@ -206,8 +226,9 @@ public class DetailFragment extends Fragment {
                 if (tourActivity != null && tourActivity.getId() != null) {
                     detailViewModel.load(tourActivity.getId());
                 }
-                // ocultar card hasta una nueva seleccion (updateData resetea la seleccion)
                 selectedSession = null;
+                count[0] = 1;
+                if (participantsCountView != null) participantsCountView.setText("1");
                 if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                 createBookingViewModel.clearBooking();
                 if (booking.id != null && booking.id > 0) {
@@ -280,6 +301,8 @@ public class DetailFragment extends Fragment {
                     if (fromHistory || fromBooking) return;
                     populateSessions(sessions);
                     selectedSession = null;
+                    count[0] = 1;
+                    if (participantsCountView != null) participantsCountView.setText("1");
                     if (bookingCard != null) bookingCard.setVisibility(View.GONE);
                     boolean hasSessions = sessions != null && !sessions.isEmpty();
                     boolean hasAvailableSpots = false;
@@ -638,16 +661,74 @@ public class DetailFragment extends Fragment {
         if (cancellation != null) cancellation.setText(tourActivity.getCancellationPolicy());
 
         if (image != null) {
-            // Ajustar altura de imagen para detalle (opcional, como tenías en tu Activity)
-            ViewGroup.LayoutParams lp = image.getLayoutParams();
-            lp.height = (int) (240 * getResources().getDisplayMetrics().density);
-            image.setLayoutParams(lp);
+            // Armar galería: si no viene desde API, usar imageUrl como fallback (0/1).
+            List<String> gallery = tourActivity.getGalleryUrls();
+            List<String> sanitizedGallery = new ArrayList<>();
+            if (gallery != null) {
+                for (String url : gallery) {
+                    if (url == null) continue;
+                    String trimmed = url.trim();
+                    if (trimmed.isEmpty()) continue;
+                    if (!sanitizedGallery.contains(trimmed)) sanitizedGallery.add(trimmed);
+                }
+            }
 
-            Glide.with(this)
-                    .load(tourActivity.getImageUrl())
-                    .placeholder(android.R.drawable.ic_menu_gallery)
-                    .centerCrop()
-                    .into(image);
+            if (sanitizedGallery.isEmpty()) {
+                String single = tourActivity.getImageUrl();
+                if (single != null && !single.trim().isEmpty()) {
+                    sanitizedGallery = Collections.singletonList(single.trim());
+                }
+            }
+
+            // Detalle en develop usa 240dp; respetar ese alto sin tocar item_activity.xml.
+            final int targetHeightPx = (int) (240 * getResources().getDisplayMetrics().density);
+
+            if (sanitizedGallery.size() > 1) {
+                ViewGroup parent = (ViewGroup) image.getParent();
+                if (parent instanceof androidx.constraintlayout.widget.ConstraintLayout) {
+                    androidx.constraintlayout.widget.ConstraintLayout constraintParent =
+                            (androidx.constraintlayout.widget.ConstraintLayout) parent;
+
+                    ViewPager2 carousel = new ViewPager2(requireContext());
+                    carousel.setId(R.id.activity_image); // conservar constraints que referencian activity_image
+                    carousel.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+                    carousel.setOffscreenPageLimit(1);
+
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams oldLp =
+                            (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) image.getLayoutParams();
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams newLp =
+                            new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(oldLp);
+                    newLp.height = targetHeightPx;
+                    carousel.setLayoutParams(newLp);
+
+                    int imageIndex = constraintParent.indexOfChild(image);
+                    constraintParent.removeView(image);
+                    constraintParent.addView(carousel, imageIndex);
+
+                    carousel.setAdapter(new ActivityImageCarouselAdapter(sanitizedGallery));
+                } else {
+                    // Fallback defensivo: si el parent no es ConstraintLayout, no arriesgar layout roto.
+                    ViewGroup.LayoutParams lp = image.getLayoutParams();
+                    lp.height = targetHeightPx;
+                    image.setLayoutParams(lp);
+
+                    Glide.with(this)
+                            .load(sanitizedGallery.get(0))
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .centerCrop()
+                            .into(image);
+                }
+            } else {
+                ViewGroup.LayoutParams lp = image.getLayoutParams();
+                lp.height = targetHeightPx;
+                image.setLayoutParams(lp);
+
+                Glide.with(this)
+                        .load(sanitizedGallery.isEmpty() ? null : sanitizedGallery.get(0))
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .centerCrop()
+                        .into(image);
+            }
         }
     }
 

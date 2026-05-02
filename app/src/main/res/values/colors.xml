@@ -32,6 +32,7 @@
 
     <!-- Extras -->
     <color name="success">#00C853</color>
+    <color name="success_container">#E8F5E9</color>
     <color name="warning">#FFAB00</color>
 
     <!-- Backward-compatible aliases -->
@@ -74,4 +75,6 @@
     <color name="text_secondary">#6E6B82</color>
     <color name="star_amber">#F5B400</color>
     <color name="overlay_violet_translucent">#1A7C5CFA</color>
+    <color name="star_amber_light">#FFECB3</color>
+    <color name="star_grey">#BDBDBD</color>
 </resources>

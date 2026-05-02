@@ -94,6 +94,7 @@ public class TourActivity implements Serializable {
     public String getLanguage() { return language; }
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGalleryUrls() { return galleryUrls; }
+    public void setGalleryUrls(List<String> galleryUrls) { this.galleryUrls = galleryUrls; }
     public List<ItineraryPoint> getItineraryPoints() { return itineraryPoints; }
     public void setItineraryPoints(List<ItineraryPoint> itineraryPoints) { this.itineraryPoints = itineraryPoints; }
     public boolean isFavorite() { return isFavorite; }

@@ -118,7 +118,11 @@ public class ProfileViewModel extends ViewModel {
         profileRepository.getActivitySummary(new RepositoryCallback<List<BookingSummaryItem>>() {
             @Override public void onSuccess(List<BookingSummaryItem> data) {
                 List<BookingSummaryItem> list = data != null ? data : Collections.emptyList();
-                _historialCount.setValue(list.size());
+                int completedCount = 0;
+                for (BookingSummaryItem item : list) {
+                    if ("COMPLETED".equalsIgnoreCase(item.getStatus())) completedCount++;
+                }
+                _historialCount.setValue(completedCount);
                 _recentActivities.setValue(list.size() > 2 ? new ArrayList<>(list.subList(0, 2)) : new ArrayList<>(list));
                 if (--pending[0] <= 0) _loading.setValue(false);
             }
