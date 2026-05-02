@@ -148,6 +148,7 @@ public class ProfileFragment extends Fragment
         navController = Navigation.findNavController(view);
 
         bindViews(view);
+        setupPhoneSection();
         loadSavedImage();
 
         view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
