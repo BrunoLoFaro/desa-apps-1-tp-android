@@ -15,7 +15,7 @@
         app:cardElevation="2dp"
         app:strokeWidth="1dp"
         app:strokeColor="?attr/colorOutlineVariant"
-        app:cardBackgroundColor="@android:color/white">
+        app:cardBackgroundColor="?attr/colorSurface">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/main_content_layout"
@@ -158,7 +158,7 @@
                     app:layout_constraintBottom_toBottomOf="parent">
                     <TextView android:id="@+id/activity_slots" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="?attr/colorError" android:textSize="14sp" android:textStyle="bold" android:lines="1" />
                     <TextView android:id="@+id/original_price" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textSize="14sp" android:visibility="invisible" android:lines="1" />
-                    <TextView android:id="@+id/activity_price" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textColor="@android:color/black" android:textSize="24sp" android:textStyle="bold" android:lines="1" />
+                    <TextView android:id="@+id/activity_price" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textColor="?attr/colorOnSurface" android:textSize="24sp" android:textStyle="bold" android:lines="1" />
                 </LinearLayout>
 
                 <TextView
