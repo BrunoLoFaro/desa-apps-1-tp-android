@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.myapplication.R;
 import com.example.myapplication.ui.main.MainViewModel;
@@ -28,6 +29,7 @@ public class FavoritesFragment extends Fragment {
     private RecyclerView recyclerViewFavorites;
     private LinearLayout emptyView;
     private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private FavoritesViewModel viewModel;
     private FavoritesAdapter adapter;
 
@@ -38,6 +40,7 @@ public class FavoritesFragment extends Fragment {
         recyclerViewFavorites = root.findViewById(R.id.recycler_view_favorites);
         emptyView = root.findViewById(R.id.empty_view);
         progressBar = root.findViewById(R.id.progress_bar);
+        swipeRefreshLayout = root.findViewById(R.id.swipe_refresh_favorites);
         return root;
     }
 
@@ -47,7 +50,12 @@ public class FavoritesFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(FavoritesViewModel.class);
 
         setupRecyclerView();
+        setupSwipeRefresh();
         observeViewModel();
+    }
+
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadFavorites());
     }
 
     private void setupRecyclerView() {
@@ -69,7 +77,10 @@ public class FavoritesFragment extends Fragment {
         });
 
         viewModel.loading.observe(getViewLifecycleOwner(), isLoading -> {
-            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            if (!isLoading) swipeRefreshLayout.setRefreshing(false);
+            progressBar.setVisibility(
+                    (isLoading && !swipeRefreshLayout.isRefreshing()) ? View.VISIBLE : View.GONE
+            );
         });
 
         viewModel.error.observe(getViewLifecycleOwner(), error -> {
@@ -96,6 +107,7 @@ public class FavoritesFragment extends Fragment {
         recyclerViewFavorites = null;
         emptyView = null;
         progressBar = null;
+        swipeRefreshLayout = null;
     }
 
     @Override

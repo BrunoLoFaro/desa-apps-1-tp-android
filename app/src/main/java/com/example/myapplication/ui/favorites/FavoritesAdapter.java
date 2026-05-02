@@ -107,8 +107,8 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
 
     private void bindChips(ViewHolder holder, TourActivity activity) {
         boolean showSoldOut = activity.getAvailableSlots() <= 0;
-        boolean showSlotsAvailable = activity.isSlotsChanged();
-        boolean showNewPrice = activity.isPriceChanged();
+        boolean showSlotsAvailable = !showSoldOut && activity.isSlotsChanged();
+        boolean showNewPrice = !showSoldOut && activity.isPriceChanged();
 
         holder.chipSoldOut.setVisibility(showSoldOut ? View.VISIBLE : View.GONE);
         holder.chipSlotsAvailable.setVisibility(showSlotsAvailable ? View.VISIBLE : View.GONE);

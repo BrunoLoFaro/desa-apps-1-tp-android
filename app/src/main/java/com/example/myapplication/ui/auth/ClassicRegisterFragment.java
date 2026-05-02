@@ -30,8 +30,10 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     private TextInputEditText firstNameEditText;
     private TextInputLayout lastNameInputLayout;
     private TextInputEditText lastNameEditText;
-    private TextInputLayout phoneInputLayout;
-    private TextInputEditText phoneEditText;
+    private TextInputLayout areaCodeInputLayout;
+    private TextInputEditText areaCodeEditText;
+    private TextInputLayout phoneNumberInputLayout;
+    private TextInputEditText phoneNumberEditText;
     private MaterialButton registerButton;
     private CircularProgressIndicator progressIndicator;
 
@@ -54,8 +56,10 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         firstNameEditText = view.findViewById(R.id.first_name_edit_text);
         lastNameInputLayout = view.findViewById(R.id.last_name_input_layout);
         lastNameEditText = view.findViewById(R.id.last_name_edit_text);
-        phoneInputLayout = view.findViewById(R.id.phone_input_layout);
-        phoneEditText = view.findViewById(R.id.phone_edit_text);
+        areaCodeInputLayout = view.findViewById(R.id.area_code_input_layout);
+        areaCodeEditText = view.findViewById(R.id.area_code_edit_text);
+        phoneNumberInputLayout = view.findViewById(R.id.phone_number_input_layout);
+        phoneNumberEditText = view.findViewById(R.id.phone_number_edit_text);
         registerButton = view.findViewById(R.id.register_button);
         progressIndicator = view.findViewById(R.id.register_progress_indicator);
 
@@ -79,7 +83,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
             passwordEditText.setEnabled(notLoading);
             firstNameEditText.setEnabled(notLoading);
             lastNameEditText.setEnabled(notLoading);
-            phoneEditText.setEnabled(notLoading);
+            areaCodeEditText.setEnabled(notLoading);
+            phoneNumberEditText.setEnabled(notLoading);
             progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
 
             if (state.isLoading) clearAllErrors();
@@ -104,7 +109,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         addClearErrorWatcher(passwordEditText, passwordInputLayout);
         addClearErrorWatcher(firstNameEditText, firstNameInputLayout);
         addClearErrorWatcher(lastNameEditText, lastNameInputLayout);
-        addClearErrorWatcher(phoneEditText, phoneInputLayout);
+        addClearErrorWatcher(areaCodeEditText, areaCodeInputLayout);
+        addClearErrorWatcher(phoneNumberEditText, phoneNumberInputLayout);
     }
 
     private void addClearErrorWatcher(TextInputEditText field, TextInputLayout layout) {
@@ -122,7 +128,8 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         passwordInputLayout.setError(null);
         firstNameInputLayout.setError(null);
         lastNameInputLayout.setError(null);
-        phoneInputLayout.setError(null);
+        areaCodeInputLayout.setError(null);
+        phoneNumberInputLayout.setError(null);
     }
 
     private void attemptRegister() {
@@ -130,14 +137,21 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         String password = safeText(passwordEditText);
         String firstName = safeText(firstNameEditText);
         String lastName = safeText(lastNameEditText);
-        String phone = safeText(phoneEditText);
+        String areaCode = safeText(areaCodeEditText);
+        String phoneNumber = safeText(phoneNumberEditText);
 
-        if (!validateFields(email, password, firstName, lastName)) return;
+        if (!validateFields(email, password, firstName, lastName, areaCode, phoneNumber)) return;
 
-        viewModel.register(email, password, firstName, lastName, phone.isEmpty() ? null : phone);
+        String phone = null;
+        if (!areaCode.isEmpty() && !phoneNumber.isEmpty()) {
+            String normalizedAreaCode = areaCode.startsWith("+") ? areaCode : "+" + areaCode;
+            phone = normalizedAreaCode + phoneNumber;
+        }
+        viewModel.register(email, password, firstName, lastName, phone);
     }
 
-    private boolean validateFields(String email, String password, String firstName, String lastName) {
+    private boolean validateFields(String email, String password, String firstName, String lastName,
+                                   String areaCode, String phoneNumber) {
         boolean valid = true;
 
         String errEmail = AuthInputValidator.validateEmail(requireContext(), email);
@@ -156,6 +170,27 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         lastNameInputLayout.setError(errLast);
         if (errLast != null) valid = false;
 
+        boolean areaFilled = !areaCode.isEmpty();
+        boolean phoneFilled = !phoneNumber.isEmpty();
+
+        if (areaFilled && !phoneFilled) {
+            phoneNumberInputLayout.setError(getString(R.string.error_register_phone_required));
+            valid = false;
+        } else if (!areaFilled && phoneFilled) {
+            areaCodeInputLayout.setError(getString(R.string.error_register_area_code_required));
+            valid = false;
+        }
+
+        if (areaFilled && !areaCode.matches("^\\+?\\d{1,4}$")) {
+            areaCodeInputLayout.setError(getString(R.string.error_register_area_code_invalid));
+            valid = false;
+        }
+
+        if (phoneFilled && !phoneNumber.matches("^\\d{6,15}$")) {
+            phoneNumberInputLayout.setError(getString(R.string.error_register_phone_invalid));
+            valid = false;
+        }
+
         return valid;
     }
 
@@ -173,8 +208,10 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         firstNameEditText = null;
         lastNameInputLayout = null;
         lastNameEditText = null;
-        phoneInputLayout = null;
-        phoneEditText = null;
+        areaCodeInputLayout = null;
+        areaCodeEditText = null;
+        phoneNumberInputLayout = null;
+        phoneNumberEditText = null;
         registerButton = null;
         progressIndicator = null;
         super.onDestroyView();
