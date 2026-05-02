@@ -18,6 +18,8 @@ import com.example.myapplication.data.model.TourActivity;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.card.MaterialCardView;
+import androidx.core.content.ContextCompat;
 import android.util.TypedValue;
 import android.widget.FrameLayout;
 import java.util.List;
@@ -130,9 +132,12 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         }
         
         holder.slots.setText(soldOut
-                ? holder.itemView.getContext().getString(R.string.sold_out)
-                : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
+            ? holder.itemView.getContext().getString(R.string.sold_out)
+            : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         holder.itemView.setAlpha(soldOut ? 0.65f : 1f);
+        if (isCompact && holder.card != null) {
+            holder.card.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.white));
+        }
 
         if (holder.rating != null) {
             if (activity.getReviewsCount() <= 0) {
@@ -332,6 +337,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         ViewGroup footerContent;
         ImageView favoriteBtn;
         MaterialButton bookButton;
+        MaterialCardView card;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -362,6 +368,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             chipSlotsAvailable = itemView.findViewById(R.id.chip_slots_available);
             chipNewPrice = itemView.findViewById(R.id.chip_new_price);
             bookButton = itemView.findViewById(R.id.btn_book_now);
+            card = itemView.findViewById(R.id.card_view);
         }
     }
 }
