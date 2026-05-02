@@ -261,6 +261,34 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:visibility="gone" />
 
+                    <LinearLayout
+                        android:id="@+id/historial_search_empty_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="64dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="24dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="@string/explore_empty_state"
+                            android:textAppearance="@style/TextAppearance.XploreNow.H2"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/explore_empty_state_subtitle"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/historial_recycler_view"
                         android:layout_width="match_parent"
