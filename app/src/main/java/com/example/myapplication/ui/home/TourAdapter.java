@@ -20,6 +20,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.card.MaterialCardView;
 import androidx.core.content.ContextCompat;
+import com.google.android.material.color.MaterialColors;
 import android.util.TypedValue;
 import android.widget.FrameLayout;
 import java.util.List;
@@ -136,7 +137,8 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         holder.itemView.setAlpha(soldOut ? 0.65f : 1f);
         if ((isCompact || isFavoritesSection) && holder.card != null) {
-            holder.card.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.white));
+            int surfaceColor = MaterialColors.getColor(holder.itemView, com.google.android.material.R.attr.colorSurface, ContextCompat.getColor(holder.itemView.getContext(), android.R.color.white));
+            holder.card.setCardBackgroundColor(surfaceColor);
         }
 
         if (holder.rating != null) {
