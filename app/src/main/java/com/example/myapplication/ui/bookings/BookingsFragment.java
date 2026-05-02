@@ -69,6 +69,7 @@ public class BookingsFragment extends Fragment {
     private RecyclerView historialRecycler;
     private ProgressBar historialLoading;
     private TextView historialEmpty;
+    private View historialSearchEmptyContainer;
     private ActivitySummaryAdapter summaryAdapter;
     private AutoCompleteTextView filterDestination;
     private TextInputEditText filterFromDate;
@@ -113,10 +114,11 @@ public class BookingsFragment extends Fragment {
         activasLoading    = view.findViewById(R.id.bookings_loading_spinner);
         activasEmpty      = view.findViewById(R.id.activas_empty_text);
 
-        sectionHistorial  = view.findViewById(R.id.section_historial);
-        historialRecycler = view.findViewById(R.id.historial_recycler_view);
-        historialLoading  = view.findViewById(R.id.historial_loading_spinner);
-        historialEmpty    = view.findViewById(R.id.historial_empty_text);
+        sectionHistorial              = view.findViewById(R.id.section_historial);
+        historialRecycler             = view.findViewById(R.id.historial_recycler_view);
+        historialLoading              = view.findViewById(R.id.historial_loading_spinner);
+        historialEmpty                = view.findViewById(R.id.historial_empty_text);
+        historialSearchEmptyContainer = view.findViewById(R.id.historial_search_empty_container);
 
         filterDestination = view.findViewById(R.id.filter_destination);
         filterFromDate    = view.findViewById(R.id.filter_from_date);
@@ -297,9 +299,7 @@ public class BookingsFragment extends Fragment {
         viewModel.getHistorial().observe(getViewLifecycleOwner(), items -> {
             if (items == null) return;
             summaryAdapter.updateData(items);
-            boolean empty = items.isEmpty();
-            // El mensaje se decide abajo según neverSynced
-            historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+            updateHistorialEmptyViews(items.isEmpty());
         });
 
         viewModel.isMyReviewsLoading().observe(getViewLifecycleOwner(), loading -> {
@@ -314,22 +314,9 @@ public class BookingsFragment extends Fragment {
         });
 
         viewModel.isHistorialNeverSynced().observe(getViewLifecycleOwner(), neverSynced -> {
-            boolean show = false;
-            if (Boolean.TRUE.equals(neverSynced)) {
-                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
-                show = (items == null || items.isEmpty());
-            }
-            if (show) {
-                historialEmpty.setText(R.string.bookings_empty_historial_never_synced);
-                historialEmpty.setVisibility(View.VISIBLE);
-                historialRecycler.setVisibility(View.GONE);
-            } else {
-                List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
-                boolean empty = (items == null || items.isEmpty());
-                historialEmpty.setText(R.string.bookings_empty_historial);
-                historialEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
-                historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
-            }
+            List<BookingSummaryItem> items = viewModel.getHistorial().getValue();
+            boolean empty = items == null || items.isEmpty();
+            updateHistorialEmptyViews(empty);
         });
 
         viewModel.getAvailableDestinations().observe(getViewLifecycleOwner(), destinations -> {
@@ -385,6 +372,28 @@ public class BookingsFragment extends Fragment {
                         : R.string.bookings_empty_activas);
             }
         });
+    }
+
+    private void updateHistorialEmptyViews(boolean empty) {
+        historialRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (!empty) {
+            historialEmpty.setVisibility(View.GONE);
+            historialSearchEmptyContainer.setVisibility(View.GONE);
+            return;
+        }
+        if (viewModel.hasActiveFilters()) {
+            historialSearchEmptyContainer.setVisibility(View.VISIBLE);
+            historialEmpty.setVisibility(View.GONE);
+        } else {
+            historialSearchEmptyContainer.setVisibility(View.GONE);
+            Boolean neverSynced = viewModel.isHistorialNeverSynced().getValue();
+            if (Boolean.TRUE.equals(neverSynced)) {
+                historialEmpty.setText(R.string.bookings_empty_historial_never_synced);
+            } else {
+                historialEmpty.setText(R.string.bookings_empty_historial);
+            }
+            historialEmpty.setVisibility(View.VISIBLE);
+        }
     }
 
     // ── Grouping ─────────────────────────────────────────────────────────────
@@ -502,9 +511,10 @@ public class BookingsFragment extends Fragment {
         bookingAdapter    = null;
         sectionHistorial  = null;
         historialRecycler = null;
-        historialLoading  = null;
-        historialEmpty    = null;
-        summaryAdapter    = null;
+        historialLoading              = null;
+        historialEmpty                = null;
+        historialSearchEmptyContainer = null;
+        summaryAdapter                = null;
         filterDestination = null;
         filterFromDate    = null;
         filterToDate      = null;
