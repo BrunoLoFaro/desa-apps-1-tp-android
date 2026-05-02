@@ -16,7 +16,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -30,7 +29,6 @@ public class SignupFragment extends BaseAuthFragment {
     private CircularProgressIndicator progressIndicator;
 
     private SignupViewModel viewModel;
-    private Toolbar previousToolbar;
 
     @Nullable
     @Override
@@ -85,18 +83,8 @@ public class SignupFragment extends BaseAuthFragment {
             }
         });
 
-        // Setup local toolbar to display app name in white and no navigation icon
         Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
         if (localToolbar != null) {
-            AppCompatActivity activity = (AppCompatActivity) requireActivity();
-            // Save previous toolbar to restore later
-            previousToolbar = activity.findViewById(R.id.toolbar);
-            activity.setSupportActionBar(localToolbar);
-            if (activity.getSupportActionBar() != null) {
-                activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
-            }
-            localToolbar.setTitle(R.string.app_name);
-            localToolbar.setTitleTextColor(getResources().getColor(android.R.color.white, requireContext().getTheme()));
             localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
             localToolbar.setNavigationOnClickListener(v -> navController.popBackStack(R.id.loginFragment, false));
         }
@@ -116,10 +104,6 @@ public class SignupFragment extends BaseAuthFragment {
 
     @Override
     public void onDestroyView() {
-        if (previousToolbar != null) {
-            AppCompatActivity activity = (AppCompatActivity) requireActivity();
-            activity.setSupportActionBar(previousToolbar);
-        }
         emailInputLayout = null;
         emailEditText = null;
         sendOtpButton = null;
