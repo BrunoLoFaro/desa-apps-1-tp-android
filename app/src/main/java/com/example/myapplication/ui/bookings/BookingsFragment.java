@@ -29,7 +29,6 @@ import com.example.myapplication.ui.bookings.viewmodel.BookingsViewModel;
 import com.example.myapplication.ui.profile.ActivitySummaryAdapter;
 import com.example.myapplication.util.MainThreadUtils;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
@@ -90,9 +89,6 @@ public class BookingsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(BookingsViewModel.class);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(view).navigateUp());
 
         bindViews(view);
         setupAdapters(view);

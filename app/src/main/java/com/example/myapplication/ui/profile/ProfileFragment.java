@@ -30,7 +30,6 @@ import com.example.myapplication.data.session.SessionManager;
 import com.example.myapplication.ui.profile.viewmodel.ProfileViewModel;
 import com.example.myapplication.util.BiometricHelper;
 import com.example.myapplication.util.FormatUtils;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
@@ -135,9 +134,6 @@ public class ProfileFragment extends Fragment {
         bindViews(view);
 
         loadSavedImage();
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
         view.findViewById(R.id.edit_photo_btn).setOnClickListener(v -> checkPermissionAndOpenGallery());
         btnSave.setOnClickListener(v -> onSaveClicked());

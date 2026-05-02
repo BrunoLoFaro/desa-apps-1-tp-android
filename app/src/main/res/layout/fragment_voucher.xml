@@ -6,21 +6,6 @@
     android:orientation="vertical"
     android:background="?attr/colorSurface">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorSurface">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/voucher_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_back"
-            app:title="@string/voucher_title"
-            app:titleTextColor="?attr/colorOnSurface" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

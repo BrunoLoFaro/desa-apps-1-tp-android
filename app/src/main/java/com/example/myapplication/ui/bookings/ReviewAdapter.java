@@ -35,10 +35,16 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
         ReviewResponse review = items.get(position);
         holder.activityName.setText(review.activityName);
         holder.destination.setText(review.destinationName);
-        holder.activityRating.setRating(review.activityRating != null ? review.activityRating : 0);
+        
+        // Redondear calificación de actividad a un decimal
+        float activityRatingValue = review.activityRating != null ? review.activityRating : 0;
+        float roundedActivityRating = Math.round(activityRatingValue * 10f) / 10f;
+        holder.activityRating.setRating(roundedActivityRating);
         
         if (review.guideRating != null && review.guideRating > 0) {
-            holder.guideRating.setRating(review.guideRating);
+            // Redondear calificación de guía a un decimal
+            float roundedGuideRating = Math.round(review.guideRating * 10f) / 10f;
+            holder.guideRating.setRating(roundedGuideRating);
             holder.guideRow.setVisibility(View.VISIBLE);
         } else {
             holder.guideRow.setVisibility(View.GONE);
@@ -51,7 +57,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
             holder.comment.setVisibility(View.GONE);
         }
 
-        holder.date.setText(FormatUtils.formatStartTime(review.createdAt));
+        holder.date.setText(FormatUtils.formatStartTimeWithUTC3(review.createdAt));
     }
 
     @Override

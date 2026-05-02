@@ -84,7 +84,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
                 .centerCrop()
                 .into(holder.image);
 
-        bindChips(holder, activity, soldOut);
+        bindChips(holder, activity);
 
         holder.bookButton.setEnabled(!soldOut);
         holder.bookButton.setAlpha(soldOut ? 0.5f : 1f);
@@ -95,32 +95,26 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
             Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
         };
 
-        holder.bookButton.setOnClickListener(soldOut ? null : goToDetail);
+        holder.bookButton.setOnClickListener(soldOut ? null : v -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("activity_data", activity);
+            bundle.putBoolean("scroll_to_booking", true);
+            Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
+        });
         holder.detailButton.setOnClickListener(goToDetail);
         holder.itemView.setOnClickListener(goToDetail);
     }
 
-    private void bindChips(ViewHolder holder, TourActivity activity, boolean soldOut) {
-        holder.chipSoldOut.setVisibility(View.GONE);
-        holder.chipSlotsAvailable.setVisibility(View.GONE);
-        holder.chipNewPrice.setVisibility(View.GONE);
+    private void bindChips(ViewHolder holder, TourActivity activity) {
+        boolean showSoldOut = activity.getAvailableSlots() <= 0;
+        boolean showSlotsAvailable = activity.isSlotsChanged();
+        boolean showNewPrice = activity.isPriceChanged();
 
-        boolean anyVisible = false;
+        holder.chipSoldOut.setVisibility(showSoldOut ? View.VISIBLE : View.GONE);
+        holder.chipSlotsAvailable.setVisibility(showSlotsAvailable ? View.VISIBLE : View.GONE);
+        holder.chipNewPrice.setVisibility(showNewPrice ? View.VISIBLE : View.GONE);
 
-        if (soldOut) {
-            holder.chipSoldOut.setVisibility(View.VISIBLE);
-            anyVisible = true;
-        } else {
-            if (activity.isSlotsChanged()) {
-                holder.chipSlotsAvailable.setVisibility(View.VISIBLE);
-                anyVisible = true;
-            }
-            if (activity.isPriceChanged()) {
-                holder.chipNewPrice.setVisibility(View.VISIBLE);
-                anyVisible = true;
-            }
-        }
-
+        boolean anyVisible = showSoldOut || showSlotsAvailable || showNewPrice;
         holder.chipsContainer.setVisibility(anyVisible ? View.VISIBLE : View.GONE);
     }
 
@@ -178,7 +172,12 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
 
         @Override
         public boolean areContentsTheSame(int oldPos, int newPos) {
-            return areItemsTheSame(oldPos, newPos);
+            if (!areItemsTheSame(oldPos, newPos)) return false;
+            TourActivity o = oldList.get(oldPos);
+            TourActivity n = newList.get(newPos);
+            return o.getAvailableSlots() == n.getAvailableSlots()
+                    && o.isPriceChanged() == n.isPriceChanged()
+                    && o.isSlotsChanged() == n.isSlotsChanged();
         }
     }
 }

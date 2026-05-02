@@ -12,12 +12,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 
 /** Pantalla de entrada de email para "Ingresar con código de un solo uso". */
@@ -30,6 +30,7 @@ public class SignupFragment extends BaseAuthFragment {
     private CircularProgressIndicator progressIndicator;
 
     private SignupViewModel viewModel;
+    private Toolbar previousToolbar;
 
     @Nullable
     @Override
@@ -46,10 +47,6 @@ public class SignupFragment extends BaseAuthFragment {
         progressIndicator = view.findViewById(R.id.signup_progress_indicator);
 
         super.onViewCreated(view, savedInstanceState);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
         viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
@@ -87,6 +84,22 @@ public class SignupFragment extends BaseAuthFragment {
                 viewModel.sendOtpNavigationConsumed();
             }
         });
+
+        // Setup local toolbar to display app name in white and no navigation icon
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            AppCompatActivity activity = (AppCompatActivity) requireActivity();
+            // Save previous toolbar to restore later
+            previousToolbar = activity.findViewById(R.id.toolbar);
+            activity.setSupportActionBar(localToolbar);
+            if (activity.getSupportActionBar() != null) {
+                activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
+            }
+            localToolbar.setTitle(R.string.app_name);
+            localToolbar.setTitleTextColor(getResources().getColor(android.R.color.white, requireContext().getTheme()));
+            localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+            localToolbar.setNavigationOnClickListener(v -> navController.popBackStack(R.id.loginFragment, false));
+        }
     }
 
     private void sendOtp() {
@@ -103,6 +116,10 @@ public class SignupFragment extends BaseAuthFragment {
 
     @Override
     public void onDestroyView() {
+        if (previousToolbar != null) {
+            AppCompatActivity activity = (AppCompatActivity) requireActivity();
+            activity.setSupportActionBar(previousToolbar);
+        }
         emailInputLayout = null;
         emailEditText = null;
         sendOtpButton = null;

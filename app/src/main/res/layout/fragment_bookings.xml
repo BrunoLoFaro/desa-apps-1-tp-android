@@ -15,7 +15,6 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_back"
             app:title="@string/nav_bookings"
             app:titleCentered="true"
             app:titleTextAppearance="@style/TextAppearance.XploreNow.H2" />

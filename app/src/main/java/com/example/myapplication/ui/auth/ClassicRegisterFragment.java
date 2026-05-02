@@ -12,12 +12,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.RegisterViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -37,6 +37,7 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
     private CircularProgressIndicator progressIndicator;
 
     private RegisterViewModel viewModel;
+    private Toolbar previousToolbar;
 
     @Nullable
     @Override
@@ -62,9 +63,21 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
 
         super.onViewCreated(view, savedInstanceState);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+        // Setup local toolbar to show back arrow that navigates to login
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            AppCompatActivity activity = (AppCompatActivity) requireActivity();
+            // Save previous toolbar to restore later
+            previousToolbar = activity.findViewById(R.id.toolbar);
+            activity.setSupportActionBar(localToolbar);
+            if (activity.getSupportActionBar() != null) {
+                activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
+            }
+            localToolbar.setTitle(R.string.app_name);
+            localToolbar.setTitleTextColor(getResources().getColor(android.R.color.white, requireContext().getTheme()));
+            localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+            localToolbar.setNavigationOnClickListener(v -> navController.popBackStack(R.id.loginFragment, false));
+        }
 
         viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
 
@@ -176,6 +189,10 @@ public class ClassicRegisterFragment extends BaseAuthFragment {
         phoneEditText = null;
         registerButton = null;
         progressIndicator = null;
+        if (previousToolbar != null) {
+            AppCompatActivity activity = (AppCompatActivity) requireActivity();
+            activity.setSupportActionBar(previousToolbar);
+        }
         super.onDestroyView();
     }
 }

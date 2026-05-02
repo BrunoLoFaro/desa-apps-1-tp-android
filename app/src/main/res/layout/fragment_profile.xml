@@ -5,24 +5,6 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_back"
-            app:title="@string/profile_title"
-            app:titleCentered="true"
-            app:titleTextAppearance="@style/TextAppearance.XploreNow.H2" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
     <ProgressBar
         android:id="@+id/loading_spinner"
         android:layout_width="wrap_content"
@@ -34,8 +16,7 @@
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
