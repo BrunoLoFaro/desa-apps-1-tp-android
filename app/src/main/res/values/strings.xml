@@ -198,7 +198,7 @@
     <string name="no_reviews">Sin reseñas</string>
 
     <!-- Profile -->
-    <string name="phone_code_hint">Código</string>
+    <string name="phone_code_hint">Cód. país</string>
     <string name="phone_number_hint">Número de teléfono</string>
     <string name="phone_helper_text">Ingresá tu número de teléfono</string>
     <string name="phone_country_picker_title">Seleccionar país</string>
