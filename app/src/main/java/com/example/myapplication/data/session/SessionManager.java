@@ -7,9 +7,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
+import com.example.myapplication.data.local.AppDatabase;
+import com.example.myapplication.data.local.ProfileImageManager;
 import com.example.myapplication.util.BiometricHelper;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
@@ -36,11 +39,16 @@ public class SessionManager {
 
     private final Context appContext;
     private final SharedPreferences preferences;
+    private final AppDatabase db;
+    private final ProfileImageManager profileImageManager;
     private final MutableLiveData<Boolean> _forceLogout = new MutableLiveData<>(false);
 
     @Inject
-    public SessionManager(@ApplicationContext Context context) {
+    public SessionManager(@ApplicationContext Context context, AppDatabase db,
+                          ProfileImageManager profileImageManager) {
         this.appContext = context.getApplicationContext();
+        this.db = db;
+        this.profileImageManager = profileImageManager;
         try {
             MasterKey masterKey = new MasterKey.Builder(context)
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -171,6 +179,7 @@ public class SessionManager {
     }
 
     public void clearSession() {
+        long userId = getUserId();
         preferences.edit()
                 .remove(KEY_ACCESS_TOKEN)
                 .remove(KEY_REFRESH_TOKEN)
@@ -181,6 +190,12 @@ public class SessionManager {
                 .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
         clearPendingProfile();
+        BiometricHelper.setBiometricEnabled(appContext, false);
+        BiometricHelper.setBiometricSkipped(appContext, false);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            if (userId > 0) profileImageManager.delete(userId);
+            db.clearAllTables();
+        });
     }
 
     /**
@@ -190,7 +205,6 @@ public class SessionManager {
      */
     public void triggerForceLogout() {
         clearSession();
-        BiometricHelper.setBiometricEnabled(appContext, false);
         _forceLogout.postValue(true);
     }
 

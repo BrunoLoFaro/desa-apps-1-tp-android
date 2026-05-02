@@ -11,7 +11,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -61,11 +60,6 @@ public class NewsDetailFragment extends Fragment {
         relatedActivitySection = view.findViewById(R.id.related_activity_section);
         relatedActivityName = view.findViewById(R.id.related_activity_name);
         ctaButton = view.findViewById(R.id.cta_button);
-
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> {
-            Navigation.findNavController(v).navigateUp();
-        });
 
         // Get news ID from arguments
         if (getArguments() != null) {

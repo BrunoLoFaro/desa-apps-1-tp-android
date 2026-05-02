@@ -10,8 +10,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.ForgotPasswordViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
@@ -47,10 +45,6 @@ public class ForgotPasswordCodeFragment extends BaseAuthFragment {
         progressIndicator = view.findViewById(R.id.forgot_code_progress_indicator);
 
         super.onViewCreated(view, savedInstanceState);
-
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
 
         // Same Activity-scoped instance as ForgotPasswordRequestFragment
         viewModel = new ViewModelProvider(requireActivity()).get(ForgotPasswordViewModel.class);

@@ -13,10 +13,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import com.example.myapplication.ui.home.viewmodel.HomeViewModel;
 import com.example.myapplication.ui.home.viewmodel.NewsViewModel;
+import com.example.myapplication.ui.main.MainViewModel;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
+import com.example.myapplication.util.ConnectivityUtils;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.stream.Collectors;
 
@@ -85,7 +87,7 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
             }
         });
         newsViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
             }
         });
@@ -98,9 +100,19 @@ public class HomeFragment extends androidx.fragment.app.Fragment {
         });
 
         homeViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
                 Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
             }
+        });
+
+        View offlineState = view.findViewById(R.id.offline_state);
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            if (!isOffline && wasOffline[0]) homeViewModel.refreshTours();
+            wasOffline[0] = isOffline;
         });
     }
 

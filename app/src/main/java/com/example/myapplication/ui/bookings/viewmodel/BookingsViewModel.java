@@ -17,7 +17,7 @@ import com.example.myapplication.data.repository.BookingRepository;
 import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import com.example.myapplication.data.work.SyncCancellationsWorker;
-import com.example.myapplication.util.ConnectivityUtils;
+import com.example.myapplication.util.NetworkMonitor;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
@@ -41,6 +41,9 @@ public class BookingsViewModel extends ViewModel {
     private final ProfileRepository profileRepository;
     private final ReviewRepository reviewRepository;
     private final Context context;
+    private final NetworkMonitor networkMonitor;
+    private Observer<Boolean> connectivityObserver;
+    private boolean connectivityInitialized = false;
 
     private final MutableLiveData<List<BookingResponse>> _bookings =
             new MutableLiveData<>(Collections.emptyList());
@@ -51,6 +54,7 @@ public class BookingsViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _showOfflineCancelModal = new MutableLiveData<>(false);
     private boolean offline = false;
     private String currentFilter = null;
+    private Long lastUserCancelledBookingId = null;
 
     // ── Historial ────────────────────────────────────────────────────────────
     private final MutableLiveData<List<BookingSummaryItem>> _historial =
@@ -82,13 +86,24 @@ public class BookingsViewModel extends ViewModel {
     public BookingsViewModel(BookingRepository bookingRepository,
                              ProfileRepository profileRepository,
                              ReviewRepository reviewRepository,
+                             NetworkMonitor networkMonitor,
                              @ApplicationContext Context context) {
         this.bookingRepository = bookingRepository;
         this.profileRepository = profileRepository;
         this.reviewRepository = reviewRepository;
         this.context = context;
-        this.offline = !ConnectivityUtils.isOnline(context);
+        this.networkMonitor = networkMonitor;
+        this.offline = !networkMonitor.isCurrentlyOnline();
         if (this.offline) _isOffline.setValue(true);
+
+        connectivityObserver = online -> {
+            if (!connectivityInitialized) {
+                connectivityInitialized = true;
+                return; // skip initial emission; initial load is triggered by the fragment
+            }
+            onConnectivityChanged(Boolean.TRUE.equals(online));
+        };
+        networkMonitor.isOnline().observeForever(connectivityObserver);
     }
 
     // ──────────────── Getters ────────────────────────────────────────────────────────────────
@@ -194,7 +209,15 @@ public class BookingsViewModel extends ViewModel {
                     for (BookingResponse b : fresh) { if (b.id != null) newIds.add(b.id); }
                     prevIds.removeAll(newIds);
                     if (!prevIds.isEmpty()) {
-                        _message.setValue(UiMessage.from(R.string.booking_cancelled_by_server));
+                        boolean isOnlyUserCancellation = lastUserCancelledBookingId != null
+                                && prevIds.size() == 1
+                                && prevIds.contains(lastUserCancelledBookingId);
+                        if (!isOnlyUserCancellation) {
+                            _message.setValue(UiMessage.from(R.string.booking_cancelled_by_server));
+                        }
+                        if (lastUserCancelledBookingId != null && prevIds.contains(lastUserCancelledBookingId)) {
+                            lastUserCancelledBookingId = null;
+                        }
                     }
                 }
                 _bookings.setValue(fresh);
@@ -236,10 +259,12 @@ public class BookingsViewModel extends ViewModel {
         }
 
         _loading.setValue(true);
+        lastUserCancelledBookingId = bookingId;
         bookingRepository.cancelBooking(bookingId, new RepositoryCallback<BookingResponse>() {
             @Override
             public void onSuccess(BookingResponse data) {
                 _loading.setValue(false);
+                _message.setValue(UiMessage.from(R.string.cancel_booking_success));
                 loadMyBookings(currentFilter);
                 historialLoaded = false;
                 if (selectedTab == 1) loadHistorial();
@@ -249,6 +274,9 @@ public class BookingsViewModel extends ViewModel {
             public void onError(UiMessage error) {
                 _loading.setValue(false);
                 _error.setValue(error);
+                if (lastUserCancelledBookingId != null && lastUserCancelledBookingId.equals(bookingId)) {
+                    lastUserCancelledBookingId = null;
+                }
             }
         });
     }
@@ -456,6 +484,10 @@ public class BookingsViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
+        if (connectivityObserver != null) {
+            networkMonitor.isOnline().removeObserver(connectivityObserver);
+            connectivityObserver = null;
+        }
         if (syncWorkInfoLiveData != null && syncWorkObserver != null) {
             syncWorkInfoLiveData.removeObserver(syncWorkObserver);
         }
