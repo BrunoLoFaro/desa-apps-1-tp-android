@@ -135,7 +135,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             ? holder.itemView.getContext().getString(R.string.sold_out)
             : holder.itemView.getContext().getString(R.string.slots_available, activity.getAvailableSlots()));
         holder.itemView.setAlpha(soldOut ? 0.65f : 1f);
-        if (isCompact && holder.card != null) {
+        if ((isCompact || isFavoritesSection) && holder.card != null) {
             holder.card.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.white));
         }
 
