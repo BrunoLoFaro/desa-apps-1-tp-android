@@ -90,6 +90,15 @@
     <string name="register_first_name_hint">Nombre *</string>
     <string name="register_last_name_hint">Apellido *</string>
     <string name="phone_hint_optional">Teléfono (opcional)</string>
+    <string name="register_area_code_hint">Cod. Área</string>
+    <string name="register_area_code_placeholder">+54</string>
+    <string name="register_phone_number_hint">Teléfono</string>
+    <string name="register_phone_number_placeholder">1121121234</string>
+    <string name="error_register_area_code_required">Ingresá el código de área</string>
+    <string name="error_register_phone_required">Ingresá el número de teléfono</string>
+    <string name="error_register_area_code_invalid">Solo + y dígitos (ej: +54)</string>
+    <string name="error_register_phone_invalid">Solo dígitos (ej: 1121121234)</string>
+    <string name="biometric_invalid">La huella es inválida</string>
     <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
     <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
     <string name="error_register_failed_default">No se pudo completar el registro.</string>

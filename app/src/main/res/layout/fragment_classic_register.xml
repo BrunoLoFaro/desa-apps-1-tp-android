@@ -145,24 +145,54 @@
                         android:inputType="textPersonName" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/phone_input_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:hint="@string/phone_hint_optional"
-                    app:errorEnabled="true"
-                    app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
-                    app:helperTextEnabled="false"
-                    app:placeholderText="@string/phone_placeholder_hint">
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/phone_edit_text"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/area_code_input_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:inputType="phone" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:hint="@string/register_area_code_hint"
+                        app:errorEnabled="true"
+                        app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                        app:helperTextEnabled="false"
+                        app:placeholderText="@string/register_area_code_placeholder">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/area_code_edit_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="phone"
+                            android:maxLength="5" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/phone_number_input_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:hint="@string/register_phone_number_hint"
+                        app:errorEnabled="true"
+                        app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                        app:helperTextEnabled="false"
+                        app:placeholderText="@string/register_phone_number_placeholder">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/phone_number_edit_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:maxLength="15" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/register_button"

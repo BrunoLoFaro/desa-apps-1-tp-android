@@ -161,13 +161,12 @@ public class LoginFragment extends BaseAuthFragment {
             @Override
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
-                showError(getString(R.string.biometric_login_failed));
             }
 
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                showError(errString.toString());
+                showError(getString(R.string.biometric_invalid));
             }
         };
 
