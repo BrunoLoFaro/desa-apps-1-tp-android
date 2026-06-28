@@ -452,13 +452,30 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- ── Botón Check-in por QR (Feature 11) ── -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/voucher_checkin_button"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/checkin_button"
+        android:textSize="15sp"
+        app:icon="@drawable/ic_ticket"
+        app:iconGravity="textStart" />
+
     <!-- ── Botón Descargar voucher ── -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/voucher_download_button"
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/voucher_download_button"
         android:textSize="15sp"
         app:icon="@drawable/ic_download"

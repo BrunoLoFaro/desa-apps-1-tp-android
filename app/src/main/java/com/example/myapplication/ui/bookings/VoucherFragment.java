@@ -49,6 +49,9 @@ public class VoucherFragment extends Fragment {
         MaterialButton downloadButton = view.findViewById(R.id.voucher_download_button);
         downloadButton.setOnClickListener(v -> generatePdf());
 
+        MaterialButton checkInButton = view.findViewById(R.id.voucher_checkin_button);
+        checkInButton.setOnClickListener(v -> openCheckInScanner());
+
         viewModel = new ViewModelProvider(this).get(VoucherViewModel.class);
         viewModel.getBooking().observe(getViewLifecycleOwner(), booking -> {
             if (booking != null) {
@@ -84,6 +87,16 @@ public class VoucherFragment extends Fragment {
         }
 
         setText(view, R.id.voucher_code, b.voucherCode != null ? b.voucherCode : "—");
+    }
+
+    private void openCheckInScanner() {
+        if (currentBooking == null) return;
+        Bundle args = new Bundle();
+        args.putString("voucherCode", currentBooking.voucherCode);
+        if (currentBooking.sessionId != null) args.putLong("sessionId", currentBooking.sessionId);
+        args.putString("activityName", currentBooking.activityName);
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_voucherFragment_to_checkInScanFragment, args);
     }
 
     private void generatePdf() {

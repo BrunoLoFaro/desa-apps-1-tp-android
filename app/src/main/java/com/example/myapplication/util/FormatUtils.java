@@ -91,6 +91,33 @@ public final class FormatUtils {
      * Ejemplo entrada: "2024-01-15T14:30:00Z"
      * Ejemplo salida: "15/01/2024 17:30" (UTC+3)
      */
+    /**
+     * Convierte un timestamp ISO de sesión a epoch millis. Soporta el formato
+     * con sufijo "Z" (UTC) y, como fallback, "yyyy-MM-dd'T'HH:mm:ss". Devuelve
+     * -1 si no se puede parsear.
+     */
+    public static long parseToEpochMillis(String iso) {
+        if (iso == null || iso.isEmpty()) return -1L;
+        String[] patterns = {
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat fmt = new SimpleDateFormat(pattern, Locale.US);
+                if (pattern.endsWith("'Z'")) {
+                    fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
+                }
+                Date date = fmt.parse(iso);
+                if (date != null) return date.getTime();
+            } catch (Exception ignored) {
+                // probar siguiente patrón
+            }
+        }
+        return -1L;
+    }
+
     public static String formatStartTimeWithUTC3(String iso) {
         if (iso == null || iso.isEmpty()) return "";
         try {

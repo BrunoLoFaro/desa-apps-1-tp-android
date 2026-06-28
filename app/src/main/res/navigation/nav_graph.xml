@@ -275,6 +275,31 @@
         <argument
             android:name="bookingId"
             app:argType="long" />
+        <action
+            android:id="@+id/action_voucherFragment_to_checkInScanFragment"
+            app:destination="@id/checkInScanFragment" />
+    </fragment>
+
+    <!-- Check-in por QR (Feature 11) -->
+    <fragment
+        android:id="@+id/checkInScanFragment"
+        android:name="com.example.myapplication.ui.checkin.CheckInScanFragment"
+        android:label="@string/checkin_title"
+        tools:layout="@layout/fragment_check_in_scan">
+        <argument
+            android:name="voucherCode"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="sessionId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="activityName"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
 </navigation>
