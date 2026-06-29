@@ -25,8 +25,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.myapplication.R;
+import com.example.myapplication.util.CheckInStore;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
@@ -73,6 +75,7 @@ public class CheckInScanFragment extends Fragment {
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
     // Datos de la reserva con la que validamos el QR escaneado.
+    private long bookingId;
     private String expectedVoucherCode;
     private long expectedSessionId;
     private String activityName;
@@ -85,6 +88,7 @@ public class CheckInScanFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
+            bookingId = getArguments().getLong("bookingId", -1L);
             expectedVoucherCode = getArguments().getString("voucherCode");
             expectedSessionId = getArguments().getLong("sessionId", -1L);
             activityName = getArguments().getString("activityName");
@@ -127,7 +131,8 @@ public class CheckInScanFragment extends Fragment {
         tvResultTitle = view.findViewById(R.id.tvResultTitle);
         tvResultMessage = view.findViewById(R.id.tvResultMessage);
 
-        view.findViewById(R.id.btnScanAgain).setOnClickListener(v -> reanudarEscaneo());
+        view.findViewById(R.id.btnScanAgain).setOnClickListener(v ->
+                NavHostFragment.findNavController(this).popBackStack());
 
         pedirPermisoCamara();
     }
@@ -201,6 +206,9 @@ public class CheckInScanFragment extends Fragment {
         resultPanel.setVisibility(View.VISIBLE);
 
         if (valido) {
+            if (bookingId > 0) {
+                CheckInStore.markConfirmed(requireContext(), bookingId);
+            }
             resultPanel.setBackgroundColor(COLOR_SUCCESS);
             ivResultIcon.setImageResource(R.drawable.ic_check_circle);
             tvResultTitle.setText(R.string.checkin_success_title);
@@ -240,12 +248,6 @@ public class CheckInScanFragment extends Fragment {
 
         // 2) Texto plano == código de voucher
         return expectedVoucherCode != null && expectedVoucherCode.equalsIgnoreCase(valor);
-    }
-
-    private void reanudarEscaneo() {
-        resultPanel.setVisibility(View.GONE);
-        hint.setVisibility(View.VISIBLE);
-        handled.set(false);
     }
 
     @Override

@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import com.example.myapplication.R;
 import com.example.myapplication.data.local.OfflineBookingEntity;
+import com.example.myapplication.util.CheckInStore;
 import com.example.myapplication.util.FormatUtils;
 import com.google.android.material.button.MaterialButton;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -34,6 +35,7 @@ public class VoucherFragment extends Fragment {
 
     private VoucherViewModel viewModel;
     private OfflineBookingEntity currentBooking;
+    private MaterialButton checkInButton;
 
     @Nullable
     @Override
@@ -49,7 +51,7 @@ public class VoucherFragment extends Fragment {
         MaterialButton downloadButton = view.findViewById(R.id.voucher_download_button);
         downloadButton.setOnClickListener(v -> generatePdf());
 
-        MaterialButton checkInButton = view.findViewById(R.id.voucher_checkin_button);
+        checkInButton = view.findViewById(R.id.voucher_checkin_button);
         checkInButton.setOnClickListener(v -> openCheckInScanner());
 
         viewModel = new ViewModelProvider(this).get(VoucherViewModel.class);
@@ -87,16 +89,32 @@ public class VoucherFragment extends Fragment {
         }
 
         setText(view, R.id.voucher_code, b.voucherCode != null ? b.voucherCode : "—");
+        bindCheckInState(view, b);
     }
 
     private void openCheckInScanner() {
         if (currentBooking == null) return;
         Bundle args = new Bundle();
+        args.putLong("bookingId", currentBooking.id);
         args.putString("voucherCode", currentBooking.voucherCode);
         if (currentBooking.sessionId != null) args.putLong("sessionId", currentBooking.sessionId);
         args.putString("activityName", currentBooking.activityName);
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_voucherFragment_to_checkInScanFragment, args);
+    }
+
+    private void bindCheckInState(View view, OfflineBookingEntity booking) {
+        boolean confirmed = CheckInStore.isConfirmed(requireContext(), booking);
+        View checkInConfirmedBanner = view.findViewById(R.id.voucher_checkin_confirmed_banner);
+        if (checkInConfirmedBanner != null) {
+            checkInConfirmedBanner.setVisibility(confirmed ? View.VISIBLE : View.GONE);
+        }
+        if (checkInButton != null) {
+            checkInButton.setEnabled(!confirmed);
+            checkInButton.setText(confirmed
+                    ? R.string.voucher_checkin_confirmed_button
+                    : R.string.checkin_button);
+        }
     }
 
     private void generatePdf() {
