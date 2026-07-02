@@ -4,6 +4,12 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Check-in por QR (Feature 11) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Recordatorios y Avisos (Feature 12) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" android:minSdkVersion="33" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -32,6 +38,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:label="@string/app_name"
             android:theme="@style/Theme.XploreNow">
             <intent-filter>
@@ -39,6 +46,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Servicio que escucha novedades (reprogramación/cancelación) — Feature 12 -->
+        <service
+            android:name=".service.NovedadesPollingService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
 
         <!-- Desactiva el inicializador automático de WorkManager para usar la config de Hilt -->
         <provider

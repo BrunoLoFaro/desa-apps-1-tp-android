@@ -336,4 +336,32 @@
 
     <!-- Voucher -->
     <string name="voucher_label_meeting_point">Punto de encuentro</string>
+
+    <!-- Check-in por QR (Feature 11) -->
+    <string name="checkin_button">Confirmar asistencia (escanear QR)</string>
+    <string name="checkin_title">Check-in</string>
+    <string name="checkin_hint">Apuntá la cámara al código QR que muestra el guía</string>
+    <string name="checkin_permission_denied">Se necesita el permiso de cámara para escanear el QR</string>
+    <string name="checkin_success_title">¡Asistencia confirmada!</string>
+    <string name="checkin_success_message">Tu presencia en %1$s quedó registrada. ¡Disfrutá la actividad!</string>
+    <string name="checkin_error_title">QR inválido</string>
+    <string name="checkin_error_message">Este código no corresponde a tu reserva. Pedile al guía el QR de esta actividad.</string>
+    <string name="checkin_scan_again">Volver</string>
+    <string name="voucher_checkin_confirmed_title">Asistencia confirmada</string>
+    <string name="voucher_checkin_confirmed_subtitle">Tu check-in para esta actividad ya fue registrado.</string>
+    <string name="voucher_checkin_confirmed_button">Asistencia confirmada</string>
+
+    <!-- Recordatorios y Avisos (Feature 12) -->
+    <string name="notif_channel_reminders_name">Recordatorios de actividades</string>
+    <string name="notif_channel_reminders_desc">Avisos 24 h antes de cada actividad reservada</string>
+    <string name="notif_channel_novedades_name">Novedades de reservas</string>
+    <string name="notif_channel_novedades_desc">Avisos de reprogramación o cancelación de actividades</string>
+    <string name="notif_service_listening">Escuchando novedades de tus reservas…</string>
+    <string name="notif_reminder_title">Recordatorio: %1$s</string>
+    <string name="notif_reminder_text">Tu actividad es mañana. Tocá para ver el voucher.</string>
+    <string name="notif_cancelled_title">Actividad cancelada</string>
+    <string name="notif_cancelled_text">%1$s fue cancelada por la operadora.</string>
+    <string name="notif_rescheduled_title">Actividad reprogramada</string>
+    <string name="notif_rescheduled_text">Cambió el horario de %1$s. Tocá para ver el voucher.</string>
+    <string name="notif_permission_denied">Sin permiso de notificaciones no podremos avisarte sobre tus actividades</string>
 </resources>

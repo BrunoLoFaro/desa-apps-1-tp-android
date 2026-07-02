@@ -1,21 +1,31 @@
 package com.example.myapplication;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import com.example.myapplication.data.session.SessionManager;
+import com.example.myapplication.service.NovedadesPollingService;
 import com.example.myapplication.ui.main.MainViewModel;
+import com.example.myapplication.util.NotificationHelper;
 import com.example.myapplication.util.ThemePreferences;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -29,6 +39,13 @@ public class MainActivity extends AppCompatActivity {
     SessionManager sessionManager;
 
     private NavController navController;
+
+    private final ActivityResultLauncher<String> notifPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (!granted) {
+                    Toast.makeText(this, R.string.notif_permission_denied, Toast.LENGTH_LONG).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +176,47 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.loginFragment);
             }
         });
+
+        // Recordatorios y Avisos (Feature 12)
+        NotificationHelper.createChannels(this);
+        pedirPermisoNotificaciones();
+        iniciarServicioNovedades();
+        handleVoucherDeepLink(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleVoucherDeepLink(intent);
+    }
+
+    /** POST_NOTIFICATIONS es permiso en runtime solo desde API 33. */
+    private void pedirPermisoNotificaciones() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
+    }
+
+    /** Inicia el foreground service que escucha reprogramaciones/cancelaciones. */
+    private void iniciarServicioNovedades() {
+        if (!sessionManager.hasValidSession()) return;
+        Intent intent = new Intent(this, NovedadesPollingService.class);
+        ContextCompat.startForegroundService(this, intent);
+    }
+
+    /** Abre el voucher de una reserva cuando se toca una notificación. */
+    private void handleVoucherDeepLink(Intent intent) {
+        if (intent == null || navController == null) return;
+        long bookingId = intent.getLongExtra(NotificationHelper.EXTRA_OPEN_VOUCHER_BOOKING_ID, -1L);
+        if (bookingId <= 0 || !sessionManager.hasValidSession()) return;
+
+        intent.removeExtra(NotificationHelper.EXTRA_OPEN_VOUCHER_BOOKING_ID);
+        Bundle args = new Bundle();
+        args.putLong("bookingId", bookingId);
+        navController.navigate(R.id.voucherFragment, args);
     }
 
     @Override

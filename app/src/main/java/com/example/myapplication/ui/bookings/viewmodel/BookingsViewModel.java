@@ -18,6 +18,7 @@ import com.example.myapplication.data.repository.ProfileRepository;
 import com.example.myapplication.data.repository.ReviewRepository;
 import com.example.myapplication.data.work.SyncCancellationsWorker;
 import com.example.myapplication.util.NetworkMonitor;
+import com.example.myapplication.util.ReminderScheduler;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
@@ -221,6 +222,8 @@ public class BookingsViewModel extends ViewModel {
                     }
                 }
                 _bookings.setValue(fresh);
+                // Recordatorios 24 h antes de cada actividad confirmada (Feature 12)
+                ReminderScheduler.scheduleAll(context, fresh);
             }
 
             @Override

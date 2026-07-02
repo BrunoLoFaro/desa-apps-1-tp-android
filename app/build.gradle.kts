@@ -132,6 +132,13 @@ dependencies {
     // Google Maps (Feature 10)
     implementation(libs.play.services.maps)
 
+    // CameraX + ML Kit — Check-in por QR (Feature 11)
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.mlkit.barcode)
+
     testImplementation(libs.junit)
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("org.mockito:mockito-core:5.11.0")
