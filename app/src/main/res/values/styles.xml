@@ -5,15 +5,26 @@
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
+    <!-- Error Text Style for TextInputLayout -->
+    <style name="Widget.XploreNow.TextInputLayout.ErrorText" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="android:maxLines">5</item>
+        <item name="android:singleLine">false</item>
+    </style>
+
     <!-- Button Styles -->
     <style name="Widget.XploreNow.Button.Primary" parent="Widget.Material3.Button">
         <item name="cornerRadius">12dp</item>
-        <item name="android:paddingVertical">12dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
         <item name="android:textSize">16sp</item>
     </style>
 
     <style name="Widget.XploreNow.Button.Secondary" parent="Widget.Material3.Button.TonalButton">
         <item name="cornerRadius">12dp</item>
-        <item name="android:paddingVertical">12dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
+
+    <style name="ShapeAppearance.CircleProfile" parent="ShapeAppearance.Material3.Corner.Full" />
 </resources>

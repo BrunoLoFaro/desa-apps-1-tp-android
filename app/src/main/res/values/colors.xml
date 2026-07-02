@@ -32,6 +32,7 @@
 
     <!-- Extras -->
     <color name="success">#00C853</color>
+    <color name="success_container">#E8F5E9</color>
     <color name="warning">#FFAB00</color>
 
     <!-- Backward-compatible aliases -->
@@ -53,4 +54,27 @@
     <color name="onSurface">@color/md_theme_onSurface</color>
     <color name="error">@color/md_theme_error</color>
     <color name="onError">@color/md_theme_onError</color>
+
+    <!-- Restyle tokens -->
+    <color name="bg_lavender">#EFE8FA</color>
+    <color name="card_surface">#FFFFFF</color>
+    <color name="primary_violet">#7C5CFA</color>
+    <color name="primary_violet_pressed">#6645E0</color>
+    <color name="violet_soft">#E6DCFE</color>
+    <color name="violet_label">#7C5CFA</color>
+    <color name="state_done_bg">#DCEDD6</color>
+    <color name="state_done_fg">#3D6B33</color>
+    <color name="state_cancel_bg">#F8DADA</color>
+    <color name="state_cancel_fg">#9C2A2A</color>
+    <color name="state_pending_bg">#FFF1C2</color>
+    <color name="state_pending_fg">#8A6D00</color>
+    <color name="info_warm_bg">#FDE3CB</color>
+    <color name="info_warm_fg">#C75B1A</color>
+    <color name="price_orange">#E76A18</color>
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#6E6B82</color>
+    <color name="star_amber">#F5B400</color>
+    <color name="overlay_violet_translucent">#1A7C5CFA</color>
+    <color name="star_amber_light">#FFECB3</color>
+    <color name="star_grey">#BDBDBD</color>
 </resources>

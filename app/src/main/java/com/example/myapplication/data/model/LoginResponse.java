@@ -15,9 +15,9 @@ public class LoginResponse {
     @Json(name = "lastName")
     public String lastName;
 
-    @Json(name = "dni")
-    public String dni;
-
     @Json(name = "token")
     public String token;
+
+    @Json(name = "refreshToken")
+    public String refreshToken;
 }

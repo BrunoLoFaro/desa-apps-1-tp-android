@@ -2,36 +2,39 @@ package com.example.myapplication.ui.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import com.example.myapplication.ui.home.viewmodel.HomeViewModel;
+import com.example.myapplication.ui.home.viewmodel.NewsViewModel;
+import com.example.myapplication.ui.main.MainViewModel;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.myapplication.R;
-import com.example.myapplication.TourAdapter;
-import com.example.myapplication.data.model.TourActivity;
-import com.example.myapplication.data.session.SessionManager;
-import com.google.android.material.appbar.MaterialToolbar;
+import com.example.myapplication.util.ConnectivityUtils;
+import dagger.hilt.android.AndroidEntryPoint;
+import java.util.stream.Collectors;
 
-import java.util.ArrayList;
-import java.util.List;
+@AndroidEntryPoint
+public class HomeFragment extends androidx.fragment.app.Fragment {
 
-public class HomeFragment extends Fragment {
-
-    private SessionManager sessionManager;
+    private HomeViewModel homeViewModel;
+    private NewsViewModel newsViewModel;
+    private NewsAdapter newsAdapter;
+    private PromotionsAdapter promotionsAdapter;
     private NavController navController;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
@@ -39,87 +42,98 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        sessionManager = new SessionManager(requireContext());
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        newsViewModel = new ViewModelProvider(this).get(NewsViewModel.class);
         navController = Navigation.findNavController(view);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
-
-        setupFeaturedList(view);
-        setupAllActivitiesList(view);
-    }
-
-    private boolean onMenuItemClick(MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.action_logout) {
-            logout();
-            return true;
-        } else if (itemId == R.id.action_theme_toggle) {
-            toggleTheme();
-            return true;
+        if (!homeViewModel.hasValidSession()) {
+            navController.navigate(R.id.action_homeFragment_to_loginFragment);
+            return;
         }
-        return false;
-    }
 
-    private void toggleTheme() {
-        int currentMode = AppCompatDelegate.getDefaultNightMode();
-        if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
-    }
-
-    private void logout() {
-        sessionManager.clearSession();
-        navController.navigate(R.id.action_homeFragment_to_loginFragment);
-    }
-
-    private void setupFeaturedList(View view) {
         RecyclerView featuredRecycler = view.findViewById(R.id.featured_recycler_view);
-        List<TourActivity> featured = new ArrayList<>();
-        
-        featured.add(new TourActivity(
-            "Navegación por el Delta", "Tigre, Buenos Aires", "Aventura", "6 horas", "$85.00", 2,
-            "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800",
-            "Disfruta de un día inolvidable navegando por los canales del Delta. Conoce la flora y fauna local mientras te relajas con el sonido del agua. Ideal para desconectar de la ciudad.",
-            4.9f, 124, "Equipos de seguridad, Almuerzo criollo y Traslados.", "Estación Fluvial de Tigre, Muelle 4",
-            "Juan Pérez", "Español e Inglés", "Cancelación gratuita 24hs antes", null
-        ));
+        featuredRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        TourAdapter featuredAdapter = new TourAdapter(true, true);
+        featuredRecycler.setAdapter(featuredAdapter);
 
-        featured.add(new TourActivity(
-            "Tour Gastronómico", "Buenos Aires", "Gastronomía", "3 horas", "$45.00", 5, 
-            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500",
-            "Disfruta de los mejores sabores porteños en un recorrido por bodegones históricos.",
-            4.8f, 85, "Degustación de 3 platos, bebida y postre.", "Plaza de Mayo", 
-            "Carlos Gómez", "Español", "Cancelación gratuita 24hs antes", null
-        ));
-        
-        TourAdapter adapter = new TourAdapter(featured, true);
-        featuredRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        featuredRecycler.setAdapter(adapter);
+        featuredAdapter.setOnFavoriteToggleListener((activity, targetFavorite) -> {
+            if (activity.getId() == null) return;
+            homeViewModel.toggleFavorite(activity.getId(), targetFavorite, null);
+        });
+
+        homeViewModel.getFeaturedTours().observe(getViewLifecycleOwner(), featuredAdapter::updateData);
+
+        RecyclerView newsRecycler = view.findViewById(R.id.news_recycler_view);
+        newsRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        newsAdapter = new NewsAdapter();
+        newsRecycler.setAdapter(newsAdapter);
+
+        RecyclerView promotionsRecycler = view.findViewById(R.id.promotions_recycler_view);
+        promotionsRecycler.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        promotionsAdapter = new PromotionsAdapter();
+        promotionsRecycler.setAdapter(promotionsAdapter);
+
+        newsViewModel.getNewsList().observe(getViewLifecycleOwner(), newsList -> {
+            if (newsList != null) {
+                newsAdapter.updateData(newsList.stream()
+                        .filter(item -> "NEWS".equals(item.type))
+                        .collect(java.util.stream.Collectors.toList()));
+                promotionsAdapter.updateData(newsList.stream()
+                        .filter(item -> "OFFER".equals(item.type))
+                        .collect(java.util.stream.Collectors.toList()));
+            }
+        });
+        newsViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
+                Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        View scrollView = view.findViewById(R.id.scroll_view);
+        ProgressBar loadingSpinner = view.findViewById(R.id.loading_spinner);
+        homeViewModel.isLoading().observe(getViewLifecycleOwner(), loading -> {
+            loadingSpinner.setVisibility(loading ? View.VISIBLE : View.GONE);
+            scrollView.setVisibility(loading ? View.GONE : View.VISIBLE);
+        });
+
+        homeViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && ConnectivityUtils.isOnline(requireContext())) {
+                Toast.makeText(requireContext(), error.resolve(requireContext()), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        View offlineState = view.findViewById(R.id.offline_state);
+        boolean[] wasOffline = {false};
+        new ViewModelProvider(requireActivity()).get(MainViewModel.class)
+                .isOnline().observe(getViewLifecycleOwner(), online -> {
+            boolean isOffline = !Boolean.TRUE.equals(online);
+            if (offlineState != null) offlineState.setVisibility(isOffline ? View.VISIBLE : View.GONE);
+            if (!isOffline && wasOffline[0]) homeViewModel.refreshTours();
+            wasOffline[0] = isOffline;
+        });
     }
 
-    private void setupAllActivitiesList(View view) {
-        RecyclerView activitiesRecycler = view.findViewById(R.id.activities_recycler_view);
-        List<TourActivity> all = new ArrayList<>();
-        all.add(new TourActivity(
-            "Free Tour Recoleta", "Buenos Aires", "Free Tour", "2 horas", "Gratis", 10,
-            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500",
-            "Conoce la historia del barrio más elegante de Buenos Aires.",
-            4.7f, 250, "Recorrido guiado.", "Cementerio de la Recoleta",
-            "Ana Torres", "Español", "Cancelación libre", null
-        ));
-        all.add(new TourActivity(
-            "Visita al Teatro Colón", "Buenos Aires", "Visita Guiada", "1 hora", "$25.00", 8,
-            "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500",
-            "Recorre uno de los teatros de ópera más importantes del mundo.",
-            5.0f, 500, "Entrada al teatro y guía oficial.", "Entrada principal Teatro Colón",
-            "Personal del Teatro", "Multilingüe", "Sujeto a disponibilidad", null
-        ));
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (homeViewModel != null && homeViewModel.hasValidSession()) {
+            homeViewModel.refreshTours();
+        }
+        if (newsViewModel != null) {
+            newsViewModel.loadNews(0, 10);
+        }
+    }
 
-        TourAdapter adapter = new TourAdapter(all, true);
-        activitiesRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-        activitiesRecycler.setAdapter(adapter);
+    @Override
+    public void onDestroyView() {
+        navController = null;
+        homeViewModel = null;
+        newsViewModel = null;
+        newsAdapter = null;
+        promotionsAdapter = null;
+        super.onDestroyView();
     }
 }

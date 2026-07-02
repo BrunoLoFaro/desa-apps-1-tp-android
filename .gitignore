@@ -1,6 +1,7 @@
 gitignore
 # Gradle files
 .gradle/
+.gradle-user/
 build/
 
 # Kotlin/Java
@@ -25,3 +26,6 @@ Thumbs.db
 
 # AI / Agent files (Optional - see previous discussion)
 # .agentLplan.md 
+
+.gradle-user-home/
+.gradle/

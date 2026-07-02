@@ -1,35 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/signup_coordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_back" />
-    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/colorSurface">
 
-        <View
-            android:id="@+id/header_background"
+        <FrameLayout
+            android:id="@+id/header_container"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="?attr/colorPrimaryContainer"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_height="300dp"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/header_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/header_rounded_bottom"
+                android:clipToOutline="true"
+                android:contentDescription="@string/auth_header_desc"
+                android:scaleType="centerCrop"
+                android:src="@drawable/image_random" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/overlay_violet_translucent" />
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/local_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                app:title="@string/app_name"
+                app:titleCentered="true"
+                app:titleTextColor="@android:color/white" />
+
+        </FrameLayout>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/signup_card"
@@ -42,7 +53,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.4">
+            app:layout_constraintVertical_bias="0.42">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -56,9 +67,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginBottom="32dp"
-                    android:text="@string/signup_title"
-                    android:textColor="?attr/colorPrimary" />
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/otp_login_title"
+                    android:textColor="@color/text_primary" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/signup_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center"
+                    android:text="@string/otp_login_subtitle"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/signup_email_layout"
@@ -67,7 +88,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
                     android:hint="@string/email_hint"
-                    app:startIconDrawable="@android:drawable/ic_dialog_email">
+                    app:startIconDrawable="@android:drawable/ic_dialog_email"
+                    app:errorEnabled="true"
+                    app:errorTextAppearance="@style/Widget.XploreNow.TextInputLayout.ErrorText"
+                    app:helperTextEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/signup_email_edit_text"
@@ -81,15 +105,7 @@
                     style="@style/Widget.XploreNow.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/signup_with_email_button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/signup_classic_button"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="@string/signup_classic_option" />
+                    android:text="@string/otp_login_send_button" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

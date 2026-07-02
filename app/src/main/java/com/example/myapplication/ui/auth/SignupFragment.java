@@ -1,109 +1,113 @@
 package com.example.myapplication.ui.auth;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
-import com.example.myapplication.data.model.OtpRequest;
-import com.example.myapplication.data.model.OtpResponse;
-import com.example.myapplication.util.AuthEndpoints;
+import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
 import com.example.myapplication.util.AuthInputValidator;
-import com.example.myapplication.util.NetworkErrorParser;
-import com.example.myapplication.util.ToolbarHelper;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import com.google.android.material.textfield.TextInputLayout;
+import androidx.appcompat.widget.Toolbar;
+import dagger.hilt.android.AndroidEntryPoint;
 
+/** Pantalla de entrada de email para "Ingresar con código de un solo uso". */
+@AndroidEntryPoint
 public class SignupFragment extends BaseAuthFragment {
 
+    private TextInputLayout emailInputLayout;
     private TextInputEditText emailEditText;
-    private MaterialButton registerWithEmailButton;
-    private MaterialButton classicRegisterButton;
+    private MaterialButton sendOtpButton;
     private CircularProgressIndicator progressIndicator;
+
+    private SignupViewModel viewModel;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_signup, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        emailInputLayout = view.findViewById(R.id.signup_email_layout);
         emailEditText = view.findViewById(R.id.signup_email_edit_text);
-        registerWithEmailButton = view.findViewById(R.id.signup_with_email_button);
-        classicRegisterButton = view.findViewById(R.id.signup_classic_button);
+        sendOtpButton = view.findViewById(R.id.signup_with_email_button);
         progressIndicator = view.findViewById(R.id.signup_progress_indicator);
 
         super.onViewCreated(view, savedInstanceState);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
-        ToolbarHelper.setupBackToolbar(requireActivity(), toolbar);
-        toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+        viewModel = new ViewModelProvider(requireActivity()).get(SignupViewModel.class);
 
-        registerWithEmailButton.setOnClickListener(v -> startOtpSignup());
-        classicRegisterButton.setOnClickListener(v -> navController.navigate(R.id.action_signupFragment_to_classicRegisterFragment));
+        sendOtpButton.setOnClickListener(v -> sendOtp());
+
+        emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                emailInputLayout.setError(null);
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        viewModel.getSendOtpState().observe(getViewLifecycleOwner(), state -> {
+            sendOtpButton.setEnabled(!state.isLoading);
+            emailEditText.setEnabled(!state.isLoading);
+            progressIndicator.setVisibility(state.isLoading ? View.VISIBLE : View.GONE);
+
+            if (state.isLoading) {
+                emailInputLayout.setError(null);
+            }
+
+            if (state.error != null) {
+                emailInputLayout.setError(state.error.resolve(requireContext()));
+                viewModel.sendOtpErrorConsumed();
+            }
+
+            if (state.navigateToOtpCode) {
+                String email = emailEditText.getText() != null
+                        ? emailEditText.getText().toString().trim() : "";
+                Bundle args = new Bundle();
+                args.putString("email", email);
+                args.putString("source", OtpSignupCodeFragment.SOURCE_OTP_LOGIN);
+                navController.navigate(R.id.action_signupFragment_to_otpSignupCodeFragment, args);
+                viewModel.sendOtpNavigationConsumed();
+            }
+        });
+
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+            localToolbar.setNavigationOnClickListener(v -> navController.popBackStack(R.id.loginFragment, false));
+        }
     }
 
-    @Override
-    protected void onConfigReady() {
-        registerWithEmailButton.setEnabled(true);
-        classicRegisterButton.setEnabled(true);
-    }
-
-    @Override
-    protected void onConfigError(String error) {
-        registerWithEmailButton.setEnabled(false);
-        classicRegisterButton.setEnabled(false);
-        super.onConfigError(error);
-    }
-
-    private void startOtpSignup() {
+    private void sendOtp() {
         String email = emailEditText.getText() != null
                 ? emailEditText.getText().toString().trim() : "";
-
         String emailError = AuthInputValidator.validateEmail(requireContext(), email);
-        if (emailError != null) { showError(emailError); return; }
-
-        if (authService == null || appConfig == null) {
-            showError(getString(R.string.error_service_not_initialized));
+        if (emailError != null) {
+            emailInputLayout.setError(emailError);
             return;
         }
-
-        setLoading(true);
-        authService.requestSignupOtp(AuthEndpoints.signupOtpRequest(appConfig), new OtpRequest(email))
-                .enqueue(new Callback<OtpResponse>() {
-                    @Override
-                    public void onResponse(Call<OtpResponse> call, Response<OtpResponse> response) {
-                        setLoading(false);
-                        if (response.isSuccessful()) {
-                            Bundle args = new Bundle();
-                            args.putString("email", email);
-                            navController.navigate(R.id.action_signupFragment_to_otpSignupCodeFragment, args);
-                        } else {
-                            showError(NetworkErrorParser.getErrorMessage(
-                                    response, getString(R.string.error_signup_otp_request_default)));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<OtpResponse> call, Throwable t) {
-                        setLoading(false);
-                        showError(NetworkErrorParser.getFailureMessage(t, getString(R.string.error_network_generic)));
-                    }
-                });
+        emailInputLayout.setError(null);
+        viewModel.sendLoginOtp(email);
     }
 
-    private void setLoading(boolean isLoading) {
-        registerWithEmailButton.setEnabled(!isLoading);
-        classicRegisterButton.setEnabled(!isLoading);
-        emailEditText.setEnabled(!isLoading);
-        progressIndicator.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    @Override
+    public void onDestroyView() {
+        emailInputLayout = null;
+        emailEditText = null;
+        sendOtpButton = null;
+        progressIndicator = null;
+        super.onDestroyView();
     }
 }

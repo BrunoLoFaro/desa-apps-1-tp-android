@@ -39,7 +39,4 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
-
-    <style name="Base.Theme.ConfigurableAuthPortal" parent="Theme.XploreNow" />
-    <style name="Theme.ConfigurableAuthPortal" parent="Base.Theme.ConfigurableAuthPortal" />
 </resources>

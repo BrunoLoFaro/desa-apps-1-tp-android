@@ -9,11 +9,15 @@ public class AppConfig {
     @Json(name = "login_endpoint")
     public String loginEndpoint;
 
+    @Json(name = "refresh_endpoint")
+    public String refreshEndpoint;
+
+    public boolean hasValidBaseUrl() {
+        return baseUrl != null && !baseUrl.trim().isEmpty();
+    }
+
     @Json(name = "register_endpoint")
     public String registerEndpoint;
-
-    @Json(name = "signup_otp_request_endpoint")
-    public String signupOtpRequestEndpoint;
 
     @Json(name = "signup_otp_resend_endpoint")
     public String signupOtpResendEndpoint;
@@ -21,8 +25,14 @@ public class AppConfig {
     @Json(name = "signup_otp_verify_endpoint")
     public String signupOtpVerifyEndpoint;
 
-    @Json(name = "signup_otp_complete_endpoint")
-    public String signupOtpCompleteEndpoint;
+    @Json(name = "otp_login_send_endpoint")
+    public String otpLoginSendEndpoint;
+
+    @Json(name = "otp_login_resend_endpoint")
+    public String otpLoginResendEndpoint;
+
+    @Json(name = "otp_login_verify_endpoint")
+    public String otpLoginVerifyEndpoint;
 
     @Json(name = "password_reset_request_endpoint")
     public String passwordResetRequestEndpoint;
@@ -35,4 +45,30 @@ public class AppConfig {
 
     @Json(name = "password_reset_confirm_endpoint")
     public String passwordResetConfirmEndpoint;
+
+    @Json(name = "activities_endpoint")
+    public String activitiesEndpoint;
+
+    @Json(name = "activities_featured_endpoint")
+    public String activitiesFeaturedEndpoint;
+
+    @Json(name = "activities_recommended_endpoint")
+    public String activitiesRecommendedEndpoint;
+
+    @Json(name = "profile_endpoint")
+    public String profileEndpoint;
+
+    @Json(name = "preferences_endpoint")
+    public String preferencesEndpoint;
+
+    @Json(name = "activity_summary_endpoint")
+    public String activitySummaryEndpoint;
+
+    @Json(name = "categories_endpoint")
+    public String categoriesEndpoint;
+
+    @Json(name = "news_endpoint")
+    public String newsEndpoint;
+    @Json(name = "my_reviews_endpoint")
+    public String myReviewsEndpoint;
 }

@@ -1,116 +1,128 @@
 <resources>
     <string name="app_name">XploreNow</string>
+    <string name="auth_header_desc">Imagen decorativa del encabezado</string>
     <string name="login_title">Bienvenido</string>
-    <string name="username_hint">Correo electrónico</string>
     <string name="password_hint">Contraseña</string>
     <string name="login_button_text">Iniciar sesión</string>
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="sign_up_button">Registrarse</string>
-    <string name="error_config_load">Error al cargar la configuración de la aplicación.</string>
-    <string name="error_empty_fields">Por favor ingresá tu correo electrónico y tu contraseña.</string>
-    <string name="login_success">¡Inicio de sesión exitoso!</string>
-    <string name="login_failed">Error al iniciar sesión: %1$s</string>
-    <string name="generic_error">Ocurrió un error: %1$s</string>
+    <string name="login_register_link">¿No tenés cuenta? Registrate</string>
+    <string name="login_separator">— o —</string>
+    <string name="otp_login_button_text">Ingresar con código de un solo uso</string>
+    <string name="otp_login_title">Ingresar con código</string>
+    <string name="otp_login_subtitle">Ingresá tu correo y te enviaremos un código de acceso.</string>
+    <string name="otp_login_send_button">Enviar código</string>
+    <string name="register_create_account_title">Crear cuenta</string>
+    <string name="register_explore_title">Regístrate para explorar actividades</string>
+    <string name="register_create_account_button">Crear cuenta</string>
+    <string name="phone_placeholder_hint">Ej: +54 9 11 1234-5678</string>
+    <string name="otp_verify_title">Verificar identidad</string>
+    <string name="otp_verify_subtitle_format">Ingresá el código de 6 dígitos que enviamos a %1$s</string>
     <string name="error_login_failed_default">No se pudo iniciar sesión.</string>
-    <string name="error_network_generic">Error de red</string>
+    <string name="error_network_generic">Error de red. Verificá tu conexión o la URL del servidor.</string>
+    <string name="error_empty_fields">Por favor, completa todos los campos.</string>
+    <string name="error_field_required">Por favor, completa este campo.</string>
 
-    <string name="settings_title">Configuración</string>
     <string name="logout">Cerrar sesión</string>
-    <string name="backend_config_title">Configuración del servidor</string>
-    <string name="base_url_hint">URL base</string>
-    <string name="login_endpoint_hint">Endpoint de login</string>
-    <string name="register_endpoint_hint">Endpoint de registro</string>
-    <string name="signup_otp_request_endpoint_hint">Endpoint OTP registro - solicitar</string>
-    <string name="signup_otp_resend_endpoint_hint">Endpoint OTP registro - reenviar</string>
-    <string name="signup_otp_complete_endpoint_hint">Endpoint OTP registro - completar</string>
-    <string name="password_reset_request_endpoint_hint">Endpoint recuperación - solicitar</string>
-    <string name="password_reset_resend_endpoint_hint">Endpoint recuperación - reenviar</string>
-    <string name="password_reset_verify_endpoint_hint">Endpoint recuperación - verificar</string>
-    <string name="password_reset_confirm_endpoint_hint">Endpoint recuperación - confirmar</string>
-    <string name="save_changes">Guardar cambios</string>
-    <string name="settings_saved">Configuración guardada correctamente</string>
-    <string name="invalid_input">Por favor ingresá valores válidos</string>
-    <string name="error_invalid_url">URL base inválida. Debe comenzar con http:// o https://</string>
     <string name="error_invalid_config">Configuración del servidor inválida. Revisá los Ajustes.</string>
-    <string name="error_service_not_initialized">Servicio no inicializado. Revisá tu configuración.</string>
+    <string name="error_invalid_credentials">Credenciales inválidas.</string>
+
+    <!-- Biometric enroll -->
+    <string name="biometric_enroll_title">Acceso rápido con huella</string>
+    <string name="biometric_enroll_description">Activá la huella para iniciar sesión más rápido y de forma segura.</string>
+    <string name="biometric_enroll_activate">Activar huella</string>
+    <string name="biometric_enroll_skip">Omitir</string>
+    <string name="biometric_enroll_icon_desc">Ícono de huella digital</string>
+    <string name="biometric_prompt_title">XploreNow</string>
+    <string name="biometric_prompt_subtitle">Confirmá tu huella para activar el acceso rápido</string>
+    <string name="biometric_enroll_failed">No se pudo verificar la huella. Intentá de nuevo.</string>
+    <string name="biometric_enroll_error">No se pudo iniciar la autenticación biométrica.</string>
+    <string name="login_biometric_button_text">Ingresar con huella</string>
+    <string name="biometric_login_prompt_subtitle">Confirmá tu huella para ingresar</string>
+    <string name="biometric_login_failed">No se pudo verificar la huella. Intentá de nuevo.</string>
+    <string name="biometric_login_error">No se pudo iniciar el acceso con huella.</string>
+    <string name="profile_enable_biometric">Activar acceso con huella</string>
+    <string name="profile_disable_biometric">Desactivar acceso con huella</string>
+    <string name="profile_logout">Cerrar sesión</string>
+
 
     <string name="home_search_hint">¿A dónde quieres ir?</string>
     <string name="home_featured_title">Recomendados para ti</string>
     <string name="home_all_activities_title">Explora actividades</string>
     <string name="nav_home">Inicio</string>
     <string name="nav_explore">Explorar</string>
-    <string name="nav_bookings">Mis Reservas</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_bookings">Mis actividades</string>
     <string name="nav_profile">Perfil</string>
     <string name="slots_available">¡Solo quedan %1$d cupos!</string>
+    <string name="sold_out">Sin cupos</string>
     <string name="price_from">desde</string>
     <string name="favorite_desc">Marcar como favorito</string>
+    <string name="favorite_update_badge">Actualizada</string>
+    <string name="chip_sold_out">Sin cupos</string>
+    <string name="chip_slots_available">Se liberaron cupos</string>
+    <string name="chip_new_price">Nuevo precio</string>
 
-    <string name="register_title">Registrarse</string>
-    <string name="register_subtitle">Elegí cómo querés crear tu cuenta</string>
     <string name="signup_title">Registrarse</string>
-    <string name="signup_subtitle">Comenzá registrándote con tu correo electrónico.</string>
     <string name="signup_with_email_button">Registrarse con correo electrónico</string>
     <string name="signup_classic_option">O continuar con registro completo</string>
-    <string name="classic_register_title">Registro completo</string>
-    <string name="classic_register_subtitle">Completá tus datos para crear tu cuenta.</string>
-    <string name="register_otp_section_title">Alta con código OTP</string>
-    <string name="register_otp_section_subtitle">Ingresá tu email para recibir el código y continuar con el registro guiado.</string>
-    <string name="register_start_otp_button">Continuar con OTP</string>
-    <string name="register_or_divider">o</string>
-    <string name="register_classic_section_title">Registro clásico</string>
-    <string name="register_classic_section_subtitle">Completá todos los campos y creá tu cuenta en un solo paso.</string>
-    <string name="otp_login_title">Código OTP</string>
-    <string name="otp_login_subtitle">Solicitá y verificá tu código de acceso</string>
-    <string name="password_reset_title">Recuperar contraseña</string>
-    <string name="password_reset_subtitle">Te enviamos un código para que puedas definir una nueva contraseña.</string>
-    <string name="password_reset_request_subtitle">Ingresá tu correo para enviarte un código de recuperación.</string>
-    <string name="password_reset_send_code_button">Enviar código</string>
-    <string name="password_reset_verify_title">Verificar código</string>
-    <string name="password_reset_verify_subtitle">Ingresá el código que recibiste por correo.</string>
     <string name="password_reset_verify_code_button">Verificar código</string>
-    <string name="password_reset_new_password_title">Nueva contraseña</string>
-    <string name="password_reset_new_password_subtitle">Definí tu nueva contraseña para ingresar.</string>
     <string name="email_hint">Correo electrónico</string>
     <string name="first_name_hint">Nombre</string>
     <string name="last_name_hint">Apellido</string>
     <string name="dni_hint">DNI</string>
     <string name="new_password_hint">Nueva contraseña</string>
     <string name="otp_hint">Código OTP (6 dígitos)</string>
-    <string name="register_button_text">Registrarse</string>
-    <string name="register_success">Registro exitoso</string>
-    <string name="register_failed">Registro fallido: %1$s</string>
     <string name="error_invalid_email">Ingresá un email válido.</string>
-    <string name="error_invalid_password">La contraseña debe tener entre 6 y 72 caracteres.</string>
+    <string name="error_login_email_invalid">El correo ingresado no es válido.</string>
+    <string name="error_login_password_invalid">La contraseña es inválida.</string>
+    <string name="error_email_required">El correo electrónico es obligatorio.</string>
+    <string name="error_invalid_password">La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.</string>
+    <string name="error_password_required">La contraseña es obligatoria.</string>
     <string name="error_invalid_first_name">El nombre debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_first_name_required">El nombre es obligatorio.</string>
     <string name="error_invalid_last_name">El apellido debe tener entre 2 y 80 caracteres.</string>
+    <string name="error_last_name_required">El apellido es obligatorio.</string>
+
+    <!-- Hints de registro con indicador de campo obligatorio -->
+    <string name="register_email_hint">Correo electrónico *</string>
+    <string name="register_password_hint">Contraseña *</string>
+    <string name="register_first_name_hint">Nombre *</string>
+    <string name="register_last_name_hint">Apellido *</string>
+    <string name="phone_hint_optional">Teléfono (opcional)</string>
+    <string name="register_area_code_hint">Cod. Área</string>
+    <string name="register_area_code_placeholder">+54</string>
+    <string name="register_phone_number_hint">Teléfono</string>
+    <string name="register_phone_number_placeholder">1121121234</string>
+    <string name="error_register_area_code_required">Ingresá el código de área</string>
+    <string name="error_register_phone_required">Ingresá el número de teléfono</string>
+    <string name="error_register_area_code_invalid">Solo + y dígitos (ej: +54)</string>
+    <string name="error_register_phone_invalid">Solo dígitos (ej: 1121121234)</string>
+    <string name="biometric_invalid">La huella es inválida</string>
     <string name="error_invalid_dni">El DNI debe tener entre 7 y 10 dígitos.</string>
     <string name="error_invalid_otp">Ingresá un OTP válido de 6 dígitos.</string>
-    <string name="error_register_service_not_initialized">Servicio de registro no inicializado. Revisá tu configuración.</string>
-    <string name="error_register_endpoint_missing">No se encontró endpoint de registro en la configuración.</string>
     <string name="error_register_failed_default">No se pudo completar el registro.</string>
-    <string name="error_signup_otp_request_default">No se pudo enviar el código de registro.</string>
+    <string name="error_signup_otp_request_default">En este momento no puede realizarse el envío del mail. Por favor, reintentá más tarde.</string>
     <string name="error_signup_otp_resend_default">No se pudo reenviar el código de registro.</string>
     <string name="error_signup_otp_verify_default">No se pudo verificar el código de registro.</string>
+    <string name="error_signup_otp_invalid_custom">Tu código es incorrecto, volvé a ingresarlo.</string>
+    <string name="error_signup_otp_expired_custom">Tu código expiró. Reenviá uno nuevo para continuar.</string>
+    <string name="error_signup_otp_too_many_attempts">Superaste el límite de intentos. Esperá y reenviá un nuevo código.</string>
+    <string name="error_signup_otp_resend_required">Tenés que reenviar un código nuevo para continuar.</string>
     <string name="error_signup_complete_default">No se pudo completar el registro con OTP.</string>
     <string name="error_password_reset_request_default">No se pudo enviar el código de recuperación.</string>
     <string name="error_password_reset_resend_default">No se pudo reenviar el código de recuperación.</string>
     <string name="error_password_reset_verify_default">No se pudo verificar el código de recuperación.</string>
     <string name="error_password_reset_confirm_default">No se pudo actualizar la contraseña.</string>
-    <string name="otp_resent_message">OTP reenviado. Revisá tu email.</string>
-    <string name="signup_otp_sent_message">Te enviamos el código de registro a tu correo.</string>
     <string name="signup_otp_resent_message">Te reenviamos el código de registro.</string>
-    <string name="password_reset_sent_message">Te enviamos el código para recuperar tu contraseña.</string>
     <string name="password_reset_resent_message">Te reenviamos el código para recuperar tu contraseña.</string>
-    <string name="otp_action_request">Enviar código</string>
-    <string name="otp_action_verify">Verificar OTP</string>
-    <string name="otp_action_complete_signup">Completar registro</string>
-    <string name="password_reset_confirm_button">Cambiar contraseña</string>
     <string name="otp_action_resend">Reenviar código</string>
+    <string name="otp_resend_in_seconds">Reenviar en %1$ds</string>
+    <string name="otp_resend_available">Ya podés reenviar el código</string>
 
     <string name="otp_signup_code_title">Verificar código</string>
     <string name="otp_signup_code_subtitle">Ingresá el código de 6 dígitos que recibiste en tu correo.</string>
     <string name="otp_signup_complete_title">Completar registro</string>
-    <string name="otp_signup_complete_subtitle">Completá tus datos para finalizar el registro.</string>
 
     <!-- Recursos añadidos para la migración a Fragments -->
     <string name="register_button">Registrarse</string>
@@ -126,6 +138,230 @@
     <string name="forgot_password_new_hint">Ingresá tu nueva contraseña para acceder a tu cuenta.</string>
     <string name="forgot_password_save_button">Guardar contraseña</string>
     <string name="signup_button">Registrarse</string>
+    <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet o la dirección IP.</string>
+    <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>
+    <string name="error_load_activities">No se pudieron cargar las actividades.</string>
+    <string name="error_load_favorites">No se pudieron cargar los favoritos.</string>
+    <string name="favorites_header_title">Mis favoritos</string>
+    <string name="favorites_empty_title">No tienes favoritos</string>
+    <string name="favorites_empty_subtitle">Tus actividades favoritas aparecerán aquí.</string>
+    <string name="error_add_favorite">No se pudo agregar a favoritos.</string>
+    <string name="error_remove_favorite">No se pudo quitar de favoritos.</string>
+    <string name="error_load_featured">No se pudieron cargar las actividades destacadas.</string>
+    <string name="error_load_recommended">No se pudieron cargar las actividades recomendadas.</string>
+    <string name="free_label">Gratis</string>
     <string name="home_menu_logout">Cerrar sesión</string>
     <string name="action_theme_toggle">Cambiar tema</string>
+    <string name="error_internal_server">Ocurrió un error en el servidor. Por favor, reintentá más tarde.</string>
+
+    <string name="book_now">Reservar</string>
+    <string name="booking_created_message">¡Actividad reservada exitosamente!</string>
+    <string name="booking_created_action">OK</string>
+    <string name="participants_hint">Participantes</string>
+
+    <string name="bookings_filter_all">Todas</string>
+    <string name="bookings_filter_active">Activas</string>
+    <string name="bookings_filter_completed">Completadas</string>
+    <string name="bookings_filter_cancelled">Canceladas</string>
+
+    <string name="review_button">Calificar</string>
+    <string name="voucher_title">Mi reserva</string>
+    <string name="voucher_confirmed">¡Reserva confirmada!</string>
+    <string name="voucher_confirmed_subtitle">Tu actividad está reservada.</string>
+    <string name="voucher_code_label">Código de reserva</string>
+    <string name="voucher_code_hint">Mostrá este código el día de la actividad</string>
+    <string name="voucher_save_title">Guardá este código</string>
+    <string name="voucher_save_subtitle">Lo vas a necesitar para el check-in.</string>
+    <string name="voucher_label_datetime">Fecha y hora</string>
+    <string name="voucher_label_duration">Duración</string>
+    <string name="voucher_label_guide">Guía</string>
+    <string name="voucher_label_participants">Participantes</string>
+    <string name="voucher_label_price">Precio total</string>
+    <string name="voucher_download_button">Descargar voucher</string>
+    <string name="voucher_button">Ver voucher</string>
+    <string name="voucher_participants">%d participante(s)</string>
+    <string name="voucher_pdf_saved">Voucher guardado en Descargas</string>
+    <string name="voucher_pdf_error">No se pudo generar el PDF</string>
+    <string name="review_title">Calificar</string>
+    <string name="review_send">Enviar calificación</string>
+    <string name="review_cancel">Cancelar</string>
+    <string name="review_activity_label">Actividad</string>
+    <string name="review_activity_subtitle">¿Qué te pareció la actividad?</string>
+    <string name="review_guide_label">Guía</string>
+    <string name="review_guide_subtitle">¿Cómo fue tu experiencia con el guía?</string>
+    <string name="review_comment_label">Comentario (opcional)</string>
+    <string name="review_comment_subtitle">Contanos más sobre tu experiencia</string>
+    <string name="review_comment_hint">Escribí tu comentario aquí…</string>
+    <string name="review_performed_prefix">Realizada el </string>
+    <string name="review_feedback_1">Terrible</string>
+    <string name="review_feedback_2">Malo</string>
+    <string name="review_feedback_3">Regular</string>
+    <string name="review_feedback_4">Bueno</string>
+    <string name="review_feedback_5">¡Excelente!</string>
+    <string name="review_info_title">Tu opinión nos ayuda a mejorar</string>
+    <string name="review_info_subtitle">Las calificaciones son públicas y ayudan a otros viajeros.</string>
+    <string name="review_error_activity_required">Seleccioná una calificación para la actividad.</string>
+    <string name="review_thanks">¡Gracias por tu reseña!</string>
+    <string name="error_review_already_exists">Ya calificaste esta actividad.</string>
+
+    <string name="no_reviews">Sin reseñas</string>
+
+    <!-- Profile -->
+    <string name="phone_code_hint">Cód. país</string>
+    <string name="phone_number_hint">Número de teléfono</string>
+    <string name="phone_helper_text">Ingresá tu número de teléfono</string>
+    <string name="phone_country_picker_title">Seleccionar país</string>
+    <string name="phone_country_search_hint">Buscar país</string>
+    <string name="error_phone_country_required">Seleccioná el código de país.</string>
+    <string name="error_phone_number_required">Ingresá el número de teléfono.</string>
+    <string name="error_phone_exact_digits">El número debe tener %1$d dígitos.</string>
+    <string name="error_phone_range_digits">El número debe tener entre %1$d y %2$d dígitos.</string>
+    <string name="error_phone_missing_prefix">El número debe comenzar con %1$s.</string>
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_section_personal">Datos personales</string>
+    <string name="profile_section_preferences">Mis preferencias</string>
+    <string name="profile_section_activities">Mis actividades</string>
+    <string name="profile_save_button">Guardar cambios</string>
+    <string name="profile_saved_ok">Perfil guardado correctamente.</string>
+    <string name="profile_no_activities">Sin actividades aún.</string>
+    <string name="profile_photo_desc">Foto de perfil</string>
+    <string name="phone_hint">Teléfono</string>
+    <string name="error_load_profile">No se pudo cargar el perfil.</string>
+    <string name="error_save_profile">No se pudo guardar el perfil.</string>
+    <string name="action_profile">Perfil</string>
+
+    <!-- Booking statuses -->
+    <string name="booking_status_confirmed">Reservada</string>
+    <string name="booking_status_completed">Realizada</string>
+    <string name="booking_status_cancelled">Cancelada</string>
+
+    <!-- History filters -->
+    <string name="history_filter_destination">Destino</string>
+    <string name="history_filter_from">Desde</string>
+    <string name="history_filter_to">Hasta</string>
+    <string name="history_filter_clear">Limpiar</string>
+    <string name="history_filter_search">Buscar</string>
+    <string name="history_guide_prefix">Guía: %s</string>
+    <!-- Activity detail formatted labels -->
+    <string name="activity_language_format">Idioma: %s</string>
+    <string name="activity_guide_format">Guía: %s</string>
+    <string name="activity_meeting_point_format">Encuentro: %s</string>
+    <string name="profile_no_completed_activities">Sin actividades finalizadas.</string>
+
+    <!-- Experience section -->
+    <string name="experience_rating_format">Calificación: %d/5</string>
+    <string name="experience_no_rating">Sin calificación</string>
+
+    <string name="booking_detail_button">Ver detalle</string>
+    <string name="booking_cancel_button">Cancelar</string>
+
+    <!-- Bookings tabs -->
+    <string name="bookings_tab_activas">Activas</string>
+    <string name="bookings_tab_historial">Historial</string>
+    <string name="bookings_empty_activas">No tenés reservas activas.</string>
+    <string name="bookings_empty_historial">No tenés actividades finalizadas.</string>
+
+    <!-- Mensaje especial para historial nunca sincronizado offline -->
+    <string name="bookings_empty_historial_never_synced">No hay datos de actividades porque nunca se sincronizó el historial con conexión a internet.</string>
+    <string name="bookings_section_hoy">Hoy</string>
+    <string name="bookings_section_proximas">Próximas</string>
+    <string name="booking_badge_upcoming">Próximo</string>
+    <string name="status_confirmed">Confirmada</string>
+    <string name="status_completed">Finalizada</string>
+    <string name="status_cancelled">Cancelada</string>
+    <string name="status_pending_cancel">Cancelación pendiente</string>
+        <string name="cancel_booking_pending_alert">La cancelación está pendiente de sincronización. Se procesará cuando recuperes la conexión.</string>
+    <string name="status_pending">Pendiente</string>
+
+    <!-- Profile activity summary -->
+    <string name="profile_section_summary">Resumen de actividades</string>
+    <string name="profile_stat_completed_label">finalizadas</string>
+    <string name="profile_stat_completed_sub">Actividades completadas</string>
+    <string name="profile_stat_pending_label">pendiente</string>
+    <string name="profile_stat_pending_sub">Actividades futuras</string>
+    <string name="profile_view_all_activities">Ver todas ›</string>
+
+    <!-- Activity categories -->
+    <string name="category_aventura">Aventura</string>
+    <string name="category_gastronomia">Gastronomía</string>
+    <string name="category_excursion">Excursión</string>
+    <string name="category_visita_guiada">Visita guiada</string>
+    <string name="category_free_tour">Free Tour</string>
+    <string name="category_otra">Otra</string>
+
+    <string name="explore_filter_destination">Destino</string>
+    <string name="explore_filter_category">Categoría</string>
+    <string name="explore_filter_date">Fecha</string>
+    <string name="explore_filter_min_price">Precio min</string>
+    <string name="explore_filter_max_price">Precio max</string>
+    <string name="explore_filters_apply">Aplicar</string>
+    <string name="explore_filters_clear">Limpiar</string>
+    <string name="explore_empty_state">Sin resultados</string>
+    <string name="explore_empty_state_subtitle">Probá ajustar filtros o limpiar.</string>
+    <string name="explore_empty_clear_filters">Limpiar filtros</string>
+    <string name="explore_date_picker_title">Seleccioná una fecha</string>
+    <string name="explore_invalid_price">Precio inválido</string>
+    <string name="explore_invalid_price_range">Rango inválido</string>
+    <string name="explore_all_destinations">Todos</string>
+    <string name="explore_all_categories">Todas</string>
+    <string name="explore_price_helper">Ej: 1000 o 1.000,50</string>
+    <string name="explore_filters_button">Filtros</string>
+
+    <string name="cancel_booking_title">Cancelar reserva</string>
+    <string name="cancel_booking_confirm">Confirmar</string>
+    <string name="cancel_booking_back">Volver</string>
+    <string name="cancel_booking_policy_unknown">Política no disponible</string>
+    <string name="cancel_booking_message">Vas a cancelar: %1$s\n\nPolítica de cancelación:\n%2$s</string>
+    <string name="error_permission_denied">Permiso denegado. No se puede acceder a la galería.</string>
+
+    <string name="profile_preferences_hint">Seleccioná los tipos de actividades que más te interesan</string>
+
+    <!-- Offline -->
+    <string name="offline_banner_message">Modo sin conexión - Los cambios que realices se procesarán cuando vuelvas a tener conexión.</string>
+    <string name="offline_no_connection">No hay conexión a internet</string>
+
+    <!-- Feature 10 - Maps -->
+    <string name="map_meeting_title">Mapa y punto de encuentro</string>
+    <string name="map_meeting_error">No se pudo ubicar el punto en el mapa.</string>
+    <string name="map_directions_button">Como llegar</string>
+    <string name="bookings_empty_offline">Aún no tenemos información guardada. Conectate a internet para cargar tus actividades.</string>
+    <string name="review_offline_error">Para calificar esta actividad necesitás conexión a internet.</string>
+    <string name="detail_offline_cache_miss">Esta actividad no fue sincronizada antes de perder la conexión. Conectate a internet para ver el detalle completo.</string>
+    <string name="no_data">No disponible</string>
+    <string name="booking_cancelled_by_server">Reserva cancelada. El listado fue actualizado.</string>
+    <string name="cancel_booking_offline_queued">Registramos tu solicitud de cancelación. La procesaremos automáticamente cuando vuelvas a tener conexión.</string>
+    <string name="cancel_booking_offline_modal">Tu cancelación se procesará automáticamente cuando vuelvas a tener conexión.</string>
+    <string name="cancel_sync_error">No pudimos procesar la cancelación. Intentá nuevamente.</string>
+    <string name="cancel_booking_success">Reserva cancelada con éxito.</string>
+
+    <!-- Voucher -->
+    <string name="voucher_label_meeting_point">Punto de encuentro</string>
+
+    <!-- Check-in por QR (Feature 11) -->
+    <string name="checkin_button">Confirmar asistencia (escanear QR)</string>
+    <string name="checkin_title">Check-in</string>
+    <string name="checkin_hint">Apuntá la cámara al código QR que muestra el guía</string>
+    <string name="checkin_permission_denied">Se necesita el permiso de cámara para escanear el QR</string>
+    <string name="checkin_success_title">¡Asistencia confirmada!</string>
+    <string name="checkin_success_message">Tu presencia en %1$s quedó registrada. ¡Disfrutá la actividad!</string>
+    <string name="checkin_error_title">QR inválido</string>
+    <string name="checkin_error_message">Este código no corresponde a tu reserva. Pedile al guía el QR de esta actividad.</string>
+    <string name="checkin_scan_again">Volver</string>
+    <string name="voucher_checkin_confirmed_title">Asistencia confirmada</string>
+    <string name="voucher_checkin_confirmed_subtitle">Tu check-in para esta actividad ya fue registrado.</string>
+    <string name="voucher_checkin_confirmed_button">Asistencia confirmada</string>
+
+    <!-- Recordatorios y Avisos (Feature 12) -->
+    <string name="notif_channel_reminders_name">Recordatorios de actividades</string>
+    <string name="notif_channel_reminders_desc">Avisos 24 h antes de cada actividad reservada</string>
+    <string name="notif_channel_novedades_name">Novedades de reservas</string>
+    <string name="notif_channel_novedades_desc">Avisos de reprogramación o cancelación de actividades</string>
+    <string name="notif_service_listening">Escuchando novedades de tus reservas…</string>
+    <string name="notif_reminder_title">Recordatorio: %1$s</string>
+    <string name="notif_reminder_text">Tu actividad es mañana. Tocá para ver el voucher.</string>
+    <string name="notif_cancelled_title">Actividad cancelada</string>
+    <string name="notif_cancelled_text">%1$s fue cancelada por la operadora.</string>
+    <string name="notif_rescheduled_title">Actividad reprogramada</string>
+    <string name="notif_rescheduled_text">Cambió el horario de %1$s. Tocá para ver el voucher.</string>
+    <string name="notif_permission_denied">Sin permiso de notificaciones no podremos avisarte sobre tus actividades</string>
 </resources>
