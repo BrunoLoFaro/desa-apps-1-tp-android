@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
@@ -60,6 +62,7 @@ public class ExploreFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(ExploreViewModel.class);
+        NavController navController = Navigation.findNavController(view);
 
         MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.nav_explore));
@@ -86,6 +89,12 @@ public class ExploreFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         TourAdapter adapter = new TourAdapter(false, true);
         recycler.setAdapter(adapter);
+
+        adapter.setOnTourClickListener(activity -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("activity_data", activity);
+            navController.navigate(R.id.detailFragment, bundle);
+        });
 
         // Filter Toggle Logic
         btnToggleFilters.setOnClickListener(v -> {

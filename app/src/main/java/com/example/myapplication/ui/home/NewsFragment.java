@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -39,6 +41,7 @@ public class NewsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         newsViewModel = new ViewModelProvider(this).get(NewsViewModel.class);
+        NavController navController = Navigation.findNavController(view);
 
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
         RecyclerView recyclerView = view.findViewById(R.id.news_recycler_view);
@@ -48,6 +51,15 @@ public class NewsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         newsAdapter = new NewsAdapter();
         recyclerView.setAdapter(newsAdapter);
+
+        newsAdapter.setOnNewsClickListener(news -> {
+            Bundle bundle = new Bundle();
+            bundle.putLong("news_id", news.id);
+            if (news.relatedActivityId != null) {
+                bundle.putLong("related_activity_id", news.relatedActivityId);
+            }
+            navController.navigate(R.id.newsDetailFragment, bundle);
+        });
 
         swipeRefreshLayout.setOnRefreshListener(() -> {
             loadNews();

@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -32,6 +34,7 @@ public class FavoritesFragment extends Fragment {
     private SwipeRefreshLayout swipeRefreshLayout;
     private FavoritesViewModel viewModel;
     private FavoritesAdapter adapter;
+    private NavController navController;
 
     @Nullable
     @Override
@@ -48,6 +51,7 @@ public class FavoritesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(FavoritesViewModel.class);
+        navController = Navigation.findNavController(view);
 
         setupRecyclerView();
         setupSwipeRefresh();
@@ -59,7 +63,17 @@ public class FavoritesFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new FavoritesAdapter(activity -> viewModel.toggleFavorite(activity.getId(), false));
+        adapter = new FavoritesAdapter(
+                activity -> viewModel.toggleFavorite(activity.getId(), false),
+                (activity, scrollToBooking) -> {
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("activity_data", activity);
+                    if (scrollToBooking) {
+                        bundle.putBoolean("scroll_to_booking", true);
+                    }
+                    navController.navigate(R.id.detailFragment, bundle);
+                }
+        );
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewFavorites.setAdapter(adapter);
     }
@@ -108,6 +122,7 @@ public class FavoritesFragment extends Fragment {
         emptyView = null;
         progressBar = null;
         swipeRefreshLayout = null;
+        navController = null;
     }
 
     @Override

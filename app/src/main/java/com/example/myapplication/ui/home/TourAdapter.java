@@ -2,7 +2,6 @@ package com.example.myapplication.ui.home;
 
 import android.annotation.SuppressLint;
 import android.graphics.Paint;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
@@ -31,11 +29,16 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         void onFavoriteToggle(TourActivity activity, boolean targetFavorite);
     }
 
+    public interface OnTourClickListener {
+        void onTourClick(TourActivity activity);
+    }
+
     private List<TourActivity> tourActivities;
     private final boolean isHorizontal;
     private final boolean isCompact;
     private final boolean isFavoritesSection;
     private OnFavoriteToggleListener favoriteToggleListener;
+    private OnTourClickListener tourClickListener;
 
     public TourAdapter(boolean isHorizontal) {
         this(isHorizontal, isHorizontal, false);
@@ -59,6 +62,10 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
 
     public void setOnFavoriteToggleListener(OnFavoriteToggleListener listener) {
         this.favoriteToggleListener = listener;
+    }
+
+    public void setOnTourClickListener(OnTourClickListener listener) {
+        this.tourClickListener = listener;
     }
 
     @NonNull
@@ -262,9 +269,9 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         }
 
         View.OnClickListener detailListener = v -> {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("activity_data", activity);
-            Navigation.findNavController(v).navigate(R.id.detailFragment, bundle);
+            if (tourClickListener != null) {
+                tourClickListener.onTourClick(activity);
+            }
         };
 
         holder.itemView.setOnClickListener(detailListener);
