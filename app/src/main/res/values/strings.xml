@@ -137,6 +137,10 @@
     <string name="forgot_password_new_subtitle">Nueva contraseña</string>
     <string name="forgot_password_new_hint">Ingresá tu nueva contraseña para acceder a tu cuenta.</string>
     <string name="forgot_password_save_button">Guardar contraseña</string>
+    <string name="confirm_password_hint">Confirmar contraseña</string>
+    <string name="error_passwords_do_not_match">Las contraseñas no coinciden</string>
+    <string name="password_updated">Contraseña actualizada</string>
+    <string name="forgot_password_code_subtitle_format">Ingresá el código de 6 dígitos que enviamos a %1$s</string>
     <string name="signup_button">Registrarse</string>
     <string name="error_no_connection">No se pudo establecer conexión con el servidor. Verificá tu internet o la dirección IP.</string>
     <string name="error_timeout">La conexión expiró. Reintentá en unos momentos.</string>

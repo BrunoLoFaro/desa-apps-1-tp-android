@@ -133,11 +133,7 @@ public class LoginFragment extends BaseAuthFragment {
 
     @Override
     protected void navigateToHome() {
-        if (BiometricHelper.shouldShowEnrollment(requireContext())) {
-            navController.navigate(R.id.action_loginFragment_to_biometricEnrollFragment);
-        } else {
-            navigateToHomeDirect();
-        }
+        navigateToHomeDirect();
     }
 
     private boolean shouldOfferBiometricLogin() {
