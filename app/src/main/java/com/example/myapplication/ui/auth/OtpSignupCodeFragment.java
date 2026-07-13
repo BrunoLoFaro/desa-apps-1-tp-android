@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.auth.viewmodel.SignupViewModel;
@@ -144,6 +145,12 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
             }
         });
 
+        Toolbar localToolbar = view.findViewById(R.id.local_toolbar);
+        if (localToolbar != null) {
+            localToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
+            localToolbar.setNavigationOnClickListener(v -> navController.navigateUp());
+        }
+
         if (email == null || email.isEmpty()) {
             navController.navigateUp();
         }
@@ -151,7 +158,7 @@ public class OtpSignupCodeFragment extends BaseAuthFragment {
 
     @Override
     protected void navigateToHome() {
-        if (BiometricHelper.shouldShowEnrollment(requireContext())) {
+        if (SOURCE_REGISTRATION.equals(source) && BiometricHelper.shouldShowEnrollment(requireContext())) {
             navController.navigate(R.id.action_otpSignupCodeFragment_to_biometricEnrollFragment);
         } else {
             navController.navigate(R.id.action_otpSignupCodeFragment_to_homeFragment);
